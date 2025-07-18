@@ -1,0 +1,33 @@
+{{!
+    This file is part of the mod_bookit plugin for Moodle - http://moodle.org/
+
+    Master checklist template with a bootstrap table
+}}
+<div class="mod-bookit-master-checklist" id="mod-bookit-master-checklist">
+    <div>
+    <h3 id="mod-bookit-master-checklist-title">PLACEHOLDER</h3>
+    </div>
+    <table class="table table-hover" id="mod-bookit-master-checklist-table" data-master-checklist-id="{{id}}" data-master-checklist-name="{{name}}">
+        <thead>
+            <tr>
+            {{#tableheaders}}
+                <th scope="col">{{.}}</th>
+            {{/tableheaders}}
+            </tr>
+        </thead>
+        <tbody id="mod-bookit-master-checklist-tbody">
+            {{#checklistcategories}}
+                {{{.}}}
+            {{/checklistcategories}}
+            {{^checklistcategories}}
+            <tr>
+                <td colspan="5" class="text-center">no content found</td>
+            </tr>
+            {{/checklistcategories}}
+        </tbody>
+    </table>
+    <div class="">
+        <button type="button" class="btn btn-primary" id="add-checklist-category-button">{{#str}} new_checklistcategory, mod_bookit {{/str}}</button>
+        <button disabled type="button" class="btn btn-primary" id="add-checklist-item-button">{{#str}} new_checklistitem, mod_bookit {{/str}}</button>
+    </div>
+</div>

@@ -1,0 +1,18 @@
+{{!
+    This file is part of the mod_bookit plugin for Moodle - http://moodle.org/
+
+    Checklist category template with a bootstrap table row
+}}
+<tr class="table-active bookit-category"
+    data-bookit-category-id="{{id}}"
+    data-bookit-category-name="{{name}}"
+    data-bookit-category-order="{{order}}">
+                <td>{{name}}</td>
+                <td></td>
+                <td></td>
+                <td>{{#pix}} i/edit, core {{/pix}}</td>
+                <td>{{#pix}} t/sort, core {{/pix}}</td>
+</tr>
+{{#checklistitems}}
+    {{{.}}}
+{{/checklistitems}}
