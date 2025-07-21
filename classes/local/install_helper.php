@@ -227,7 +227,7 @@ class install_helper {
                     null
                 );
 
-                $itemid = $item->save_to_database();
+                $itemid = $item->save();
                 if ($verbose) {
                     mtrace("      Item ID: $itemid");
                 }
