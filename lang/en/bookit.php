@@ -103,6 +103,7 @@ $string['summer_semester'] = 'Summer Term';
 $string['winter_semester'] = 'Winter Term';
 $string['master_checklist'] = 'Master checklist';
 $string['checklistitem'] = 'Checklist item';
+$string['checklistcategory'] = 'Checklist category';
 $string['new_checklistitem'] = 'New checklist item';
 $string['new_checklistcategory'] = 'New checklist category';
 $string['responsibility'] = 'Responsibility';

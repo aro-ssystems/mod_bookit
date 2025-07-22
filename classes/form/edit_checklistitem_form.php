@@ -36,14 +36,33 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
-        $this->add_action_buttons();
+        // TODO get current master categories
+
+        $ajaxdata = $this->_ajaxformdata;
+        // TODO we have masterid and can get cats from database? => using js saves db calls
+        $categories = [];
+
+        if (!empty($ajaxdata['categories'])) {
+            error_log(print_r($ajaxdata['categories'], true));
+            foreach ($ajaxdata['categories'] as $cat) {
+                // Check for expected structure
+                if (isset($cat['id']) && isset($cat['title'])) {
+                    $categories[$cat['id']] = $cat['title'];
+                }
+            }
+        }
+        error_log("HERE");
+        error_log(print_r($categories, true));
+        $mform->addElement('select', 'categoryid', get_string('checklistcategory', 'mod_bookit'), $categories);
+
+        // $this->add_action_buttons();
     }
 
     /**
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
-        // require_capability('mod/bookit:managechecklists', $this->get_context_for_dynamic_submission());
+
     }
 
     /**
@@ -67,7 +86,7 @@ class edit_checklistitem_form extends dynamic_form {
     protected function get_page_url_for_dynamic_submission(): \moodle_url {
         if (!empty($this->_ajaxformdata['cmid'])) {
             $cmid = $this->_ajaxformdata['cmid'];
-            return new \moodle_url('/mod/bookit/view.php', ['id' => $cmid]);
+            return new \moodle_url('/mod/bookit/master_checklist.php', ['id' => $cmid]);
         }
         return new \moodle_url('/');
     }
@@ -78,11 +97,69 @@ class edit_checklistitem_form extends dynamic_form {
      * @return mixed
      */
     public function process_dynamic_submission() {
+        global $USER;
+
         $data = $this->get_data();
 
-        // TODO: Implement saving checklist item data
+        if (!empty($data->id)) {
 
-        return $data;
+            try {
+                $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($data->id);
+                $item->title = $data->title;
+                $item->description = $data->description ?? '';
+                $item->usermodified = $USER->id;
+                $item->timemodified = time();
+
+                $item->save();
+                return ['success' => true, 'message' => get_string('item_updated', 'mod_bookit'), 'id' => $item->id];
+            } catch (\Exception $e) {
+                return ['success' => false, 'message' => $e->getMessage()];
+            }
+        } else {
+
+            if (empty($data->masterid) || empty($data->categoryid)) {
+                return ['success' => false, 'message' => 'Missing masterid or categoryid'];
+            }
+            try {
+                $item = new \mod_bookit\local\entity\bookit_checklist_item(
+                    0,
+                    $data->masterid,
+                    $data->categoryid,
+                    null, // parentid
+                    $data->title,
+                    $data->description ?? '',
+                    1, // itemtype
+                    null, // options
+                    0, // sortorder
+                    0, // isrequired
+                    null, // defaultvalue
+                    0, // due_days_offset
+                    $USER->id,
+                    time(),
+                    time()
+                );
+
+                $id = $item->save();
+                return [
+                    [
+                        'name' => 'checklistitems',
+                        'action' => 'put',
+                        'fields' => [
+                            'id' => $id,
+                            'name' => $data->name,
+                            'order' => 0,
+                            'category' => $data->categoryid,
+                        ],
+                    ],
+                ];
+
+            } catch (\Exception $e) {
+                return ['success' => false, 'message' => $e->getMessage()];
+            }
+
+        }
+
+        // return $data;
     }
 
     /**
@@ -91,10 +168,29 @@ class edit_checklistitem_form extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
         $data = [];
 
+        if (!empty($this->_ajaxformdata['masterid'])) {
+            $data['masterid'] = $this->_ajaxformdata['masterid'];
+        }
+
+        if (!empty($this->_ajaxformdata['categoryid'])) {
+            $data['categoryid'] = $this->_ajaxformdata['categoryid'];
+        }
+
+        $categories = isset($this->_ajaxformdata['categories']) ? $this->_ajaxformdata['categories'] : [];
+
+
         if (!empty($this->_ajaxformdata['id'])) {
             $id = $this->_ajaxformdata['id'];
-            // TODO: Load existing checklist item data
-            // $data = get_checklist_item($id);
+
+            try {
+                $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($id);
+                $data['id'] = $item->id;
+                $data['masterid'] = $item->masterid;
+                $data['categoryid'] = $item->categoryid;
+                $data['title'] = $item->title;
+            } catch (\Exception $e) {
+                // Fehler beim Laden - mit leeren Daten fortfahren
+            }
         }
 
         $this->set_data($data);

@@ -58,7 +58,8 @@ export default class extends BaseComponent {
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\form\\edit_checklistitem_form",
             args: {
-                masterid: 1
+                masterid: 1,
+                categories: [{id: 1, title: 'Category 1'}, {id: 2, title: 'Category 2'}],
             },
             modalConfig: {
                 title: 'TITLE HERE',
