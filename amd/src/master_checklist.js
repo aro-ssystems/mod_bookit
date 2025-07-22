@@ -54,15 +54,17 @@ export default class extends BaseComponent {
     _handleAddChecklistItemButtonClick(event) {
         window.console.log('handle add checklist item button click');
 
+        window.console.log(Array.from(this.reactive.state.checklistcategories.values()));
+
         // TODO dont do this twice
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\form\\edit_checklistitem_form",
             args: {
                 masterid: 1,
-                categories: [{id: 1, title: 'Category 1'}, {id: 2, title: 'Category 2'}],
+                categories: Array.from(this.reactive.state.checklistcategories.values()),
             },
             modalConfig: {
-                title: 'TITLE HERE',
+                title: 'TITLE HERE', // TODO use lang string
             },
             // moduleName: 'mod_bookit/modal_checklistitem_form',
         });
@@ -78,7 +80,7 @@ export default class extends BaseComponent {
                 masterid: 1
             },
             modalConfig: {
-                title: 'Add Checklist Category',
+                title: 'Add Checklist Category', // TODO use lang string
             },
         });
 

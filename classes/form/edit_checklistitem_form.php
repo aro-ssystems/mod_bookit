@@ -46,8 +46,8 @@ class edit_checklistitem_form extends dynamic_form {
             error_log(print_r($ajaxdata['categories'], true));
             foreach ($ajaxdata['categories'] as $cat) {
                 // Check for expected structure
-                if (isset($cat['id']) && isset($cat['title'])) {
-                    $categories[$cat['id']] = $cat['title'];
+                if (isset($cat['id']) && isset($cat['name'])) {
+                    $categories[$cat['id']] = $cat['name'];
                 }
             }
         }
