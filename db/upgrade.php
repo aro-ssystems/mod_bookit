@@ -155,7 +155,6 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
 
         // Add indexes
         $table->add_index('masterid_sortorder', XMLDB_INDEX_NOTUNIQUE, ['masterid', 'sortorder']);
-        $table->add_index('categoryid', XMLDB_INDEX_NOTUNIQUE, ['categoryid']);
 
         // Create the table
         if (!$dbman->table_exists($table)) {

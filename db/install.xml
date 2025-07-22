@@ -162,7 +162,6 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="masterid_sortorder" UNIQUE="false" FIELDS="masterid, sortorder"/>
-        <INDEX NAME="categoryid" UNIQUE="false" FIELDS="categoryid"/>
       </INDEXES>
     </TABLE>
   </TABLES>
