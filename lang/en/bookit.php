@@ -142,3 +142,7 @@ $string['weekplan_assignment_overlaps'] = 'The entered period is overlapping an 
 $string['weekplan_room'] = 'Weekplan assignments to rooms';
 $string['weekplans'] = 'Week plans';
 $string['winter_semester'] = 'Winter Term';
+$string['normal_slot'] = 'Normal slot';
+$string['global_blocker'] = 'Global blocker';
+$string['local_blocker'] = 'Local blocker (only for this room)';
+$string['legend'] = 'Legend';
