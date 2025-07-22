@@ -54,6 +54,8 @@ class edit_checklistitem_form extends dynamic_form {
         error_log("HERE");
         error_log(print_r($categories, true));
         $mform->addElement('select', 'categoryid', get_string('checklistcategory', 'mod_bookit'), $categories);
+        $mform->setType('categoryid', PARAM_INT);
+        $mform->addRule('categoryid', null, 'required', null, 'client');
 
         // $this->add_action_buttons();
     }
@@ -101,11 +103,20 @@ class edit_checklistitem_form extends dynamic_form {
 
         $data = $this->get_data();
 
+        $ajaxdata = $this->_ajaxformdata;
+        error_log("AJAX data: " . print_r($ajaxdata, true));
+
+        if (empty($data->categoryid)) {
+            $data->categoryid = $ajaxdata['categoryid'] ?? null;
+        }
+
+        error_log("Creating new checklist item with data: " . print_r($data, true));
+
         if (!empty($data->id)) {
 
             try {
                 $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($data->id);
-                $item->title = $data->title;
+                $item->title = $data->name;
                 $item->description = $data->description ?? '';
                 $item->usermodified = $USER->id;
                 $item->timemodified = time();
@@ -117,16 +128,18 @@ class edit_checklistitem_form extends dynamic_form {
             }
         } else {
 
-            if (empty($data->masterid) || empty($data->categoryid)) {
+            // error_log("Creating new checklist item with data: " . print_r($data, true));
+
+            if (empty($data->categoryid)) {
                 return ['success' => false, 'message' => 'Missing masterid or categoryid'];
             }
             try {
                 $item = new \mod_bookit\local\entity\bookit_checklist_item(
                     0,
-                    $data->masterid,
+                    1,
                     $data->categoryid,
                     null, // parentid
-                    $data->title,
+                    $data->name,
                     $data->description ?? '',
                     1, // itemtype
                     null, // options
@@ -166,33 +179,39 @@ class edit_checklistitem_form extends dynamic_form {
      * Set data for the form.
      */
     public function set_data_for_dynamic_submission(): void {
-        $data = [];
 
-        if (!empty($this->_ajaxformdata['masterid'])) {
-            $data['masterid'] = $this->_ajaxformdata['masterid'];
-        }
+        error_log("Setting data for dynamic submission in edit_checklistitem_form");
 
-        if (!empty($this->_ajaxformdata['categoryid'])) {
-            $data['categoryid'] = $this->_ajaxformdata['categoryid'];
-        }
+        // $data = [];
 
-        $categories = isset($this->_ajaxformdata['categories']) ? $this->_ajaxformdata['categories'] : [];
+        // TODO check why no categoryid is send
+
+        // if (!empty($this->_ajaxformdata['masterid'])) {
+        //     $data['masterid'] = $this->_ajaxformdata['masterid'];
+        // }
+
+        // // if (!empty($this->_ajaxformdata['categoryid'])) {
+        // //     $data['categoryid'] = $this->_ajaxformdata['categoryid'];
+        // // }
+
+        // $categories = isset($this->_ajaxformdata['categories']) ? $this->_ajaxformdata['categories'] : [];
 
 
-        if (!empty($this->_ajaxformdata['id'])) {
-            $id = $this->_ajaxformdata['id'];
+        // if (!empty($this->_ajaxformdata['id'])) {
+        //     $id = $this->_ajaxformdata['id'];
 
-            try {
-                $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($id);
-                $data['id'] = $item->id;
-                $data['masterid'] = $item->masterid;
-                $data['categoryid'] = $item->categoryid;
-                $data['title'] = $item->title;
-            } catch (\Exception $e) {
-                // Fehler beim Laden - mit leeren Daten fortfahren
-            }
-        }
+        //     try {
+        //         $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($id);
+        //         $data['id'] = $item->id;
+        //         $data['masterid'] = $item->masterid;
+        //         $data['categoryid'] = $item->categoryid;
+        //         $data['title'] = $item->title;
+        //     } catch (\Exception $e) {
+        //         // Fehler beim Laden - mit leeren Daten fortfahren
+        //     }
+        // }
 
-        $this->set_data($data);
+        // $this->set_data($data);
+        return;
     }
 }
