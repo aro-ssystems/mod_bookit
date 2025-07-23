@@ -1,4 +1,6 @@
 import { BaseComponent } from 'core/reactive';
+import { masterChecklistReactiveInstance } from 'mod_bookit/master_checklist_reactive';
+import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalEvents from 'core/modal_events';
 import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
@@ -8,7 +10,16 @@ export default class extends BaseComponent {
     create(descriptor) {
 
         window.console.log('create component: ' + descriptor.reactive.name);
+        window.console.log("selectors in create master checklist: ", SELECTORS);
 
+    }
+
+    static init(target, selectors) {
+        return new this({
+            element: document.querySelector(target),
+            reactive: masterChecklistReactiveInstance,
+            selectors: selectors || SELECTORS,
+        });
     }
 
     getWatchers() {
@@ -111,7 +122,8 @@ export default class extends BaseComponent {
                 order: event.element.order
             })
             .then(({html, js}) => {
-                Templates.appendNodeContents(this.getElement(this.selectors.TABLE_BODY), html, js);
+                // Templates.appendNodeContents(this.getElement(this.selectors.TABLE_BODY), html, js);
+                Templates.appendNodeContents(this.getElement(this.selectors.TABLE), html, js);
             })
             .catch();
     }

@@ -81,7 +81,7 @@ class bookit_checklist_master implements \renderable, \templatable {
         /** @var ?int timemodified */
         public ?int $timemodified = null,
     ) {
-        global $USER;
+        global $USER, $PAGE;
 
         $now = time();
         $this->isdefault ??= 0;
@@ -89,6 +89,8 @@ class bookit_checklist_master implements \renderable, \templatable {
         $this->usermodified ??= $USER->id;
         $this->timecreated ??= $now;
         $this->timemodified ??= $now;
+
+        $PAGE->requires->js_call_amd('mod_bookit/master_checklist_reactive', 'init', ['mod-bookit-master-checklist']);
     }
 
     /**

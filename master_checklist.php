@@ -62,6 +62,6 @@ $output = $PAGE->get_renderer('mod_bookit');
 
 echo $output->render($defaultchecklistmaster);
 
-$PAGE->requires->js_call_amd('mod_bookit/master_checklist_reactive', 'init', ['mod-bookit-master-checklist']);
+// $PAGE->requires->js_call_amd('mod_bookit/master_checklist_reactive', 'init', ['mod-bookit-master-checklist']);
 
 echo $OUTPUT->footer();

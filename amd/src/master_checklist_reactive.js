@@ -2,7 +2,7 @@ import { Reactive } from 'core/reactive';
 import Mutations from 'mod_bookit/master_checklist_mutations';
 import MasterChecklist from 'mod_bookit/master_checklist';
 
-const SELECTORS = {
+export const SELECTORS = {
             TABLE: '#mod-bookit-master-checklist-table',
             ADD_CHECKLIST_CATEGORY_BUTTON: '#add-checklist-category-button',
             ADD_CHECKLIST_ITEM_BUTTON: '#add-checklist-item-button',
@@ -15,26 +15,35 @@ const SELECTORS = {
 
 const EVENTNAME = 'mod_bookit:master_checklist_state_event'
 
-export const init = (elementId) => {
-
-    window.console.log('THIS IS REACTIVE');
-
-    const masterChecklistReactiveInstance = new Reactive({
+export const masterChecklistReactiveInstance = new Reactive({
         eventName: EVENTNAME,
         eventDispatch: dispatchMasterChecklistStateEvent,
-        target: document.getElementById(elementId),
+        // target: document.getElementById(elementId),
         mutations: new Mutations(),
         name: 'Moodle Bookit Master Checklist',
         // state: {}
     });
 
+export const init = (elementId) => {
+
+    window.console.log('THIS IS REACTIVE');
+
+    // const masterChecklistReactiveInstance = new Reactive({
+    //     eventName: EVENTNAME,
+    //     eventDispatch: dispatchMasterChecklistStateEvent,
+    //     target: document.getElementById(elementId),
+    //     mutations: new Mutations(),
+    //     name: 'Moodle Bookit Master Checklist',
+    //     // state: {}
+    // });
+
     loadState(masterChecklistReactiveInstance);
 
-    return new MasterChecklist({
-        element: document.getElementById(elementId),
-        reactive: masterChecklistReactiveInstance,
-        selectors: SELECTORS,
-    });
+    // return new MasterChecklist({
+    //     element: document.getElementById(elementId),
+    //     reactive: masterChecklistReactiveInstance,
+    //     selectors: SELECTORS,
+    // });
 }
 
 function dispatchMasterChecklistStateEvent(detail, target) {
