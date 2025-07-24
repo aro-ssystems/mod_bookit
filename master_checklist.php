@@ -31,18 +31,24 @@ global $CFG, $OUTPUT;
 use mod_bookit\local\entity\bookit_checklist_master;
 // use mod_bookit\local\manager\checklist_manager;
 
-admin_externalpage_setup('mod_bookit_master_checklist');
+require_login();
+
+$PAGE->set_context(context_system::instance());
+
+// admin_externalpage_setup('mod_bookit_master_checklist');
 $PAGE->set_url(new moodle_url('/mod/bookit/master_checklist.php'));
 $PAGE->set_heading(get_string('master_checklist', 'mod_bookit'));
+// $PAGE->set_context(context_system::instance());
+$PAGE->set_pagelayout('standard');
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->render(new \core\output\single_button(
-    new moodle_url('/mod/bookit/master_checklist.php'),
-    get_string('master_checklist', 'mod_bookit'),
-    'get',
-    single_button::BUTTON_PRIMARY
-)) . '<br><br>';
+// echo $OUTPUT->render(new \core\output\single_button(
+//     new moodle_url('/mod/bookit/master_checklist.php'),
+//     get_string('master_checklist', 'mod_bookit'),
+//     'get',
+//     single_button::BUTTON_PRIMARY
+// )) . '<br><br>';
 
 
 $defaultchecklistmaster = checklist_manager::get_default_master();

@@ -4,9 +4,30 @@
     Master checklist template with a bootstrap table
 }}
 <div class="mod-bookit-master-checklist" id="mod-bookit-master-checklist">
-    <div>
+    <div class="d-none">
     <h3 id="mod-bookit-master-checklist-title">PLACEHOLDER</h3>
     </div>
+    <div>
+    <form>
+        <div class="form-group d-flex mx-n2 my-5 py-2">
+            <select class="form-control mx-2 w-25" id="bookit-role-select" name="roleid">
+            <option selected>{{#str}} role, mod_bookit {{/str}}</option>
+            {{#roles}}
+                <option value="{{id}}" data-bookit-roleoption="{{id}}">{{name}}</option>
+            {{/roles}}
+            </select>
+            <select class="form-control mx-2 w-25" id="bookit-room-select" name="roomid">
+            <option selected>{{#str}} room, mod_bookit {{/str}}</option>
+            {{#rooms}}
+                <option value="{{id}}" data-bookit-roomoption="{{id}}">{{name}}</option>
+            {{/rooms}}
+            </select>
+                    <button type="button" class="btn btn-primary mx-2" id="add-checklist-category-button">{{#str}} new_checklistcategory, mod_bookit {{/str}}</button>
+        <button type="button" class="btn btn-primary mx-2" id="add-checklist-item-button">{{#str}} new_checklistitem, mod_bookit {{/str}}</button>
+        </div>
+    </form>
+    </div>
+
     <table class="table table-hover rounded shadow p-4" id="mod-bookit-master-checklist-table"
         data-master-checklist-id="{{id}}"
         data-master-checklist-name="{{name}}">
@@ -28,10 +49,6 @@
             {{/checklistcategories}}
         {{! </tbody> }}
     </table>
-    <div class="">
-        <button type="button" class="btn btn-primary" id="add-checklist-category-button">{{#str}} new_checklistcategory, mod_bookit {{/str}}</button>
-        <button type="button" class="btn btn-primary" id="add-checklist-item-button">{{#str}} new_checklistitem, mod_bookit {{/str}}</button>
-    </div>
 </div>
 {{#js}}
 require(['mod_bookit/master_checklist'], function(component) {

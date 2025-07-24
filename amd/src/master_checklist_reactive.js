@@ -1,6 +1,7 @@
 import { Reactive } from 'core/reactive';
 import Mutations from 'mod_bookit/master_checklist_mutations';
 import MasterChecklist from 'mod_bookit/master_checklist';
+import { act } from 'react';
 
 export const SELECTORS = {
             TABLE: '#mod-bookit-master-checklist-table',
@@ -10,6 +11,8 @@ export const SELECTORS = {
             ALL_CATEGORY_TABLE_ROWS: 'tr[data-bookit-category-id]',
             ALL_ITEM_TABLE_ROWS: 'tr[data-bookit-checklistitem-id]',
             TABLE_BODY: '#mod-bookit-master-checklist-tbody',
+            ALL_ROLE_OPTIONS: 'option[data-bookit-roleoption]',
+            ALL_ROOM_OPTIONS: 'option[data-bookit-roomoption]',
         };
 
 
@@ -89,6 +92,14 @@ const loadState = async(reactive) => {
         },
         checklistcategories: [],
         checklistitems: [],
+        roles: [],
+        rooms: [],
+        activeRole: {
+            id: 1,
+        },
+        activeRoom: {
+            id: 1,
+        },
     };
     const checklistCategoryRows = document.querySelectorAll(SELECTORS.ALL_CATEGORY_TABLE_ROWS);
     checklistCategoryRows.forEach(categoryRow => {

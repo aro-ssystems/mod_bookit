@@ -106,6 +106,7 @@ class checklist_manager {
 
         $systemcontext = \context_system::instance();
         $roles = get_all_roles();
+        // error_log('Debugging get_bookit_roles: ' . print_r($roles, true));
         $rolenames = role_fix_names($roles, $systemcontext, ROLENAME_ORIGINAL);
         $bookitroles = [];
         foreach ($roles as $role) {
@@ -121,7 +122,7 @@ class checklist_manager {
         $categories = categories_manager::get_categories();
 
         $roomsArray = array_filter($categories, fn($cat) => $cat['name'] === 'Rooms');
-        $rooms = reset($roomsArray);
+        $rooms = reset($roomsArray)['resources'];
 
         return $rooms;
 

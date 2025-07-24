@@ -89,25 +89,39 @@ class edit_checklistitem_form extends dynamic_form {
         $alltypes = bookit_notification_slot::get_all_notification_slot_types();
 
         foreach ($alltypes as $slottype => $val) {
-            $notification = new bookit_notification_slot(
-            null,
-            1,
-            constant("\mod_bookit\\local\\entity\\bookit_notification_slot::$slottype"),
-            null,
-            null,
-            null,
-            0,
-            null,
-            $USER->id,
-            time(),
-            time()
-        );
+            $notificationslot = new bookit_notification_slot(
+                null,
+                1,
+                constant("\mod_bookit\\local\\entity\\bookit_notification_slot::$slottype"),
+                null,
+                null,
+                null,
+                0,
+                null,
+                $USER->id,
+                time(),
+                time()
+            );
+            // $mform->addElement('html', '<div style="border: 1px solid #ccc;">');
 
-        $output = $PAGE->get_renderer('mod_bookit');
+            $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
 
-        $html = $output->render($notification);
+            $select = $mform->addElement('select', strtolower($slottype) . '_recipient', get_string('recipient', 'mod_bookit'), array('Me', 'You', 'Him', 'Her', 'Them'));
+            $select->setMultiple(true);
 
-        $mform->addElement('html', $html);
+            $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
+
+            $mform->addElement('duration', strtolower($slottype) . 'time', get_string('time', 'mod_bookit'));
+
+            $mform->hideIf(strtolower($slottype) . 'time', strtolower($slottype));
+
+            // $mform->addElement('html', '</div>');
+
+        // $output = $PAGE->get_renderer('mod_bookit');
+
+        // $html = $output->render($notificationslot);
+
+        // $mform->addElement('html', $html);
         }
 
         $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
