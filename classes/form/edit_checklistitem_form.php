@@ -64,10 +64,35 @@ class edit_checklistitem_form extends dynamic_form {
 
         // $this->add_action_buttons();
 
-        $notification = new bookit_notification_slot(
+        // $notification = new bookit_notification_slot(
+        //     null,
+        //     1,
+        //     bookit_notification_slot::TYPE_BEFORE_DUE,
+        //     null,
+        //     null,
+        //     null,
+        //     0,
+        //     null,
+        //     $USER->id,
+        //     time(),
+        //     time()
+        // );
+
+        // $output = $PAGE->get_renderer('mod_bookit');
+
+        // $html = $output->render($notification);
+
+        // $mform->addElement('html', $html);
+
+        // TODO foreach this
+
+        $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+
+        foreach ($alltypes as $slottype => $val) {
+            $notification = new bookit_notification_slot(
             null,
             1,
-            bookit_notification_slot::TYPE_BEFORE_DUE,
+            constant("\mod_bookit\\local\\entity\\bookit_notification_slot::$slottype"),
             null,
             null,
             null,
@@ -83,10 +108,7 @@ class edit_checklistitem_form extends dynamic_form {
         $html = $output->render($notification);
 
         $mform->addElement('html', $html);
-
-        // TODO foreach this
-
-        $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+        }
 
         $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
                                                 array_keys($alltypes));

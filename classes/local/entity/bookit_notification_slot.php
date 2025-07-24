@@ -26,6 +26,7 @@
 namespace mod_bookit\local\entity;
 
 use dml_exception;
+use mod_bookit\local\manager\checklist_manager;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -225,6 +226,7 @@ class bookit_notification_slot implements \renderable, \templatable {
         $data->id = $this->id;
         $data->checklistitemid = $this->checklistitemid;
         $data->type = $this->type;
+        $data->typename = checklist_manager::get_notification_slot_type($this->type);
         $data->roleids = $this->get_role_ids();
         $data->duedaysoffset = $this->duedaysoffset;
         $data->duedaysrelation = $this->duedaysrelation;
