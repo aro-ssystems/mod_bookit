@@ -164,6 +164,31 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
             $dbman->create_table($table);
         }
 
+        // Create table bookit_notification_slots.
+        $table = new xmldb_table('bookit_notification_slots');
+
+        // Add fields
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('checklistitemid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('roleids', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('duedaysoffset', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('duedaysrelation', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('isactive', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1');
+        $table->add_field('messagetext', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Add keys
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('checklistitemid', XMLDB_KEY_FOREIGN, ['checklistitemid'], 'bookit_checklist_item', ['id']);
+        $table->add_key('usermodified', XMLDB_KEY_FOREIGN, ['usermodified'], 'user', ['id']);
+
+        // Create the table
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
         // Bookit savepoint reached.
         upgrade_mod_savepoint(true, 2025050500, 'bookit');
     }
