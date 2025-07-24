@@ -27,6 +27,7 @@ namespace mod_bookit\form;
 
 use core_form\dynamic_form;
 use mod_bookit\local\entity\bookit_notification_slot;
+use mod_bookit\local\manager\checklist_manager;
 
 class edit_checklistitem_form extends dynamic_form {
 
@@ -70,7 +71,7 @@ class edit_checklistitem_form extends dynamic_form {
             null,
             null,
             null,
-            1,
+            0,
             null,
             $USER->id,
             time(),
@@ -82,6 +83,19 @@ class edit_checklistitem_form extends dynamic_form {
         $html = $output->render($notification);
 
         $mform->addElement('html', $html);
+
+        // TODO foreach this
+
+        $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+
+        $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
+                                                array_keys($alltypes));
+
+        $json = json_encode($alltypenames);
+        $mform->addElement('html', $json);
+
+        $jsontypes = json_encode(array_keys($alltypes));
+        $mform->addElement('html', $jsontypes);
     }
 
     /**

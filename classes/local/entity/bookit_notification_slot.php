@@ -183,6 +183,13 @@ class bookit_notification_slot implements \renderable, \templatable {
         return $DB->delete_records("bookit_notification_slots", ["id" => $this->id]);
     }
 
+    public static function get_all_notification_slot_types(): array {
+        $reflection = new \ReflectionClass(self::class);
+        $constants = $reflection->getConstants();
+
+        return $constants;
+    }
+
     /**
      * Get the role IDs as an array
      *

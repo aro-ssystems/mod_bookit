@@ -1,5 +1,9 @@
-<div>
+<div class="form-group">
     <p>Notification Slot</p>
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+        <label class="form-check-label" for="exampleCheck1">Check me out</label>
+    </div>
     <p>Type: {{#type}}{{type}}{{/type}}{{^type}}N/A{{/type}}</p>
     <p>Role IDs: {{#roleids}}{{roleids}}{{/roleids}}{{^roleids}}N/A{{/roleids}}</p>
     <p>Due Days Offset: {{#duedaysoffset}}{{duedaysoffset}}{{/duedaysoffset}}{{^duedaysoffset}}N/A{{/duedaysoffset}}</p>

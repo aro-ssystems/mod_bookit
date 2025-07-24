@@ -27,6 +27,7 @@ use dml_exception;
 use mod_bookit\local\entity\bookit_checklist_master;
 use mod_bookit\local\entity\bookit_checklist_category;
 use mod_bookit\local\entity\bookit_checklist_item;
+use mod_bookit\local\entity\bookit_notification_slot;
 
 /**
  * Checklist manager class.
@@ -132,6 +133,21 @@ class checklist_manager {
         $constants = $reflection->getConstants();
 
         $constantname = array_search($state, $constants, true);
+
+        if (!$constantname) {
+            $constantname = array_search(0, $constants, true);
+        }
+
+        return get_string(strtolower($constantname), 'mod_bookit');
+
+    }
+
+    public static function get_notification_slot_type(int $type): string {
+
+        $reflection = new \ReflectionClass(bookit_notification_slot::class);
+        $constants = $reflection->getConstants();
+
+        $constantname = array_search($type, $constants, true);
 
         if (!$constantname) {
             $constantname = array_search(0, $constants, true);

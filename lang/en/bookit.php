@@ -115,3 +115,7 @@ $string['item_state_open'] = 'Open';
 $string['item_state_processing'] = 'Processing';
 $string['item_state_done'] = 'Done';
 $string['item_state_unknown'] = 'Unknown';
+$string['type_before_due'] = 'Before due';
+$string['type_when_due'] = 'When due';
+$string['type_overdue'] = 'When overdue';
+$string['type_when_done'] = 'When done';
