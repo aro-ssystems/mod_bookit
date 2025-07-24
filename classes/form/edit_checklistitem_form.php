@@ -26,10 +26,14 @@
 namespace mod_bookit\form;
 
 use core_form\dynamic_form;
+use mod_bookit\local\entity\bookit_notification_slot;
 
 class edit_checklistitem_form extends dynamic_form {
 
     public function definition() {
+
+        global $PAGE, $USER;
+
         $mform = $this->_form;
 
         $mform->addElement('text', 'name', get_string('pluginname', 'mod_bookit'));
@@ -58,6 +62,26 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->addRule('categoryid', null, 'required', null, 'client');
 
         // $this->add_action_buttons();
+
+        $notification = new bookit_notification_slot(
+            null,
+            1,
+            bookit_notification_slot::TYPE_BEFORE_DUE,
+            null,
+            null,
+            null,
+            1,
+            null,
+            $USER->id,
+            time(),
+            time()
+        );
+
+        $output = $PAGE->get_renderer('mod_bookit');
+
+        $html = $output->render($notification);
+
+        $mform->addElement('html', $html);
     }
 
     /**

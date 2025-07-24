@@ -87,7 +87,7 @@ class bookit_checklist_item implements \renderable, \templatable {
         /** @var ?string defaultvalue */
         public ?string $defaultvalue,
         /** @var ?int due_days_offset */
-        public ?int $due_days_offset,
+        public ?int $duedaysoffset,
         /** @var ?int usermodified */
         public ?int $usermodified,
         /** @var ?int timecreated */
@@ -131,7 +131,7 @@ class bookit_checklist_item implements \renderable, \templatable {
                 $record->sortorder,
                 $record->isrequired,
                 $record->defaultvalue,
-                $record->due_days_offset,
+                $record->duedaysoffset,
                 $record->usermodified,
                 $record->timecreated,
                 $record->timemodified
@@ -158,7 +158,7 @@ class bookit_checklist_item implements \renderable, \templatable {
         $record->sortorder = $this->sortorder;
         $record->isrequired = $this->isrequired;
         $record->defaultvalue = $this->defaultvalue;
-        $record->due_days_offset = $this->due_days_offset;
+        $record->duedaysoffset = $this->duedaysoffset;
         $record->usermodified = $USER->id;
         $record->timemodified = time();
 
