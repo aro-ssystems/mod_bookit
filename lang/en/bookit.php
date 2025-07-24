@@ -111,3 +111,7 @@ $string['category_name'] = 'Category name';
 $string['edit'] = 'Edit';
 $string['sort'] = 'Sort';
 $string['room'] = 'Room';
+$string['item_state_open'] = 'Open';
+$string['item_state_processing'] = 'Processing';
+$string['item_state_done'] = 'Done';
+$string['item_state_unknown'] = 'Unknown';

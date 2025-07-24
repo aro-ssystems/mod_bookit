@@ -39,6 +39,11 @@ defined('MOODLE_INTERNAL') || die();
  */
 class bookit_checklist_item implements \renderable, \templatable {
 
+    public const ITEM_STATE_OPEN = 1;
+    public const ITEM_STATE_PROCESSING = 2;
+    public const ITEM_STATE_DONE = 3;
+    public const ITEM_STATE_UNKNOWN = 0;
+
     /**
      * Create a new instance of this class.
      *

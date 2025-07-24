@@ -99,4 +99,46 @@ class checklist_manager {
         return array_map(fn($record) => bookit_checklist_item::from_record($record), $records);
     }
 
+    public static function get_bookit_roles() {
+
+        $target_shortnames = ['bookingperson', 'examiner', 'observer', 'serviceteam', 'supportonside'];
+
+        $systemcontext = \context_system::instance();
+        $roles = get_all_roles();
+        $rolenames = role_fix_names($roles, $systemcontext, ROLENAME_ORIGINAL);
+        $bookitroles = [];
+        foreach ($roles as $role) {
+            if (in_array($role->shortname, $target_shortnames)) {
+                $bookitroles[] = $role;
+            }
+        }
+        return $bookitroles;
+    }
+
+    public static function get_bookit_rooms() {
+
+        $categories = categories_manager::get_categories();
+
+        $roomsArray = array_filter($categories, fn($cat) => $cat['name'] === 'Rooms');
+        $rooms = reset($roomsArray);
+
+        return $rooms;
+
+    }
+
+    public static function get_checklistitem_statename(int $state): string {
+
+        $reflection = new \ReflectionClass(bookit_checklist_item::class);
+        $constants = $reflection->getConstants();
+
+        $constantname = array_search($state, $constants, true);
+
+        if (!$constantname) {
+            $constantname = array_search(0, $constants, true);
+        }
+
+        return get_string(strtolower($constantname), 'mod_bookit');
+
+    }
+
 }

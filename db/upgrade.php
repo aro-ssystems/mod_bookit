@@ -134,6 +134,8 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
         $table->add_field('masterid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('categoryid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('parentid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('roomid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('roleid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('title', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('description', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $table->add_field('itemtype', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '1');
@@ -141,7 +143,8 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
         $table->add_field('sortorder', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('isrequired', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('defaultvalue', XMLDB_TYPE_TEXT, null, null, null, null, null);
-        $table->add_field('due_days_offset', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('duedaysoffset', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('duedaysrelation', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
