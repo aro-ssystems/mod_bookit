@@ -39,11 +39,19 @@ defined('MOODLE_INTERNAL') || die();
  */
 class bookit_notification_slot implements \renderable, \templatable {
 
+    const TYPE_BEFORE_DUE = 0;
+    const TYPE_WHEN_DUE = 1;
+    const TYPE_OVERDUE = 2;
+    const TYPE_WHEN_DONE = 3;
+
+
+
     /**
      * Create a new instance of this class.
      *
      * @param int|null $id
      * @param int $checklistitemid
+     * @param int $type Type of notification (e.g. email, dashboard, etc.)
      * @param string|null $roleids JSON-encoded list of role IDs to notify
      * @param int|null $duedaysoffset
      * @param int|null $duedaysrelation
@@ -58,6 +66,8 @@ class bookit_notification_slot implements \renderable, \templatable {
         public ?int $id,
         /** @var int checklistitemid */
         public int $checklistitemid,
+        /** @var int type */
+        public int $type,
         /** @var string|null roleids */
         public ?string $roleids,
         /** @var int|null duedaysoffset */
@@ -65,7 +75,7 @@ class bookit_notification_slot implements \renderable, \templatable {
         /** @var int|null duedaysrelation */
         public ?int $duedaysrelation,
         /** @var int isactive */
-        public int $isactive = 1,
+        public int $isactive = 0,
         /** @var string|null messagetext */
         public ?string $messagetext,
         /** @var int|null usermodified */
@@ -119,6 +129,7 @@ class bookit_notification_slot implements \renderable, \templatable {
         return new self(
                 $record->id ?? null,
                 $record->checklistitemid,
+                $record->type ?? 0,
                 $record->roleids,
                 $record->duedaysoffset,
                 $record->duedaysrelation,
@@ -141,6 +152,7 @@ class bookit_notification_slot implements \renderable, \templatable {
 
         $record = new \stdClass();
         $record->checklistitemid = $this->checklistitemid;
+        $record->type = $this->type;
         $record->roleids = $this->roleids;
         $record->duedaysoffset = $this->duedaysoffset;
         $record->duedaysrelation = $this->duedaysrelation;
@@ -205,6 +217,7 @@ class bookit_notification_slot implements \renderable, \templatable {
 
         $data->id = $this->id;
         $data->checklistitemid = $this->checklistitemid;
+        $data->type = $this->type;
         $data->roleids = $this->get_role_ids();
         $data->duedaysoffset = $this->duedaysoffset;
         $data->duedaysrelation = $this->duedaysrelation;
