@@ -111,9 +111,9 @@ class edit_checklistitem_form extends dynamic_form {
 
             $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
 
-            $mform->addElement('duration', strtolower($slottype) . 'time', get_string('time', 'mod_bookit'));
+            $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
 
-            $mform->hideIf(strtolower($slottype) . 'time', strtolower($slottype));
+            $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
 
             // $mform->addElement('html', '</div>');
 
