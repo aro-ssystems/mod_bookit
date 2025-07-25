@@ -209,13 +209,32 @@ class install_helper {
                     mtrace("    Creating item: $itemname");
                 }
 
+                // Randomly select a room and role if available
+                $roomid = null;
+                $roleid = null;
+
+                    $rooms = \mod_bookit\local\manager\checklist_manager::get_bookit_rooms();
+                    if (!empty($rooms)) {
+                        $room = $rooms[array_rand($rooms)];
+                        $roomid = $room['id'];
+                    }
+
+                    $roles = \mod_bookit\local\manager\checklist_manager::get_bookit_roles();
+                    if (!empty($roles)) {
+                        $role = $roles[array_rand($roles)];
+                        $roleid = $role->id;
+                    }
+
+
                 $item = new bookit_checklist_item(
                     0, // ID will be set by save_to_database
                     $masterid,
                     $categoryid,
                     null, // No parent
-                    $desc,
+                    $roomid, // Room ID (may be null)
+                    $roleid, // Role ID (may be null)
                     $itemname,
+                    $desc,
                     $itemtype,
                     $options,
                     $i + 1, // sortorder

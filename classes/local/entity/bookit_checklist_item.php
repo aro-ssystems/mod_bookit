@@ -51,6 +51,8 @@ class bookit_checklist_item implements \renderable, \templatable {
      * @param int $masterid
      * @param int|null $categoryid
      * @param int|null $parentid
+     * @param int|null $roomid
+     * @param int|null $roleid
      * @param string $title
      * @param string $description
      * @param int $itemtype
@@ -72,6 +74,10 @@ class bookit_checklist_item implements \renderable, \templatable {
         public ?int $categoryid,
         /** @var ?int parentid */
         public ?int $parentid,
+        /** @var ?int roomid */
+        public ?int $roomid,
+        /** @var ?int roleid */
+        public ?int $roleid,
         /** @var string title */
         public string $title,
         /** @var string description */
@@ -124,6 +130,8 @@ class bookit_checklist_item implements \renderable, \templatable {
                 $record->masterid,
                 $record->categoryid,
                 $record->parentid,
+                $record->roomid,
+                $record->roleid,
                 $record->title,
                 $record->description,
                 $record->itemtype,
@@ -151,6 +159,8 @@ class bookit_checklist_item implements \renderable, \templatable {
         $record->masterid = $this->masterid;
         $record->categoryid = $this->categoryid;
         $record->parentid = $this->parentid;
+        $record->roomid = $this->roomid;
+        $record->roleid = $this->roleid;
         $record->title = $this->title;
         $record->description = $this->description;
         $record->itemtype = $this->itemtype;
@@ -201,6 +211,14 @@ class bookit_checklist_item implements \renderable, \templatable {
         $data->name = $this->title;
         $data->order = $this->sortorder;
         $data->categoryid = $this->categoryid;
+
+        $allrooms = \mod_bookit\local\manager\checklist_manager::get_bookit_rooms();
+        $match = array_filter($allrooms, fn($item) => $item['id'] == $this->roomid);
+        if (!empty($match)) {
+
+            $data->roomid = $this->roomid;
+            $data->roomname = reset($match)['name'];
+        }
 
         return $data;
     }

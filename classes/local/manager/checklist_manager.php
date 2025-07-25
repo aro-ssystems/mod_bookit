@@ -47,7 +47,7 @@ class checklist_manager {
      */
     public static function get_default_master(): ?bookit_checklist_master {
         global $DB;
-        $record = $DB->get_record("bookit_checklist_master", ["isdefault" => 1]);
+        $record = $DB->get_record("bookit_checklist_master", ["isdefault" => 1], '*', IGNORE_MULTIPLE);
         if (!$record) {
             return null;
         }
