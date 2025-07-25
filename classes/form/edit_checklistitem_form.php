@@ -37,7 +37,7 @@ class edit_checklistitem_form extends dynamic_form {
 
         $mform = $this->_form;
 
-        $mform->addElement('text', 'name', get_string('pluginname', 'mod_bookit'));
+        $mform->addElement('text', 'name', get_string('pluginname', 'mod_bookit'),  ['style'=>'width:50%;']);
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
@@ -58,7 +58,7 @@ class edit_checklistitem_form extends dynamic_form {
         }
         error_log("HERE");
         error_log(print_r($categories, true));
-        $mform->addElement('select', 'categoryid', get_string('checklistcategory', 'mod_bookit'), $categories);
+        $mform->addElement('select', 'categoryid', get_string('checklistcategory', 'mod_bookit'), $categories, ['style'=>'width:50%;']);
         $mform->setType('categoryid', PARAM_INT);
         $mform->addRule('categoryid', null, 'required', null, 'client');
 
@@ -106,7 +106,13 @@ class edit_checklistitem_form extends dynamic_form {
 
             $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
 
-            $select = $mform->addElement('select', strtolower($slottype) . '_recipient', get_string('recipient', 'mod_bookit'), array('Me', 'You', 'Him', 'Her', 'Them'));
+            $allroles = array_map(fn($role) => $role->name, checklist_manager::get_bookit_roles());
+
+            $select = $mform->addElement('select',
+                    strtolower($slottype) . '_recipient',
+                    get_string('recipient', 'mod_bookit'),
+                    $allroles,
+                    ['style'=>'width:50%;']);
             $select->setMultiple(true);
 
             $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
