@@ -49,12 +49,7 @@ class edit_checklistitem_form extends dynamic_form {
 
         if (!empty($ajaxdata['categories'])) {
             error_log(print_r($ajaxdata['categories'], true));
-            foreach ($ajaxdata['categories'] as $cat) {
-                // Check for expected structure
-                if (isset($cat['id']) && isset($cat['name'])) {
-                    $categories[$cat['id']] = $cat['name'];
-                }
-            }
+            $categories = array_column($ajaxdata['categories'], 'name', 'id');
         }
         error_log("HERE");
         error_log(print_r($categories, true));
@@ -89,24 +84,24 @@ class edit_checklistitem_form extends dynamic_form {
         $alltypes = bookit_notification_slot::get_all_notification_slot_types();
 
         foreach ($alltypes as $slottype => $val) {
-            $notificationslot = new bookit_notification_slot(
-                null,
-                1,
-                constant("\mod_bookit\\local\\entity\\bookit_notification_slot::$slottype"),
-                null,
-                null,
-                null,
-                0,
-                null,
-                $USER->id,
-                time(),
-                time()
-            );
+            // $notificationslot = new bookit_notification_slot(
+            //     null,
+            //     1,
+            //     constant("\mod_bookit\\local\\entity\\bookit_notification_slot::$slottype"),
+            //     null,
+            //     null,
+            //     null,
+            //     0,
+            //     null,
+            //     $USER->id,
+            //     time(),
+            //     time()
+            // );
             // $mform->addElement('html', '<div style="border: 1px solid #ccc;">');
 
             $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
 
-            $allroles = array_map(fn($role) => $role->name, checklist_manager::get_bookit_roles());
+            $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
 
             $select = $mform->addElement('select',
                     strtolower($slottype) . '_recipient',
