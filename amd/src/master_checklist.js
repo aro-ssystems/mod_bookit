@@ -27,6 +27,7 @@ export default class extends BaseComponent {
         return [
             {watch: 'state:updated', handler: this._handleStateEvent},
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
+            {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
         ];
     }
 
@@ -77,7 +78,11 @@ export default class extends BaseComponent {
             modalConfig: {
                 title: 'TITLE HERE', // TODO use lang string
             },
-            // moduleName: 'mod_bookit/modal_checklistitem_form',
+
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
         });
 
         modalForm.show();
@@ -126,6 +131,34 @@ export default class extends BaseComponent {
                 Templates.appendNodeContents(this.getElement(this.selectors.TABLE), html, js);
             })
             .catch();
+    }
+
+    _handleItemCreatedEvent(event) {
+        window.console.log('handle item created event');
+        window.console.log(event.element);
+
+        const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.category}`);
+        // const targetElement2 = document.querySelector(`#bookit-master-checklist-tbody-category-${event.element.categoryid}`);
+
+        window.console.log('target element for item: ', targetElement);
+        // window.console.log('target element 2 for item: ', targetElement2);
+
+        Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+            {
+                id: event.element.id,
+                name: event.element.name,
+                order: event.element.order,
+                categoryid: event.element.category
+            })
+            .then(({html, js}) => {
+                window.console.log('rendered item');
+                window.console.log(html);
+                // window.console.log(js);
+                Templates.appendNodeContents(targetElement, html, js);
+            })
+            .catch(error => {
+                window.console.error('Error rendering checklist item:', error);
+            });
     }
 
 }

@@ -41,6 +41,8 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
+        $mform->addElement('hidden', 'roomid', 1);
+        $mform->addElement('hidden', 'roleid', 11);
         // TODO get current master categories
 
         $ajaxdata = $this->_ajaxformdata;
@@ -214,6 +216,8 @@ class edit_checklistitem_form extends dynamic_form {
                     1,
                     $data->categoryid,
                     null, // parentid
+                    $data->roomid,
+                    $data->roleid,
                     $data->name,
                     $data->description ?? '',
                     1, // itemtype

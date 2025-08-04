@@ -3,7 +3,7 @@
 
     Checklist category template with a bootstrap table row
 }}
-<tr class="table-default bookit-checklistitem"
+<tr id="bookit-master-checklist-item-{{id}}" class="table-default bookit-checklistitem"
     data-bookit-checklistitem-id="{{id}}"
     data-bookit-checklistitem-name="{{name}}"
     data-bookit-checklistitem-order="{{order}}"
@@ -14,3 +14,8 @@
                 <td>{{#pix}} i/edit, core {{/pix}}</td>
                 <td>{{#pix}} t/sort, core {{/pix}}</td>
 </tr>
+{{#js}}
+require(['mod_bookit/master_checklist_item'], function(component) {
+    component.init('#bookit-master-checklist-item-{{id}}');
+});
+{{/js}}
