@@ -13,13 +13,13 @@
             <select class="form-control mx-2 w-25" id="bookit-role-select" name="roleid">
             <option selected>{{#str}} role, mod_bookit {{/str}}</option>
             {{#roles}}
-                <option value="{{id}}" data-bookit-roleoption="{{id}}">{{name}}</option>
+                <option value="{{id}}" data-bookit-roleoption="{{id}}" data-bookit-rolename="{{name}}">{{name}}</option>
             {{/roles}}
             </select>
             <select class="form-control mx-2 w-25" id="bookit-room-select" name="roomid">
             <option selected>{{#str}} room, mod_bookit {{/str}}</option>
             {{#rooms}}
-                <option value="{{id}}" data-bookit-roomoption="{{id}}">{{name}}</option>
+                <option value="{{id}}" data-bookit-roomoption="{{id}}" data-bookit-roomname="{{name}}">{{name}}</option>
             {{/rooms}}
             </select>
                     <button type="button" class="btn btn-primary mx-2" id="add-checklist-category-button">{{#str}} new_checklistcategory, mod_bookit {{/str}}</button>

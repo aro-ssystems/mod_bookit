@@ -212,13 +212,12 @@ class bookit_checklist_item implements \renderable, \templatable {
         $data->order = $this->sortorder;
         $data->categoryid = $this->categoryid;
 
-        $allrooms = \mod_bookit\local\manager\checklist_manager::get_bookit_rooms();
-        $match = array_filter($allrooms, fn($item) => $item['id'] == $this->roomid);
-        if (!empty($match)) {
+        $data->roomid = $this->roomid;
+        $data->roomname = \mod_bookit\local\manager\checklist_manager::get_roomname_by_id($this->roomid);
+        $data->roleid = $this->roleid;
+        $data->rolename = \mod_bookit\local\manager\checklist_manager::get_rolename_by_id($this->roleid);
 
-            $data->roomid = $this->roomid;
-            $data->roomname = reset($match)['name'];
-        }
+
 
         return $data;
     }

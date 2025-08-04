@@ -127,6 +127,23 @@ const loadState = async(reactive) => {
         });
     });
 
+    // Get all room options
+    const roomOptions = document.querySelectorAll(SELECTORS.ALL_ROOM_OPTIONS);
+    roomOptions.forEach(roomOption => {
+        stateData.rooms.push({
+            id: roomOption.value,
+            name: roomOption.dataset.bookitRoomname
+        });
+    });
+
+    // Get all role options
+    const roleOptions = document.querySelectorAll(SELECTORS.ALL_ROLE_OPTIONS);
+    roleOptions.forEach(roleOption => {
+        stateData.roles.push({
+            id: roleOption.value,
+            name: roleOption.dataset.bookitRolename
+        });
+    });
 
     // const categoryLists = document.querySelectorAll(SELECTORS.CATEGORY_LIST);
     // categoryLists.forEach(categoryList => {

@@ -5,6 +5,7 @@ import ModalEvents from 'core/modal_events';
 import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
 import * as Toast from 'core/toast';
+import {getString} from 'core/str';
 
 export default class extends BaseComponent {
 
@@ -64,7 +65,7 @@ export default class extends BaseComponent {
         // window.console.log('handle state event');
     }
 
-    _handleAddChecklistItemButtonClick(event) {
+    async _handleAddChecklistItemButtonClick(event) {
         window.console.log('handle add checklist item button click');
 
         window.console.log(Array.from(this.reactive.state.checklistcategories.values()));
@@ -77,7 +78,7 @@ export default class extends BaseComponent {
                 categories: Array.from(this.reactive.state.checklistcategories.values()),
             },
             modalConfig: {
-                title: 'TITLE HERE', // TODO use lang string
+                title: await getString('checklistitem', 'mod_bookit'),
             },
 
         });
@@ -86,10 +87,43 @@ export default class extends BaseComponent {
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
-        modalForm.show();
+        modalForm.show().then(() => {
+            // This `modal` is the underlying Modal instance.
+            const modalRoot = modalForm.modal.getRoot()[0];
+
+            window.console.log(modalForm.modal);
+            window.console.log('Modal root:', modalRoot);
+
+
+            // Create delete button.
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'btn btn-danger';
+            deleteButton.textContent = 'Delete';
+
+            // Optional: style or position
+            deleteButton.style.marginRight = 'auto';
+
+            // Add it to the modal footer.
+            const footer = modalRoot.querySelector('.modal-footer');
+            if (footer) {
+                footer.prepend(deleteButton); // Or .append() if you prefer
+            }
+
+            // Add click handler
+            deleteButton.addEventListener('click', (event) => {
+                // const form = modalForm.getForm();
+                // const categoryid = form.elements['id']?.value;
+                // if (confirm('Are you sure you want to delete this category?')) {
+                //     console.log('Deleting category with id:', categoryid);
+                //     modal.hide(); // Close modal manually
+                // }
+                modalForm.modal.destroy();
+            });
+        });
     }
 
-    _handleAddChecklistCategoryButtonClick(event) {
+    async _handleAddChecklistCategoryButtonClick(event) {
         window.console.log('handle add checklist category button click');
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\form\\edit_checklist_category_form",
@@ -97,7 +131,7 @@ export default class extends BaseComponent {
                 masterid: 1
             },
             modalConfig: {
-                title: 'Add Checklist Category', // TODO use lang string
+                title: await getString('checklistcategory', 'mod_bookit'),
             },
         });
 
@@ -121,8 +155,8 @@ export default class extends BaseComponent {
             .then(({html, js}) => {
                 Templates.appendNodeContents(this.getElement(this.selectors.TABLE), html, js);
             })
-            .then(() => {
-                Toast.add('Checklist category created successfully.',
+            .then(async () => {
+                Toast.add(await getString('checklistcategorysuccess', 'mod_bookit'),
                     {type: 'success' });
             })
             .catch();
@@ -131,23 +165,31 @@ export default class extends BaseComponent {
     _handleItemCreatedEvent(event) {
         window.console.log('handle item created event');
 
+        const roomName = this.reactive.state.rooms.get(1).name;
+
         const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.category}`);
+
+        window.console.log('event: ', event);
 
         Templates.renderForPromise('mod_bookit/bookit_checklist_item',
             {
                 id: event.element.id,
                 name: event.element.name,
                 order: event.element.order,
-                categoryid: event.element.category
+                categoryid: event.element.category,
+                roomid: event.element.roomid,
+                roomname: event.element.roomname,
+                roleid: event.element.roleid,
+                rolename: event.element.rolename,
             })
             .then(({html, js}) => {
-                window.console.log('rendered item');
-                window.console.log(html);
+                // window.console.log('rendered item');
+                // window.console.log(html);
                 // window.console.log(js);
                 Templates.appendNodeContents(targetElement, html, js);
             })
-            .then(() => {
-                Toast.add('Checklist item created successfully.',
+            .then(async () => {
+                Toast.add(await getString('checklistitemsuccess', 'mod_bookit'),
                     {type: 'success' });
             })
             .catch(error => {

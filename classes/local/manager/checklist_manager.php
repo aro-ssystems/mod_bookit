@@ -158,4 +158,22 @@ class checklist_manager {
 
     }
 
+    public static function get_roomname_by_id(int $roomid): string {
+        $rooms = self::get_bookit_rooms();
+        $roommatch = array_filter($rooms, fn($item) => $item['id'] == $roomid);
+        if (!empty($roommatch)) {
+            return reset($roommatch)['name'];
+        }
+        return '';
+    }
+
+    public static function get_rolename_by_id(int $roleid): string {
+        $roles = self::get_bookit_roles();
+        $rolematch = array_filter($roles, fn($item) => $item->id == $roleid);
+        if (!empty($rolematch)) {
+            return reset($rolematch)->name;
+        }
+        return '';
+    }
+
 }

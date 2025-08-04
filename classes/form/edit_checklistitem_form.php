@@ -37,73 +37,42 @@ class edit_checklistitem_form extends dynamic_form {
 
         $mform = $this->_form;
 
-        $mform->addElement('text', 'name', get_string('pluginname', 'mod_bookit'),  ['style'=>'width:50%;']);
+        $mform->addElement('textarea', 'name', get_string('checklistitemname', 'mod_bookit'),  ['style'=>'width:50%;']);
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
-        $mform->addElement('hidden', 'roomid', 1);
-        $mform->addElement('hidden', 'roleid', 11);
-        // TODO get current master categories
-
         $ajaxdata = $this->_ajaxformdata;
-        // TODO we have masterid and can get cats from database? => using js saves db calls
+
         $categories = [];
 
         if (!empty($ajaxdata['categories'])) {
             error_log(print_r($ajaxdata['categories'], true));
             $categories = array_column($ajaxdata['categories'], 'name', 'id');
         }
-        error_log("HERE");
-        error_log(print_r($categories, true));
+
         $mform->addElement('select', 'categoryid', get_string('checklistcategory', 'mod_bookit'), $categories, ['style'=>'width:50%;']);
         $mform->setType('categoryid', PARAM_INT);
         $mform->addRule('categoryid', null, 'required', null, 'client');
 
-        // $this->add_action_buttons();
 
-        // $notification = new bookit_notification_slot(
-        //     null,
-        //     1,
-        //     bookit_notification_slot::TYPE_BEFORE_DUE,
-        //     null,
-        //     null,
-        //     null,
-        //     0,
-        //     null,
-        //     $USER->id,
-        //     time(),
-        //     time()
-        // );
+        $allrooms = array_column(checklist_manager::get_bookit_rooms(), 'name', 'id');
 
-        // $output = $PAGE->get_renderer('mod_bookit');
+        $mform->addElement('select', 'roomid', get_string('room', 'mod_bookit'), $allrooms, ['style'=>'width:50%;']);
+        $mform->setType('roomid', PARAM_INT);
+        $mform->addRule('roomid', null, 'required', null, 'client');
 
-        // $html = $output->render($notification);
+        $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
 
-        // $mform->addElement('html', $html);
-
-        // TODO foreach this
+        $mform->addElement('select', 'roleid', get_string('role', 'mod_bookit'), $allroles, ['style'=>'width:50%;']);
+        $mform->setType('roleid', PARAM_INT);
+        $mform->addRule('roleid', null, 'required', null, 'client');
 
         $alltypes = bookit_notification_slot::get_all_notification_slot_types();
 
         foreach ($alltypes as $slottype => $val) {
-            // $notificationslot = new bookit_notification_slot(
-            //     null,
-            //     1,
-            //     constant("\mod_bookit\\local\\entity\\bookit_notification_slot::$slottype"),
-            //     null,
-            //     null,
-            //     null,
-            //     0,
-            //     null,
-            //     $USER->id,
-            //     time(),
-            //     time()
-            // );
-            // $mform->addElement('html', '<div style="border: 1px solid #ccc;">');
+
 
             $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
-
-            $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
 
             $select = $mform->addElement('select',
                     strtolower($slottype) . '_recipient',
@@ -118,23 +87,16 @@ class edit_checklistitem_form extends dynamic_form {
 
             $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
 
-            // $mform->addElement('html', '</div>');
-
-        // $output = $PAGE->get_renderer('mod_bookit');
-
-        // $html = $output->render($notificationslot);
-
-        // $mform->addElement('html', $html);
         }
 
         $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
                                                 array_keys($alltypes));
 
-        $json = json_encode($alltypenames);
-        $mform->addElement('html', $json);
+        // $json = json_encode($alltypenames);
+        // $mform->addElement('html', $json);
 
-        $jsontypes = json_encode(array_keys($alltypes));
-        $mform->addElement('html', $jsontypes);
+        // $jsontypes = json_encode(array_keys($alltypes));
+        // $mform->addElement('html', $jsontypes);
     }
 
     /**
@@ -241,6 +203,10 @@ class edit_checklistitem_form extends dynamic_form {
                             'name' => $data->name,
                             'order' => 0,
                             'category' => $data->categoryid,
+                            'roomid' => $data->roomid,
+                            'roomname' => checklist_manager::get_roomname_by_id($data->roomid),
+                            'roleid' => $data->roleid,
+                            'rolename' => checklist_manager::get_rolename_by_id($data->roleid),
                         ],
                     ],
                 ];
