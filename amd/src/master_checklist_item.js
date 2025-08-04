@@ -40,7 +40,7 @@ export default class extends BaseComponent {
     }
 
     _handleStateEvent(event) {
-        window.console.log('handle state event');
+        // window.console.log('handle state event');
     }
 
 

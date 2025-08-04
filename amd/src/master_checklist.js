@@ -4,6 +4,7 @@ import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalEvents from 'core/modal_events';
 import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
+import * as Toast from 'core/toast';
 
 export default class extends BaseComponent {
 
@@ -60,7 +61,7 @@ export default class extends BaseComponent {
     }
 
     _handleStateEvent(event) {
-        window.console.log('handle state event');
+        // window.console.log('handle state event');
     }
 
     _handleAddChecklistItemButtonClick(event) {
@@ -103,12 +104,6 @@ export default class extends BaseComponent {
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
             this.reactive.stateManager.processUpdates(response.detail);
 
-
-            // Templates.renderForPromise('mod_bookit/bookit_checklist_category', {id: 34, name: 'New Category', order: 43})
-            // .then(({html, js}) => {
-            //     Templates.appendNodeContents(this.getElement(this.selectors.TABLE_BODY), html, js);
-            // })
-            // .catch();
         });
 
         modalForm.show();
@@ -116,9 +111,6 @@ export default class extends BaseComponent {
 
     _handleCategoryCreatedEvent(event) {
         window.console.log('handle category created event');
-        window.console.log(event.element);
-
-        // TODO cats and/or items should be own components
 
         Templates.renderForPromise('mod_bookit/bookit_checklist_category',
             {
@@ -127,21 +119,19 @@ export default class extends BaseComponent {
                 order: event.element.order
             })
             .then(({html, js}) => {
-                // Templates.appendNodeContents(this.getElement(this.selectors.TABLE_BODY), html, js);
                 Templates.appendNodeContents(this.getElement(this.selectors.TABLE), html, js);
+            })
+            .then(() => {
+                Toast.add('Checklist category created successfully.',
+                    {type: 'success' });
             })
             .catch();
     }
 
     _handleItemCreatedEvent(event) {
         window.console.log('handle item created event');
-        window.console.log(event.element);
 
         const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.category}`);
-        // const targetElement2 = document.querySelector(`#bookit-master-checklist-tbody-category-${event.element.categoryid}`);
-
-        window.console.log('target element for item: ', targetElement);
-        // window.console.log('target element 2 for item: ', targetElement2);
 
         Templates.renderForPromise('mod_bookit/bookit_checklist_item',
             {
@@ -155,6 +145,10 @@ export default class extends BaseComponent {
                 window.console.log(html);
                 // window.console.log(js);
                 Templates.appendNodeContents(targetElement, html, js);
+            })
+            .then(() => {
+                Toast.add('Checklist item created successfully.',
+                    {type: 'success' });
             })
             .catch(error => {
                 window.console.error('Error rendering checklist item:', error);
