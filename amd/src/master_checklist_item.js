@@ -3,6 +3,7 @@ import { masterChecklistReactiveInstance } from 'mod_bookit/master_checklist_rea
 import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
+import {getString} from 'core/str';
 
 export default class extends BaseComponent {
 
@@ -47,13 +48,61 @@ export default class extends BaseComponent {
         this.addEventListener(this.getElement(this.selectors[itemEditBtnSelector]), 'click', (e) => {
             e.preventDefault();
             window.console.log('EDIT CHECKLIST ITEM BUTTON CLICKED', e.currentTarget);
-            // this._handleEditChecklistItemButtonClick(e);
+            this._handleEditChecklistItemButtonClick(e);
         });
 
     }
 
     _handleStateEvent(event) {
         // window.console.log('handle state event');
+    }
+
+    async _handleEditChecklistItemButtonClick(event) {
+        window.console.log('handle edit checklist item button click');
+        window.console.log(event);
+        const modalForm = new ModalForm({
+            formClass: "mod_bookit\\form\\edit_checklistitem_form",
+            args: {
+                masterid: 1,
+                itemid: event.currentTarget.value,
+                categories: Array.from(this.reactive.state.checklistcategories.values()),
+            },
+            modalConfig: {
+                title: await getString('checklistitem', 'mod_bookit'),
+            },
+
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
+        });
+
+        modalForm.show().then(() => {
+
+            const modalRoot = modalForm.modal.getRoot()[0];
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'btn btn-danger';
+            deleteButton.textContent = 'Delete';
+
+            deleteButton.style.marginRight = 'auto';
+
+            const footer = modalRoot.querySelector('.modal-footer');
+            if (footer) {
+                footer.prepend(deleteButton);
+            }
+
+            deleteButton.addEventListener('click', (event) => {
+                // const form = modalForm.getForm();
+                // const categoryid = form.elements['id']?.value;
+                // if (confirm('Are you sure you want to delete this category?')) {
+                //     console.log('Deleting category with id:', categoryid);
+                //     modal.hide(); // Close modal manually
+                // }
+                modalForm.modal.destroy();
+            });
+        });
     }
 
 

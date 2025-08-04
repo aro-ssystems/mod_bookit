@@ -37,11 +37,16 @@ class edit_checklistitem_form extends dynamic_form {
 
         $mform = $this->_form;
 
+        $mform->addElement('hidden', 'masterid');
+        $mform->setType('masterid', PARAM_INT);
+
         $mform->addElement('textarea', 'name', get_string('checklistitemname', 'mod_bookit'),  ['style'=>'width:50%;']);
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
         $ajaxdata = $this->_ajaxformdata;
+
+        error_log("AJAX data in definition: " . print_r($ajaxdata, true));
 
         $categories = [];
 
@@ -89,8 +94,8 @@ class edit_checklistitem_form extends dynamic_form {
 
         }
 
-        $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
-                                                array_keys($alltypes));
+        // $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
+        //                                         array_keys($alltypes));
 
         // $json = json_encode($alltypenames);
         // $mform->addElement('html', $json);
@@ -226,6 +231,11 @@ class edit_checklistitem_form extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
 
         error_log("Setting data for dynamic submission in edit_checklistitem_form");
+
+        $ajaxdata = $this->_ajaxformdata;
+
+        error_log("AJAX data set data: " . print_r($ajaxdata, true));
+
 
         // $data = [];
 

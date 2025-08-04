@@ -75,6 +75,7 @@ export default class extends BaseComponent {
             formClass: "mod_bookit\\form\\edit_checklistitem_form",
             args: {
                 masterid: 1,
+                itemid: null,
                 categories: Array.from(this.reactive.state.checklistcategories.values()),
             },
             modalConfig: {
@@ -88,29 +89,21 @@ export default class extends BaseComponent {
         });
 
         modalForm.show().then(() => {
-            // This `modal` is the underlying Modal instance.
+
             const modalRoot = modalForm.modal.getRoot()[0];
 
-            window.console.log(modalForm.modal);
-            window.console.log('Modal root:', modalRoot);
-
-
-            // Create delete button.
             const deleteButton = document.createElement('button');
             deleteButton.type = 'button';
             deleteButton.className = 'btn btn-danger';
             deleteButton.textContent = 'Delete';
 
-            // Optional: style or position
             deleteButton.style.marginRight = 'auto';
 
-            // Add it to the modal footer.
             const footer = modalRoot.querySelector('.modal-footer');
             if (footer) {
-                footer.prepend(deleteButton); // Or .append() if you prefer
+                footer.prepend(deleteButton);
             }
 
-            // Add click handler
             deleteButton.addEventListener('click', (event) => {
                 // const form = modalForm.getForm();
                 // const categoryid = form.elements['id']?.value;
