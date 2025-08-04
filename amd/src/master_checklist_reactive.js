@@ -123,7 +123,11 @@ const loadState = async(reactive) => {
             id: itemRow.dataset.bookitChecklistitemId,
             name: itemRow.dataset.bookitChecklistitemName,
             order: itemRow.dataset.bookitChecklistitemOrder,
-            category: itemRow.dataset.bookitCategoryId
+            category: itemRow.dataset.bookitCategoryId,
+            roomid: itemRow.dataset.bookitChecklistitemRoom,
+            roomname: itemRow.dataset.bookitChecklistitemRoomname,
+            roleid: itemRow.dataset.bookitChecklistitemRole,
+            rolename: itemRow.dataset.bookitChecklistitemRolename,
         });
     });
 

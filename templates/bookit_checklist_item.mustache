@@ -15,7 +15,11 @@
                 <td>{{name}}</td>
                 <td>{{roomname}}</td>
                 <td>{{rolename}}</td>
-                <td>{{#pix}} i/edit, core {{/pix}}</td>
+                <td>
+                    <button type="button" class="btn" value="{{id}}" name="edit-checklistitem-{{id}}" id="edit-checklistitem-{{id}}">
+                        {{#pix}} i/edit, core {{/pix}}
+                    </button>
+                </td>
                 <td>{{#pix}} t/sort, core {{/pix}}</td>
 </tr>
 {{#js}}

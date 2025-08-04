@@ -10,6 +10,10 @@ export default class extends BaseComponent {
 
         window.console.log('create item component: ' + descriptor.element.dataset.bookitChecklistitemName);
 
+        const itemEditBtnSelector = 'EDIT_CHECKLISTITEM_BTN_' + descriptor.element.dataset.bookitChecklistitemId;
+
+        this.selectors[itemEditBtnSelector] = `#edit-checklistitem-${descriptor.element.dataset.bookitChecklistitemId}`;
+
     }
 
     static init(target, selectors) {
@@ -36,6 +40,15 @@ export default class extends BaseComponent {
         // const name = state.masterchecklists.get(1).name;
 
         // window.console.log(this.selectors.MASTER_CHECKLIST_TITLE);
+        window.console.log(this.selectors);
+
+        const itemEditBtnSelector = 'EDIT_CHECKLISTITEM_BTN_' + this.element.dataset.bookitChecklistitemId;
+
+        this.addEventListener(this.getElement(this.selectors[itemEditBtnSelector]), 'click', (e) => {
+            e.preventDefault();
+            window.console.log('EDIT CHECKLIST ITEM BUTTON CLICKED', e.currentTarget);
+            // this._handleEditChecklistItemButtonClick(e);
+        });
 
     }
 

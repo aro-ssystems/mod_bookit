@@ -11,7 +11,11 @@
                 <td>{{name}}</td>
                 <td></td>
                 <td></td>
-                <td>{{#pix}} i/edit, core {{/pix}}</td>
+                <td>
+                    <button type="button" class="btn" value="{{id}}" name="edit-checklistcategory-{{id}}" id="edit-checklistcategory-{{id}}">
+                        {{#pix}} i/edit, core {{/pix}}
+                    </button>
+                </td>
                 <td>{{#pix}} t/sort, core {{/pix}}</td>
 </tr>
 {{#checklistitems}}
