@@ -11,7 +11,8 @@
     data-bookit-checklistitem-room="{{roomid}}"
     data-bookit-checklistitem-roomname="{{roomname}}"
     data-bookit-checklistitem-role="{{roleid}}"
-    data-bookit-checklistitem-rolename="{{rolename}}">
+    data-bookit-checklistitem-rolename="{{rolename}}"
+    data-bookit-drag-handle-id="{{id}}">
                 <td>{{title}}</td>
                 <td>{{roomname}}</td>
                 <td>{{rolename}}</td>
@@ -20,7 +21,7 @@
                         {{#pix}} i/edit, core {{/pix}}
                     </button>
                 </td>
-                <td>{{#pix}} t/sort, core {{/pix}}</td>
+                {{> mod_bookit/bookit_checklist_drag_handle }}
 </tr>
 {{#js}}
 require(['mod_bookit/master_checklist_item'], function(component) {

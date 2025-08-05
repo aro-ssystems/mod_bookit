@@ -1,4 +1,4 @@
-import { BaseComponent } from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import { masterChecklistReactiveInstance } from 'mod_bookit/master_checklist_reactive';
 import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalForm from 'core_form/modalform';
@@ -35,6 +35,10 @@ export default class extends BaseComponent {
 
     stateReady(state) {
 
+        // this.relativeDrag = true;
+
+        // this.dragdrop = new DragDrop(this);
+
         // window.console.log('state ready');
         // window.console.log(state);
 
@@ -57,6 +61,26 @@ export default class extends BaseComponent {
         //     });
 
     }
+
+    // destroy() {
+    //     if (this.dragdrop !== undefined) {
+    //         this.dragdrop.unregister();
+    //     }
+    // }
+
+    // getDraggableData() {
+    //     return {id: 35, name: "Something"};
+    // }
+
+    // dragStart(dragData, event) {
+    //     // This method is called when the drag operation starts.
+    //     window.console.log('Drag started', dragData);
+    // }
+
+    // dragEnd(dragData, event) {
+    //     // This method is called when the drag operation ends.
+    //     window.console.log('Drag ended', dragData);
+    // }
 
     // _handleStateEvent(event) {
     //     window.console.log('handle state event');
