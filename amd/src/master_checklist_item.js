@@ -51,6 +51,11 @@ export default class extends BaseComponent {
             this._handleEditChecklistItemButtonClick(e);
         });
 
+        // this.addEventListener(this.getElement('button[data-action="delete"]'), 'click', (e) => {
+        //         e.preventDefault();
+        //         window.console.log('DELETE CHECKLIST ITEM BUTTON CLICKED', e.currentTarget);
+        //     });
+
     }
 
     _handleStateEvent(event) {
@@ -62,6 +67,7 @@ export default class extends BaseComponent {
         window.console.log(event);
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\form\\edit_checklistitem_form",
+            moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 masterid: 1,
                 itemid: event.currentTarget.value,
@@ -73,36 +79,69 @@ export default class extends BaseComponent {
 
         });
 
+        // modalForm.addEventListener('delete', (eventName, eventData) => {
+        //     console.log('Modal event:', eventName, eventData);
+        // });
+
+        // modalForm.modal.getModal().on('delete', (event, modalInstance) => {
+        //     window.console.log('Delete event triggered!', modalInstance);
+        //     window.console.log(event);
+        // });
+
+
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
-        modalForm.show().then(() => {
+        modalForm.addEventListener(modalForm.events.NOSUBMIT_BUTTON_PRESSED, (response) => {
+            window.console.log('no submit button pressed');
+            window.console.log(response);
+            // this.reactive.stateManager.processUpdates(response.detail);
 
-            const modalRoot = modalForm.modal.getRoot()[0];
+        });
 
-            const deleteButton = document.createElement('button');
-            deleteButton.type = 'button';
-            deleteButton.className = 'btn btn-danger';
-            deleteButton.textContent = 'Delete';
+        modalForm.addEventListener(modalForm.events.FORM_CANCELLED, (response) => {
+            window.console.log('FORM CANCELLED');
+            window.console.log(response);
+        });
 
-            deleteButton.style.marginRight = 'auto';
+        modalForm.addEventListener(modalForm.events.ERROR, (response) => {
+            window.console.log('FORM ERROR');
+            window.console.log(response);
+        });
 
-            const footer = modalRoot.querySelector('.modal-footer');
-            if (footer) {
-                footer.prepend(deleteButton);
-            }
+        modalForm.addEventListener(modalForm.events.CANCEL_BUTTON_PRESSED, (response) => {
+            window.console.log('CANCEL BUTTON PRESSED');
+            window.console.log(response);
+        });
 
-            deleteButton.addEventListener('click', (event) => {
-                // const form = modalForm.getForm();
-                // const categoryid = form.elements['id']?.value;
-                // if (confirm('Are you sure you want to delete this category?')) {
-                //     console.log('Deleting category with id:', categoryid);
-                //     modal.hide(); // Close modal manually
-                // }
-                modalForm.modal.destroy();
+        modalForm.addEventListener(modalForm.events.LOADED, (response) => {
+            window.console.log('FORM LOADED');
+            window.console.log(response);
+            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
+
+            window.console.log('DELETE BUTTON', deleteButton);
+
+            deleteButton.on('click', async (e) => {
+                // e.preventDefault();
+                window.console.log('DELETE CHECKLIST ITEM BUTTON CLICKED', e.currentTarget);
+                window.console.log('DELETE ITEM ' + this.element.dataset.bookitChecklistitemId);
+
+                const deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete';
+                deleteInput.value = '1';
+
+                // Append it to the form
+                modalForm.getFormNode().appendChild(deleteInput);
+                await modalForm.submitFormAjax();
+                // TODO delete function
             });
         });
+
+        // modalForm.show();
+        modalForm.show();
+
     }
 
 

@@ -73,6 +73,7 @@ export default class extends BaseComponent {
         // TODO dont do this twice
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\form\\edit_checklistitem_form",
+            // moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 masterid: 1,
                 itemid: null,
@@ -88,38 +89,14 @@ export default class extends BaseComponent {
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
-        modalForm.show().then(() => {
-
-            const modalRoot = modalForm.modal.getRoot()[0];
-
-            const deleteButton = document.createElement('button');
-            deleteButton.type = 'button';
-            deleteButton.className = 'btn btn-danger';
-            deleteButton.textContent = 'Delete';
-
-            deleteButton.style.marginRight = 'auto';
-
-            const footer = modalRoot.querySelector('.modal-footer');
-            if (footer) {
-                footer.prepend(deleteButton);
-            }
-
-            deleteButton.addEventListener('click', (event) => {
-                // const form = modalForm.getForm();
-                // const categoryid = form.elements['id']?.value;
-                // if (confirm('Are you sure you want to delete this category?')) {
-                //     console.log('Deleting category with id:', categoryid);
-                //     modal.hide(); // Close modal manually
-                // }
-                modalForm.modal.destroy();
-            });
-        });
+        modalForm.show();
     }
 
     async _handleAddChecklistCategoryButtonClick(event) {
         window.console.log('handle add checklist category button click');
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\form\\edit_checklist_category_form",
+            // moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 masterid: 1
             },
@@ -130,6 +107,13 @@ export default class extends BaseComponent {
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
             this.reactive.stateManager.processUpdates(response.detail);
+
+        });
+
+        modalForm.addEventListener(modalForm.events.NOSUBMIT_BUTTON_PRESSED, (response) => {
+            window.console.log('no submit button pressed');
+            window.console.log(response);
+            // this.reactive.stateManager.processUpdates(response.detail);
 
         });
 
