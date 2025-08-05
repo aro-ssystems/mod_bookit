@@ -167,82 +167,13 @@ class edit_checklistitem_form extends dynamic_form {
         if (!empty($data->action)) {
             switch ($data->action) {
                 case 'delete':
-                    break;
+                    return $this->process_delete_request($ajaxdata['itemid']);
                 case 'put':
                     return $this->process_put_request($ajaxdata);
-                    // break;
                 default:
                     return ['success' => false, 'message' => 'Unknown action: ' . $data->action];
             }
         }
-
-        // if (!empty($data->id)) {
-
-        //     try {
-        //         $item = bookit_checklist_item::from_database($data->id);
-        //         $item->title = $data->title;
-        //         $item->description = $data->description ?? '';
-        //         $item->usermodified = $USER->id;
-        //         $item->timemodified = time();
-
-        //         $item->save();
-        //         return ['success' => true, 'message' => get_string('item_updated', 'mod_bookit'), 'id' => $item->id];
-        //     } catch (\Exception $e) {
-        //         return ['success' => false, 'message' => $e->getMessage()];
-        //     }
-        // } else {
-
-        //     // error_log("Creating new checklist item with data: " . print_r($data, true));
-
-        //     if (empty($data->categoryid)) {
-        //         return ['success' => false, 'message' => 'Missing masterid or categoryid'];
-        //     }
-        //     try {
-        //         $item = new bookit_checklist_item(
-        //             0,
-        //             1,
-        //             $data->categoryid,
-        //             null, // parentid
-        //             $data->roomid,
-        //             $data->roleid,
-        //             $data->title,
-        //             $data->description ?? '',
-        //             1, // itemtype
-        //             null, // options
-        //             0, // sortorder
-        //             0, // isrequired
-        //             null, // defaultvalue
-        //             0, // due_days_offset
-        //             $USER->id,
-        //             time(),
-        //             time()
-        //         );
-
-        //         $id = $item->save();
-        //         return [
-        //             [
-        //                 'name' => 'checklistitems',
-        //                 'action' => 'put',
-        //                 'fields' => [
-        //                     'id' => $id,
-        //                     'title' => $data->title,
-        //                     'order' => 0,
-        //                     'category' => $data->categoryid,
-        //                     'roomid' => $data->roomid,
-        //                     'roomname' => checklist_manager::get_roomname_by_id($data->roomid),
-        //                     'roleid' => $data->roleid,
-        //                     'rolename' => checklist_manager::get_rolename_by_id($data->roleid),
-        //                 ],
-        //             ],
-        //         ];
-
-        //     } catch (\Exception $e) {
-        //         return ['success' => false, 'message' => $e->getMessage()];
-        //     }
-
-        // }
-
-        // return $data;
     }
 
     /**
@@ -268,45 +199,10 @@ class edit_checklistitem_form extends dynamic_form {
 
         error_log("Item data: " . print_r($item, true));
 
-
-
         $this->set_data($item);
-
-
-        // $data = [];
-
-        // TODO check why no categoryid is send
-
-        // if (!empty($this->_ajaxformdata['masterid'])) {
-        //     $data['masterid'] = $this->_ajaxformdata['masterid'];
-        // }
-
-        // // if (!empty($this->_ajaxformdata['categoryid'])) {
-        // //     $data['categoryid'] = $this->_ajaxformdata['categoryid'];
-        // // }
-
-        // $categories = isset($this->_ajaxformdata['categories']) ? $this->_ajaxformdata['categories'] : [];
-
-
-        // if (!empty($this->_ajaxformdata['id'])) {
-        //     $id = $this->_ajaxformdata['id'];
-
-        //     try {
-        //         $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($id);
-        //         $data['id'] = $item->id;
-        //         $data['masterid'] = $item->masterid;
-        //         $data['categoryid'] = $item->categoryid;
-        //         $data['title'] = $item->title;
-        //     } catch (\Exception $e) {
-        //         // Fehler beim Laden - mit leeren Daten fortfahren
-        //     }
-        // }
-
-        // $this->set_data($data);
-        return;
     }
 
-    public function process_put_request($ajaxdata = []): array | bool {
+    public function process_put_request($ajaxdata = []): array {
         global $USER;
 
         if (!empty($ajaxdata['itemid'])) {
@@ -368,8 +264,19 @@ class edit_checklistitem_form extends dynamic_form {
         ];
     }
 
-    public function process_delete_request($id): bool {
-        return false;
+    public function process_delete_request($id): array {
+
+        $item = bookit_checklist_item::from_database($id);
+        $item->delete();
+        return [
+            [
+                'name' => 'checklistitems',
+                'action' => 'delete',
+                'fields' => [
+                    'id' => $id,
+                ],
+            ],
+        ];
     }
 
 }

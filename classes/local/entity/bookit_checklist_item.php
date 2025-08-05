@@ -200,8 +200,8 @@ class bookit_checklist_item implements \renderable, \templatable {
         // }
 
         // // Delete this item
-        // return $DB->delete_records("bookit_checklist_item", ["id" => $this->id]);
-        return true;
+        return $DB->delete_records("bookit_checklist_item", ["id" => $this->id]);
+        // return true;
     }
 
     public function export_for_template(\renderer_base $output) {
