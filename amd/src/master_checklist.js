@@ -179,6 +179,11 @@ export default class extends BaseComponent {
     _handleItemDeletedEvent(event) {
         window.console.log('handle item deleted event');
         window.console.log(event);
+        const targetElement = this.getElement(`#bookit-master-checklist-item-${event.element.id}`);
+        targetElement.remove();
+
+        Toast.add(getString('checklistitemdeleted', 'mod_bookit', {title: event.element.title}),
+            {type: 'success' });
     }
 
     _handleItemUpdatedEvent(event) {
