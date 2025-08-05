@@ -212,6 +212,9 @@ class edit_checklistitem_form extends dynamic_form {
 
             $item->title = $ajaxdata['title'];
             $item->description = $ajaxdata['description'] ?? '';
+            $item->categoryid = $ajaxdata['categoryid'];
+            $item->roomid = $ajaxdata['roomid'];
+            $item->roleid = $ajaxdata['roleid'];
             $item->usermodified = $USER->id;
             $item->timemodified = time();
 

@@ -30,6 +30,8 @@ export default class extends BaseComponent {
             {watch: 'state:updated', handler: this._handleStateEvent},
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
+            {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
+            {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},
         ];
     }
 
@@ -142,7 +144,7 @@ export default class extends BaseComponent {
     _handleItemCreatedEvent(event) {
         window.console.log('handle item created event');
 
-        const roomName = this.reactive.state.rooms.get(1).name;
+        // const roomName = this.reactive.state.rooms.get(1).name;
 
         const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.category}`);
 
@@ -167,6 +169,47 @@ export default class extends BaseComponent {
             })
             .then(async () => {
                 Toast.add(await getString('checklistitemsuccess', 'mod_bookit'),
+                    {type: 'success' });
+            })
+            .catch(error => {
+                window.console.error('Error rendering checklist item:', error);
+            });
+    }
+
+    _handleItemDeletedEvent(event) {
+        window.console.log('handle item deleted event');
+        window.console.log(event);
+    }
+
+    _handleItemUpdatedEvent(event) {
+        window.console.log('handle item updated event');
+        window.console.log(event);
+
+        const targetElement = this.getElement(`#bookit-master-checklist-item-${event.element.id}`);
+
+        window.console.log('target element', targetElement);
+
+        // TODO if category is changed, element needs to be moved, not just replaced
+
+        Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+            {
+                id: event.element.id,
+                title: event.element.title,
+                order: event.element.order,
+                categoryid: event.element.category,
+                roomid: event.element.roomid,
+                roomname: event.element.roomname,
+                roleid: event.element.roleid,
+                rolename: event.element.rolename,
+            })
+            .then(({html, js}) => {
+                window.console.log('rendered item');
+                window.console.log(html);
+                // window.console.log(js);
+                Templates.replaceNode(targetElement, html, js);
+            })
+            .then(async () => {
+                Toast.add(await getString('checklistitemupdatesuccess', 'mod_bookit'),
                     {type: 'success' });
             })
             .catch(error => {

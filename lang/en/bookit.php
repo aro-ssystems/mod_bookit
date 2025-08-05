@@ -108,6 +108,7 @@ $string['new_checklistitem'] = 'New checklist item';
 $string['new_checklistcategory'] = 'New checklist category';
 $string['checklistcategorysuccess'] = 'Checklist category created successfully.';
 $string['checklistitemsuccess'] = 'Checklist item created successfully.';
+$string['checklistitemupdatesuccess'] = 'Checklist item updated successfully.';
 $string['responsibility'] = 'Responsibility';
 $string['category_name'] = 'Category name';
 $string['edit'] = 'Edit';
