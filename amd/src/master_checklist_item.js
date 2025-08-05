@@ -28,7 +28,7 @@ export default class extends BaseComponent {
     getWatchers() {
         // window.console.log('GET WATCHERS');
         return [
-            {watch: 'state:updated', handler: this._handleStateEvent},
+            // {watch: 'state:updated', handler: this._handleStateEvent},
             // {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
         ];
     }
@@ -41,7 +41,7 @@ export default class extends BaseComponent {
         // const name = state.masterchecklists.get(1).name;
 
         // window.console.log(this.selectors.MASTER_CHECKLIST_TITLE);
-        window.console.log(this.selectors);
+        // window.console.log(this.selectors);
 
         const itemEditBtnSelector = 'EDIT_CHECKLISTITEM_BTN_' + this.element.dataset.bookitChecklistitemId;
 
@@ -58,9 +58,9 @@ export default class extends BaseComponent {
 
     }
 
-    _handleStateEvent(event) {
-        // window.console.log('handle state event');
-    }
+    // _handleStateEvent(event) {
+    //     window.console.log('handle state event');
+    // }
 
     async _handleEditChecklistItemButtonClick(event) {
         window.console.log('handle edit checklist item button click');
