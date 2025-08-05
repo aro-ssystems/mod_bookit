@@ -151,7 +151,7 @@ export default class extends BaseComponent {
         Templates.renderForPromise('mod_bookit/bookit_checklist_item',
             {
                 id: event.element.id,
-                name: event.element.name,
+                title: event.element.title,
                 order: event.element.order,
                 categoryid: event.element.category,
                 roomid: event.element.roomid,

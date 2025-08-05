@@ -208,7 +208,7 @@ class bookit_checklist_item implements \renderable, \templatable {
         $data = new \stdClass();
 
         $data->id = $this->id;
-        $data->name = $this->title;
+        $data->title = $this->title;
         $data->order = $this->sortorder;
         $data->categoryid = $this->categoryid;
 

@@ -28,6 +28,7 @@ namespace mod_bookit\form;
 use core_form\dynamic_form;
 use mod_bookit\local\entity\bookit_notification_slot;
 use mod_bookit\local\manager\checklist_manager;
+use mod_bookit\local\entity\bookit_checklist_item;
 
 class edit_checklistitem_form extends dynamic_form {
 
@@ -40,9 +41,12 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->addElement('hidden', 'masterid');
         $mform->setType('masterid', PARAM_INT);
 
-        $mform->addElement('textarea', 'name', get_string('checklistitemname', 'mod_bookit'),  ['style'=>'width:50%;']);
-        $mform->setType('name', PARAM_TEXT);
-        $mform->addRule('name', null, 'required', null, 'client');
+        $mform->addElement('hidden', 'itemid');
+        $mform->setType('itemid', PARAM_INT);
+
+        $mform->addElement('textarea', 'title', get_string('checklistitemname', 'mod_bookit'),  ['style'=>'width:50%;']);
+        $mform->setType('title', PARAM_TEXT);
+        $mform->addRule('title', null, 'required', null, 'client');
 
         $ajaxdata = $this->_ajaxformdata;
 
@@ -159,8 +163,8 @@ class edit_checklistitem_form extends dynamic_form {
         if (!empty($data->id)) {
 
             try {
-                $item = \mod_bookit\local\entity\bookit_checklist_item::from_database($data->id);
-                $item->title = $data->name;
+                $item = bookit_checklist_item::from_database($data->id);
+                $item->title = $data->title;
                 $item->description = $data->description ?? '';
                 $item->usermodified = $USER->id;
                 $item->timemodified = time();
@@ -178,14 +182,14 @@ class edit_checklistitem_form extends dynamic_form {
                 return ['success' => false, 'message' => 'Missing masterid or categoryid'];
             }
             try {
-                $item = new \mod_bookit\local\entity\bookit_checklist_item(
+                $item = new bookit_checklist_item(
                     0,
                     1,
                     $data->categoryid,
                     null, // parentid
                     $data->roomid,
                     $data->roleid,
-                    $data->name,
+                    $data->title,
                     $data->description ?? '',
                     1, // itemtype
                     null, // options
@@ -205,7 +209,7 @@ class edit_checklistitem_form extends dynamic_form {
                         'action' => 'put',
                         'fields' => [
                             'id' => $id,
-                            'name' => $data->name,
+                            'title' => $data->title,
                             'order' => 0,
                             'category' => $data->categoryid,
                             'roomid' => $data->roomid,
@@ -235,6 +239,19 @@ class edit_checklistitem_form extends dynamic_form {
         $ajaxdata = $this->_ajaxformdata;
 
         error_log("AJAX data set data: " . print_r($ajaxdata, true));
+
+        $item = new \StdClass;
+        $id = $this->optional_param('itemid', null, PARAM_INT);
+        if (!empty($id)) {
+            error_log("ID IS NOT EMPTY");
+            $item = bookit_checklist_item::from_database($id);
+        } else {
+            error_log("ID IS EMPTY");
+        }
+
+        error_log("Item data: " . print_r($item, true));
+
+        $this->set_data($item);
 
 
         // $data = [];
