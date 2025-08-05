@@ -98,7 +98,7 @@ class edit_checklist_category_form extends dynamic_form {
         if (!empty($data->action)) {
             switch ($data->action) {
                 case 'delete':
-                    // return $this->process_delete_request($ajaxdata['itemid']);
+                    return $this->process_delete_request($ajaxdata['id']);
                 case 'put':
                     return $this->process_put_request($ajaxdata);
                 default:
@@ -232,6 +232,21 @@ class edit_checklist_category_form extends dynamic_form {
                     'name' => $ajaxdata['name'],
                     'order' => 0,
                     'items' => $ajaxdata['items'],
+                ],
+            ],
+        ];
+    }
+
+    public function process_delete_request($id): array {
+        $category = bookit_checklist_category::from_database($id);
+        $category->delete();
+
+        return [
+            [
+                'name' => 'checklistcategories',
+                'action' => 'delete',
+                'fields' => [
+                    'id' => $id,
                 ],
             ],
         ];

@@ -165,8 +165,8 @@ class bookit_checklist_category implements \renderable, \templatable {
 
         // $DB->set_field("bookit_checklist_item", "categoryid", null, ["categoryid" => $this->id]);
 
-        // return $DB->delete_records("bookit_checklist_category", ["id" => $this->id]);
-        return true;
+        return $DB->delete_records("bookit_checklist_category", ["id" => $this->id]);
+        // return true;
     }
 
     public function export_for_template(\renderer_base $output) {
