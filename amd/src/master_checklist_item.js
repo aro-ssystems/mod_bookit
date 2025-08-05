@@ -93,27 +93,27 @@ export default class extends BaseComponent {
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
-        modalForm.addEventListener(modalForm.events.NOSUBMIT_BUTTON_PRESSED, (response) => {
-            window.console.log('no submit button pressed');
-            window.console.log(response);
-            // this.reactive.stateManager.processUpdates(response.detail);
+        // modalForm.addEventListener(modalForm.events.NOSUBMIT_BUTTON_PRESSED, (response) => {
+        //     window.console.log('no submit button pressed');
+        //     window.console.log(response);
+        //     // this.reactive.stateManager.processUpdates(response.detail);
 
-        });
+        // });
 
-        modalForm.addEventListener(modalForm.events.FORM_CANCELLED, (response) => {
-            window.console.log('FORM CANCELLED');
-            window.console.log(response);
-        });
+        // modalForm.addEventListener(modalForm.events.FORM_CANCELLED, (response) => {
+        //     window.console.log('FORM CANCELLED');
+        //     window.console.log(response);
+        // });
 
-        modalForm.addEventListener(modalForm.events.ERROR, (response) => {
-            window.console.log('FORM ERROR');
-            window.console.log(response);
-        });
+        // modalForm.addEventListener(modalForm.events.ERROR, (response) => {
+        //     window.console.log('FORM ERROR');
+        //     window.console.log(response);
+        // });
 
-        modalForm.addEventListener(modalForm.events.CANCEL_BUTTON_PRESSED, (response) => {
-            window.console.log('CANCEL BUTTON PRESSED');
-            window.console.log(response);
-        });
+        // modalForm.addEventListener(modalForm.events.CANCEL_BUTTON_PRESSED, (response) => {
+        //     window.console.log('CANCEL BUTTON PRESSED');
+        //     window.console.log(response);
+        // });
 
         modalForm.addEventListener(modalForm.events.LOADED, (response) => {
             window.console.log('FORM LOADED');
@@ -122,19 +122,24 @@ export default class extends BaseComponent {
 
             window.console.log('DELETE BUTTON', deleteButton);
 
-            deleteButton.on('click', async (e) => {
+            deleteButton.on('click', (e) => {
                 // e.preventDefault();
                 window.console.log('DELETE CHECKLIST ITEM BUTTON CLICKED', e.currentTarget);
                 window.console.log('DELETE ITEM ' + this.element.dataset.bookitChecklistitemId);
 
-                const deleteInput = document.createElement('input');
-                deleteInput.type = 'hidden';
-                deleteInput.name = 'delete';
-                deleteInput.value = '1';
+                // const deleteInput = document.createElement('input');
+                // deleteInput.type = 'hidden';
+                // deleteInput.name = 'delete';
+                // deleteInput.value = '1';
 
-                // Append it to the form
-                modalForm.getFormNode().appendChild(deleteInput);
-                await modalForm.submitFormAjax();
+                // modalForm.getFormNode().appendChild(deleteInput);
+                modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
+                modalForm.submitFormAjax().then((response) => {
+                    // this.reactive.stateManager.processUpdates(response.detail);
+                    window.console.log('Checklist item deleted successfully:', response);
+                }).catch((error) => {
+                    window.console.error('Error deleting checklist item:', error);
+                });
                 // TODO delete function
             });
         });
