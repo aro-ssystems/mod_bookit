@@ -29,6 +29,8 @@ export default class extends BaseComponent {
         return [
             {watch: 'state:updated', handler: this._handleStateEvent},
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
+            {watch: 'checklistcategories:deleted', handler: this._handleCategoryDeletedEvent},
+            {watch: 'checklistcategories:updated', handler: this._handleCategoryUpdatedEvent},
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
             {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
             {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},
@@ -219,6 +221,40 @@ export default class extends BaseComponent {
             })
             .catch(error => {
                 window.console.error('Error rendering checklist item:', error);
+            });
+    }
+
+    _handleCategoryDeletedEvent(event) {
+        window.console.log('handle category deleted event');
+        window.console.log(event);
+    }
+
+    _handleCategoryUpdatedEvent(event) {
+        window.console.log('handle category updated event');
+        window.console.log(event);
+
+        const targetElement = this.getElement(`#bookit-master-checklist-category-row-${event.element.id}`);
+
+        window.console.log('target element', targetElement);
+
+        Templates.renderForPromise('mod_bookit/bookit_checklist_category_row',
+            {
+                id: event.element.id,
+                name: event.element.name,
+                order: event.element.order,
+            })
+            .then(({html, js}) => {
+                window.console.log('rendered category');
+                window.console.log(html);
+                // window.console.log(js);
+                Templates.replaceNode(targetElement, html, js);
+            })
+            .then(async () => {
+                Toast.add(await getString('checklistcategoryupdatesuccess', 'mod_bookit'),
+                    {type: 'success' });
+            })
+            .catch(error => {
+                window.console.error('Error rendering checklist category:', error);
             });
     }
 

@@ -26,25 +26,28 @@
 namespace mod_bookit\form;
 
 use core_form\dynamic_form;
+use mod_bookit\local\entity\bookit_checklist_category;
+use mod_bookit\local\manager\checklist_manager;
 
 class edit_checklist_category_form extends dynamic_form {
 
     public function definition() {
         $mform = $this->_form;
 
-        // Versteckte Felder für ID und Master-ID
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
         $mform->addElement('hidden', 'masterid');
         $mform->setType('masterid', PARAM_INT);
 
-        // Name der Kategorie
+        $mform->addElement('hidden', 'action');
+        $mform->setType('action', PARAM_TEXT);
+        $mform->setDefault('action', 'put');
+
         $mform->addElement('text', 'name', get_string('category_name', 'mod_bookit'));
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
 
-        // $this->add_action_buttons();
     }
 
     /**
@@ -89,64 +92,75 @@ class edit_checklist_category_form extends dynamic_form {
         global $USER;
         $data = $this->get_data();
 
-        error_log("DATA: " . print_r($data, true));
+        $ajaxdata = $this->_ajaxformdata;
+        error_log("AJAX data: " . print_r($ajaxdata, true));
 
-        // Checklist category Objekt erstellen oder laden
-        if (!empty($data->id)) {
-            // Bestehende Kategorie bearbeiten
-            try {
-                $category = \mod_bookit\local\entity\bookit_checklist_category::from_database($data->id);
-                $category->name = $data->name;
-                $category->description = $data->description ?? '';
-                $category->usermodified = $USER->id;
-                $category->timemodified = time();
-
-                $category->save();
-                return ['success' => true, 'message' => get_string('category_updated', 'mod_bookit'), 'id' => $category->id];
-            } catch (\Exception $e) {
-                return ['success' => false, 'message' => $e->getMessage()];
-            }
-        } else {
-            // Neue Kategorie erstellen
-            if (empty($data->masterid)) {
-                return ['success' => false, 'message' => 'Missing masterid'];
-            }
-
-            try {
-
-                $category = new \mod_bookit\local\entity\bookit_checklist_category(
-                    0,
-                    $data->masterid,
-                    $data->name,
-                    $data->description ?? '',
-                    [],
-                    0,
-                    $USER->id,
-                    time(),
-                    time()
-                );
-
-                $id = $category->save();
-
-                // master needs update here
-                return [
-                    [
-                        'name' => 'checklistcategories',
-                        'action' => 'put',
-                        'fields' => [
-                            'id' => $id,
-                            'name' => $data->name,
-                            'order' => 0,
-                        ],
-                    ],
-                ];
-
-
-                // return ['success' => true, 'message' => get_string('category_created', 'mod_bookit'), 'id' => $id];
-            } catch (\Exception $e) {
-                return ['success' => false, 'message' => $e->getMessage()];
+        if (!empty($data->action)) {
+            switch ($data->action) {
+                case 'delete':
+                    // return $this->process_delete_request($ajaxdata['itemid']);
+                case 'put':
+                    return $this->process_put_request($ajaxdata);
+                default:
+                    return ['success' => false, 'message' => 'Unknown action: ' . $data->action];
             }
         }
+
+        // if (!empty($data->id)) {
+        //     // Bestehende Kategorie bearbeiten
+        //     try {
+        //         $category = \mod_bookit\local\entity\bookit_checklist_category::from_database($data->id);
+        //         $category->name = $data->name;
+        //         $category->description = $data->description ?? '';
+        //         $category->usermodified = $USER->id;
+        //         $category->timemodified = time();
+
+        //         $category->save();
+        //         return ['success' => true, 'message' => get_string('category_updated', 'mod_bookit'), 'id' => $category->id];
+        //     } catch (\Exception $e) {
+        //         return ['success' => false, 'message' => $e->getMessage()];
+        //     }
+        // } else {
+        //     // Neue Kategorie erstellen
+        //     if (empty($data->masterid)) {
+        //         return ['success' => false, 'message' => 'Missing masterid'];
+        //     }
+
+        //     try {
+
+        //         $category = new \mod_bookit\local\entity\bookit_checklist_category(
+        //             0,
+        //             $data->masterid,
+        //             $data->name,
+        //             $data->description ?? '',
+        //             [],
+        //             0,
+        //             $USER->id,
+        //             time(),
+        //             time()
+        //         );
+
+        //         $id = $category->save();
+
+        //         // master needs update here
+        //         return [
+        //             [
+        //                 'name' => 'checklistcategories',
+        //                 'action' => 'put',
+        //                 'fields' => [
+        //                     'id' => $id,
+        //                     'name' => $data->name,
+        //                     'order' => 0,
+        //                 ],
+        //             ],
+        //         ];
+
+
+        //         // return ['success' => true, 'message' => get_string('category_created', 'mod_bookit'), 'id' => $id];
+        //     } catch (\Exception $e) {
+        //         return ['success' => false, 'message' => $e->getMessage()];
+        //     }
+        // }
     }
 
     /**
@@ -155,25 +169,72 @@ class edit_checklist_category_form extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
         $data = [];
 
-        // Masterid von der Anfrage übernehmen
         if (!empty($this->_ajaxformdata['masterid'])) {
             $data['masterid'] = $this->_ajaxformdata['masterid'];
         }
 
-        // Falls eine ID vorhanden ist, bestehende Daten laden
         if (!empty($this->_ajaxformdata['id'])) {
             $id = $this->_ajaxformdata['id'];
 
             try {
-                $category = \mod_bookit\local\entity\bookit_checklist_category::from_database($id);
+                $category = bookit_checklist_category::from_database($id);
                 $data['id'] = $category->id;
                 $data['masterid'] = $category->masterid;
                 $data['name'] = $category->name;
             } catch (\Exception $e) {
-                // Fehler beim Laden - mit leeren Daten fortfahren
+
             }
         }
 
         $this->set_data($data);
     }
+    public function process_put_request($ajaxdata = []): array {
+        global $USER;
+
+        if (!empty($ajaxdata['id'])) {
+            error_log("Processing PUT request for existing category with ID: " . $ajaxdata['id']);
+            $category = bookit_checklist_category::from_database($ajaxdata['id']);
+            $category->name = $ajaxdata['name'];
+            $category->description = $ajaxdata['description'] ?? '';
+            $category->usermodified = $USER->id;
+            $category->timemodified = time();
+
+            $category->save();
+
+            $id = $category->id;
+
+        } else {
+            error_log("Creating new checklist category with AJAX data in NEW FUNCTION: " . print_r($ajaxdata, true));
+            $category = new bookit_checklist_category(
+                0,
+                $ajaxdata['masterid'],
+                $ajaxdata['name'],
+                $ajaxdata['description'] ?? '',
+                [],
+                0,
+                $USER->id,
+                time(),
+                time()
+            );
+
+            $id = $category->save();
+
+            // $id = $item->id;
+
+        }
+
+        return [
+            [
+                'name' => 'checklistcategories',
+                'action' => 'put',
+                'fields' => [
+                    'id' => $id,
+                    'name' => $ajaxdata['name'],
+                    'order' => 0,
+                    'items' => $ajaxdata['items'],
+                ],
+            ],
+        ];
+    }
+
 }
