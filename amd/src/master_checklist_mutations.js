@@ -15,19 +15,30 @@ export default class {
 
         stateManager.setReadOnly(false);
 
-        const category = state.checklistcategories.get(data.parentId);
+        const category = state.checklistcategories.get(data.targetParentId);
 
         window.console.log('category items order: ', category.items);
 
-        // Find the current positions of both IDs
+        // Initialize items array if it doesn't exist or isn't iterable
+        if (!category.items || !Array.isArray(category.items)) {
+            category.items = [];
+        }
+
         const currentItems = [...category.items];
         const idToMove = data.id;
         const targetId = data.targetId;
 
         const currentIndex = currentItems.indexOf(idToMove);
+
+        // If the ID to move is not found in the array, add it at the end
+        if (currentIndex === -1) {
+            currentItems.push(idToMove);
+        }
+
+        // After possible addition, check if target exists
         const targetIndex = currentItems.indexOf(targetId);
 
-        if (currentIndex !== -1 && targetIndex !== -1) {
+        if (targetIndex !== -1 && currentIndex !== -1) {
             // Remove the element to move
             currentItems.splice(currentIndex, 1);
 
@@ -36,12 +47,15 @@ export default class {
 
             // Insert the element after the target
             currentItems.splice(newTargetIndex + 1, 0, idToMove);
-
-            // Update the items array
-            category.items = currentItems;
-
-            window.console.log('new category items order: ', category.items);
+        } else if (currentIndex !== -1) {
+            // targetId doesn't exist but idToMove does - keep the current position
+            // No changes needed
         }
+
+        // Update the items array
+        category.items = currentItems;
+
+        window.console.log('new category items order: ', category.items);
 
         stateManager.setReadOnly(true);
 
