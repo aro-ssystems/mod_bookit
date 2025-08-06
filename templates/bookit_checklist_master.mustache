@@ -3,11 +3,13 @@
 
     Master checklist template with a bootstrap table
 }}
-<div class="mod-bookit-master-checklist" id="mod-bookit-master-checklist">
+<div class="d-flex justify-content-center">
+
+<div class="mod-bookit-master-checklist w-50 mt-4" id="mod-bookit-master-checklist">
     <div class="d-none">
     <h3 id="mod-bookit-master-checklist-title">PLACEHOLDER</h3>
     </div>
-    <div>
+    <div class="sticky-top">
     <form>
         <div class="form-group d-flex mx-n2 my-5 py-2">
             <select class="form-control mx-2 w-25" id="bookit-role-select" name="roleid">
@@ -28,7 +30,7 @@
     </form>
     </div>
 
-    <table class="table table-hover rounded shadow p-4" id="mod-bookit-master-checklist-table"
+    <table class="table table-hover border rounded p-4" id="mod-bookit-master-checklist-table"
         data-master-checklist-id="{{id}}"
         data-master-checklist-name="{{name}}">
         <thead>
@@ -49,6 +51,7 @@
             {{/checklistcategories}}
         {{! </tbody> }}
     </table>
+</div>
 </div>
 {{#js}}
 require(['mod_bookit/master_checklist'], function(component) {

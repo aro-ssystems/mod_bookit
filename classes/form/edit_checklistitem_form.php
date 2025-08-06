@@ -80,27 +80,27 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->setType('roleid', PARAM_INT);
         $mform->addRule('roleid', null, 'required', null, 'client');
 
-        $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+        // $alltypes = bookit_notification_slot::get_all_notification_slot_types();
 
-        foreach ($alltypes as $slottype => $val) {
+        // foreach ($alltypes as $slottype => $val) {
 
 
-            $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
+        //     $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
 
-            $select = $mform->addElement('select',
-                    strtolower($slottype) . '_recipient',
-                    get_string('recipient', 'mod_bookit'),
-                    $allroles,
-                    ['style'=>'width:50%;']);
-            $select->setMultiple(true);
+        //     $select = $mform->addElement('select',
+        //             strtolower($slottype) . '_recipient',
+        //             get_string('recipient', 'mod_bookit'),
+        //             $allroles,
+        //             ['style'=>'width:50%;']);
+        //     $select->setMultiple(true);
 
-            $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
+        //     $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
 
-            $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
+        //     $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
 
-            $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
+        //     $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
 
-        }
+        // }
 
         // $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
         //                                         array_keys($alltypes));

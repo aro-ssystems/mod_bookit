@@ -39,7 +39,7 @@ $PAGE->set_context(context_system::instance());
 $PAGE->set_url(new moodle_url('/mod/bookit/master_checklist.php'));
 $PAGE->set_heading(get_string('master_checklist', 'mod_bookit'));
 // $PAGE->set_context(context_system::instance());
-$PAGE->set_pagelayout('standard');
+$PAGE->set_pagelayout('admin');
 
 echo $OUTPUT->header();
 

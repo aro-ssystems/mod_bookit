@@ -50,4 +50,13 @@ export default class extends BaseComponent {
         // This method is called when the drag operation ends.
         window.console.log('Drag ended', dragData);
     }
+
+    // validateDropData(dropdata) {
+
+    //     return true;
+    // }
+
+    // drop(dropdata, event) {
+    //     window.console.log('whoops you dropped this on a handle', dropdata);
+    // }
 }

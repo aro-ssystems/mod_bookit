@@ -37,7 +37,7 @@ export default class extends BaseComponent {
 
         // this.relativeDrag = true;
 
-        // this.dragdrop = new DragDrop(this);
+        this.dragdrop = new DragDrop(this);
 
         // window.console.log('state ready');
         // window.console.log(state);
@@ -62,11 +62,43 @@ export default class extends BaseComponent {
 
     }
 
-    // destroy() {
-    //     if (this.dragdrop !== undefined) {
-    //         this.dragdrop.unregister();
-    //     }
-    // }
+    destroy() {
+        if (this.dragdrop !== undefined) {
+            this.dragdrop.unregister();
+        }
+    }
+
+    validateDropData(dropdata) {
+
+        return true;
+    }
+
+    drop(dropdata, event) {
+        window.console.log('whoops you dropped this on an item', dropdata);
+    }
+
+
+showDropZone(dropdata, event) {
+
+
+    const root = document.querySelector('html');
+    const primaryColor = getComputedStyle(root).getPropertyValue('--primary');
+
+    window.console.log('primary color: ', primaryColor);
+
+
+        this.element.style.backgroundImage = `linear-gradient(0deg,${primaryColor} 0%, rgba(255, 255, 255, 0) 8%)`;
+        this.element.style.backgroundBlendMode = 'multiply';
+        this.element.style.transition = 'background 0.2s ease';
+
+}
+
+hideDropZone(dropdata, event) {
+
+    this.element.style.backgroundImage = '';
+    this.element.style.backgroundBlendMode = '';
+    this.element.style.transition = '';
+}
 
     // getDraggableData() {
     //     return {id: 35, name: "Something"};
