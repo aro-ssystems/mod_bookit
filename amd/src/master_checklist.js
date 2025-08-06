@@ -42,7 +42,7 @@ export default class extends BaseComponent {
             {watch: 'state:updated', handler: this._handleStateEvent},
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
             {watch: 'checklistcategories:deleted', handler: this._handleCategoryDeletedEvent},
-            {watch: 'checklistcategories:updated', handler: this._handleCategoryUpdatedEvent},
+            {watch: 'checklistcategories.name:updated', handler: this._handleCategoryUpdatedEvent},
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
             {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
             {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},

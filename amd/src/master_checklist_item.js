@@ -74,6 +74,7 @@ export default class extends BaseComponent {
     }
 
     drop(dropdata, event) {
+        dropdata.targetId = this.element.dataset.bookitChecklistitemId;
         window.console.log('whoops you dropped this on an item', dropdata);
         this.reactive.dispatch('reOrderCategoryItems', dropdata);
     }
