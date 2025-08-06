@@ -16,7 +16,14 @@ export default class extends BaseComponent {
 
         this.selectors[categoryEditBtnSelector] = `#edit-checklistcategory-${descriptor.element.dataset.bookitCategoryId}`;
 
+        const categoryTbodySelector = 'CATEGORY_TBODY_' + descriptor.element.dataset.bookitCategoryId;
+        this.selectors[categoryTbodySelector] = `#bookit-master-checklist-tbody-category-${descriptor.element.dataset.bookitCategoryId}`;
+
         window.console.log(this.selectors);
+
+//         document.addEventListener('categoryRendered', (e) => {
+//     window.console.log('🔥 caught event on document:', e.detail);
+// }, true);
 
     }
 
@@ -30,6 +37,8 @@ export default class extends BaseComponent {
 
     getWatchers() {
         return [
+            {watch: 'checklistcategories:updated', handler: this._refreshEditButtonListener},
+            {watch: 'mod_bookit:master_checklist_category_rendered', handler: this._foo},
             // {watch: 'state:updated', handler: this._handleStateEvent},
             // {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
         ];
@@ -45,6 +54,23 @@ export default class extends BaseComponent {
             window.console.log('EDIT CHECKLIST CATEGORY BUTTON CLICKED', e.currentTarget);
             this._handleEditChecklistCategoryButtonClick(e);
         });
+
+        const categoryTbodySelector = 'CATEGORY_TBODY_' + this.element.dataset.bookitCategoryId;
+
+        const elem = document.querySelector(this.selectors.MAIN_ELEMENT);
+        window.console.log('elem:', elem);
+
+        // this.addEventListener(document.querySelector(this.selectors.MAIN_ELEMENT), 'mod_bookit:master_checklist_category_rendered', (e) => {
+        //     window.console.log('category rendered event received in component');
+        //     window.console.log(e);
+        //     this._foo(e);
+        // });
+
+        document.addEventListener('mod_bookit:master_checklist_category_rendered', (e) => {
+            window.console.log('NOW THIS', e.detail);
+            this._refreshEditButtonListener(e);
+        }, true);
+
 
     }
 
@@ -78,5 +104,25 @@ export default class extends BaseComponent {
 
         modalForm.show();
     };
+
+    _refreshEditButtonListener(event) {
+        window.console.log('handle category updated event in component');
+        window.console.log(event);
+
+        this.removeAllEventListeners();
+
+        const categoryEditBtnSelector = 'EDIT_CHECKLISTCATEGORY_BTN_' + this.element.dataset.bookitCategoryId;
+
+        this.addEventListener(this.getElement(this.selectors[categoryEditBtnSelector]), 'click', (e) => {
+            e.preventDefault();
+            window.console.log('EDIT CHECKLIST CATEGORY BUTTON CLICKED', e.currentTarget);
+            this._handleEditChecklistCategoryButtonClick(e);
+        });
+    }
+
+    _foo(event) {
+        window.console.log('foo');
+        window.console.log(event);
+    }
 
 }

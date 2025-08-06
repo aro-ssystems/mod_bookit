@@ -217,7 +217,7 @@ class bookit_checklist_item implements \renderable, \templatable {
         $data->roleid = $this->roleid;
         $data->rolename = \mod_bookit\local\manager\checklist_manager::get_rolename_by_id($this->roleid);
 
-
+        $data->type = 'item';
 
         return $data;
     }

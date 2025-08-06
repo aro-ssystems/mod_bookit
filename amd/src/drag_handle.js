@@ -38,7 +38,7 @@ export default class extends BaseComponent {
     }
 
     getDraggableData() {
-        return {id: 35, name: "Something"};
+        return {id: this.element.dataset.bookitDragHandleId, type: this.element.dataset.bookitDragHandleType};
     }
 
     dragStart(dragData, event) {

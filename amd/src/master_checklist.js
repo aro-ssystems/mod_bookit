@@ -9,6 +9,12 @@ import {getString} from 'core/str';
 
 export default class extends BaseComponent {
 
+    static getEvents() {
+        return {
+            categoryRendered: 'mod_bookit:master_checklist_category_rendered',
+        };
+    }
+
     create(descriptor) {
 
         window.console.log('create component: ' + descriptor.reactive.name);
@@ -23,6 +29,12 @@ export default class extends BaseComponent {
             selectors: selectors || SELECTORS,
         });
     }
+
+    // static getEvents() {
+    //     return {
+    //         categoryRendered: 'mod_bookit:master_checklist_category_rendered',
+    //     };
+    // }
 
     getWatchers() {
         window.console.log('GET WATCHERS');
@@ -63,6 +75,7 @@ export default class extends BaseComponent {
             window.console.log('ADD CHECKLIST CATEGORY BUTTON CLICKED');
             this._handleAddChecklistCategoryButtonClick(e);
         });
+
     }
 
     _handleStateEvent(event) {
@@ -218,6 +231,9 @@ export default class extends BaseComponent {
             .then(async () => {
                 Toast.add(await getString('checklistitemupdatesuccess', 'mod_bookit'),
                     {type: 'success' });
+                    // this.dispatchEvent(this.events.categoryRendered, {
+                    //     component: this
+                    // });
             })
             .catch(error => {
                 window.console.error('Error rendering checklist item:', error);
@@ -227,6 +243,13 @@ export default class extends BaseComponent {
     _handleCategoryDeletedEvent(event) {
         window.console.log('handle category deleted event');
         window.console.log(event);
+
+        const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
+
+        targetElement.remove();
+
+        Toast.add(getString('checklistcategorydeleted', 'mod_bookit', {name: event.element.name}),
+            {type: 'success' });
     }
 
     _handleCategoryUpdatedEvent(event) {
@@ -244,18 +267,25 @@ export default class extends BaseComponent {
                 order: event.element.order,
             })
             .then(({html, js}) => {
-                window.console.log('rendered category');
-                window.console.log(html);
+                // window.console.log('rendered category');
+                // window.console.log(html);
                 // window.console.log(js);
                 Templates.replaceNode(targetElement, html, js);
+                // this.dispatchEvent(this.events.categoryRendered, {
+                //     foo: 'bar'
+                // });
             })
             .then(async () => {
                 Toast.add(await getString('checklistcategoryupdatesuccess', 'mod_bookit'),
                     {type: 'success' });
+                    this.dispatchEvent(this.events.categoryRendered, {
+                        component: this
+                    });
             })
             .catch(error => {
                 window.console.error('Error rendering checklist category:', error);
             });
+
     }
 
 }
