@@ -38,7 +38,11 @@ export default class extends BaseComponent {
     }
 
     getDraggableData() {
-        return {id: this.element.dataset.bookitDragHandleId, type: this.element.dataset.bookitDragHandleType};
+        return {
+            id: this.element.dataset.bookitDragHandleId,
+            type: this.element.dataset.bookitDragHandleType,
+            parentId: this.fullregion.dataset.bookitDragHandleParentId,
+        };
     }
 
     dragStart(dragData, event) {

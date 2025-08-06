@@ -75,30 +75,31 @@ export default class extends BaseComponent {
 
     drop(dropdata, event) {
         window.console.log('whoops you dropped this on an item', dropdata);
+        this.reactive.dispatch('reOrderCategoryItems', dropdata);
     }
 
 
-showDropZone(dropdata, event) {
+    showDropZone(dropdata, event) {
 
 
-    const root = document.querySelector('html');
-    const primaryColor = getComputedStyle(root).getPropertyValue('--primary');
+        const root = document.querySelector('html');
+        const primaryColor = getComputedStyle(root).getPropertyValue('--primary');
 
-    window.console.log('primary color: ', primaryColor);
+        window.console.log('primary color: ', primaryColor);
 
 
-        this.element.style.backgroundImage = `linear-gradient(0deg,${primaryColor} 0%, rgba(255, 255, 255, 0) 8%)`;
-        this.element.style.backgroundBlendMode = 'multiply';
-        this.element.style.transition = 'background 0.2s ease';
+            this.element.style.backgroundImage = `linear-gradient(0deg,${primaryColor} 0%, rgba(255, 255, 255, 0) 8%)`;
+            this.element.style.backgroundBlendMode = 'multiply';
+            this.element.style.transition = 'background 0.2s ease';
 
-}
+    }
 
-hideDropZone(dropdata, event) {
+    hideDropZone(dropdata, event) {
 
-    this.element.style.backgroundImage = '';
-    this.element.style.backgroundBlendMode = '';
-    this.element.style.transition = '';
-}
+        this.element.style.backgroundImage = '';
+        this.element.style.backgroundBlendMode = '';
+        this.element.style.transition = '';
+    }
 
     // getDraggableData() {
     //     return {id: 35, name: "Something"};
