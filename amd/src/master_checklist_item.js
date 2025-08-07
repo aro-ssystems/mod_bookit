@@ -82,23 +82,17 @@ export default class extends BaseComponent {
 
 
     showDropZone(dropdata, event) {
-
-
         const root = document.querySelector('html');
         const primaryColor = getComputedStyle(root).getPropertyValue('--primary');
 
         window.console.log('primary color: ', primaryColor);
 
-
-            this.element.style.backgroundImage = `linear-gradient(0deg,${primaryColor} 0%, rgba(255, 255, 255, 0) 8%)`;
-            this.element.style.backgroundBlendMode = 'multiply';
-            this.element.style.transition = 'background 0.2s ease';
-
+        this.element.style.boxShadow = `0px -5px 0px 0px ${primaryColor} inset`;
+        this.element.style.transition = 'box-shadow 0.1s ease';
     }
 
     hideDropZone(dropdata, event) {
-
-        this.element.style.backgroundImage = '';
+        this.element.style.boxShadow = '';
         this.element.style.backgroundBlendMode = '';
         this.element.style.transition = '';
     }

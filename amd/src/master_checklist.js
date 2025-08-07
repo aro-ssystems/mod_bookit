@@ -42,7 +42,7 @@ export default class extends BaseComponent {
             {watch: 'state:updated', handler: this._handleStateEvent},
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
             {watch: 'checklistcategories:deleted', handler: this._handleCategoryDeletedEvent},
-            {watch: 'checklistcategories.name:updated', handler: this._handleCategoryUpdatedEvent},
+            {watch: 'checklistcategories.name:updated', handler: this._handleCategoryNameUpdatedEvent},
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
             {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
             {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},
@@ -252,8 +252,8 @@ export default class extends BaseComponent {
             {type: 'success' });
     }
 
-    _handleCategoryUpdatedEvent(event) {
-        window.console.log('handle category updated event');
+    _handleCategoryNameUpdatedEvent(event) {
+        window.console.log('handle category name updated event');
         window.console.log(event);
 
         const targetElement = this.getElement(`#bookit-master-checklist-category-row-${event.element.id}`);
@@ -279,13 +279,22 @@ export default class extends BaseComponent {
                 Toast.add(await getString('checklistcategoryupdatesuccess', 'mod_bookit'),
                     {type: 'success' });
                     this.dispatchEvent(this.events.categoryRendered, {
-                        component: this
+                        categoryId: event.element.id
                     });
             })
             .catch(error => {
                 window.console.error('Error rendering checklist category:', error);
             });
 
+    }
+
+    _handleCategoryItemUpdatedEvent(event) {
+        window.console.log('handle category item updated event');
+        window.console.log(event);
+
+        const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
+
+        window.console.log('target element', targetElement);
     }
 
 }

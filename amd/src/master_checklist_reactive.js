@@ -122,7 +122,7 @@ const loadState = async(reactive) => {
     checklistItemRows.forEach(itemRow => {
         stateData.checklistitems.push({
             id: itemRow.dataset.bookitChecklistitemId,
-            name: itemRow.dataset.bookitChecklistitemName,
+            title: itemRow.dataset.bookitChecklistitemTitle,
             order: itemRow.dataset.bookitChecklistitemOrder,
             category: itemRow.dataset.bookitCategoryId,
             roomid: itemRow.dataset.bookitChecklistitemRoom,
