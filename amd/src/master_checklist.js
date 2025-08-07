@@ -6,6 +6,7 @@ import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
 import * as Toast from 'core/toast';
 import {getString} from 'core/str';
+import Ajax from 'core/ajax';
 
 export default class extends BaseComponent {
 
@@ -43,6 +44,7 @@ export default class extends BaseComponent {
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
             {watch: 'checklistcategories:deleted', handler: this._handleCategoryDeletedEvent},
             {watch: 'checklistcategories.name:updated', handler: this._handleCategoryNameUpdatedEvent},
+            {watch: 'checklistcategories.items:updated', handler: this._handleCategoryItemUpdatedEvent},
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
             {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
             {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},
@@ -288,13 +290,96 @@ export default class extends BaseComponent {
 
     }
 
-    _handleCategoryItemUpdatedEvent(event) {
+    async _handleCategoryItemUpdatedEvent(event) {
         window.console.log('handle category item updated event');
         window.console.log(event);
 
         const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
 
         window.console.log('target element', targetElement);
+
+        const category = this.reactive.state.checklistcategories.get(event.element.id);
+        window.console.log('category in _handleCategoryItemUpdatedEvent', category);
+
+
+        // const modalForm = new ModalForm({
+        //     formClass: 'mod_bookit\\form\\edit_checklist_category_form',
+        //     moduleName: 'mod_bookit/modal_delete_save_cancel',
+        //     args: {
+        //         id: category.id,
+        //         masterid: 1,
+        //         checklistitems: JSON.stringify(category.items),
+        //     },
+        //     modalConfig: {
+        //         title: await getString('checklistcategory', 'mod_bookit'),
+        //     },
+        // })
+
+        // modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+        //     this.reactive.stateManager.processUpdates(response.detail);
+        // });
+
+        // modalForm.addEventListener(modalForm.events.LOADED, (response) => {
+
+        //     const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
+
+        //     deleteButton.on('click', (e) => {
+        //         modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
+        //         modalForm.submitFormAjax();
+        //     });
+        // });
+
+        // modalForm.show();
+
+        // // // Convert all the form elements values to a serialised string.
+        // const form = modalForm.modal.getRoot().find('form');
+        const formDataObj = {
+            id: category.id,
+            masterid: 1,
+            name: category.name,
+            checklistitems: category.items,
+            action: 'put',
+            _qf__mod_bookit_form_edit_checklist_category_form: 1,
+        };
+
+        const formData = new URLSearchParams(formDataObj).toString();
+
+        window.console.log('formData', formData);
+        // // Now we can continue...
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
+            args: {
+                formdata: formData,
+                form: 'mod_bookit\\form\\edit_checklist_category_form'
+            }
+        }])[0]
+        .then((response) => {
+
+            window.console.log('AJAX response received');
+            window.console.log(response);
+            // if (!response.submitted) {
+            //     // Form was not submitted because validation failed.
+            //     const promise = new Promise(
+            //         resolve => resolve({html: response.html, js: Fragment.processCollectedJavascript(response.javascript)}));
+            //     this.modal.setBodyContent(promise);
+            //     this.enableButtons();
+            //     this.trigger(this.events.SERVER_VALIDATION_ERROR);
+            // } else {
+            //     // Form was submitted properly. Hide the modal and execute callback.
+            //     const data = JSON.parse(response.data);
+            //     FormChangeChecker.markFormSubmitted(form[0]);
+            //     const event = this.trigger(this.events.FORM_SUBMITTED, data);
+            //     if (!event.defaultPrevented) {
+            //         this.modal.hide();
+            //     }
+            // }
+            return null;
+        })
+        .catch(exception => {
+            window.console.error('AJAX error:', exception);
+            // this.enableButtons();
+            // this.onSubmitError(exception);
+        });
     }
 
 }

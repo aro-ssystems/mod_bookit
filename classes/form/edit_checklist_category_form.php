@@ -44,6 +44,9 @@ class edit_checklist_category_form extends dynamic_form {
         $mform->setType('action', PARAM_TEXT);
         $mform->setDefault('action', 'put');
 
+        $mform->addElement('hidden', 'checklistitems');
+        $mform->setType('checklistitems', PARAM_TEXT);
+
         $mform->addElement('text', 'name', get_string('category_name', 'mod_bookit'));
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
@@ -169,6 +172,8 @@ class edit_checklist_category_form extends dynamic_form {
     public function set_data_for_dynamic_submission(): void {
         $data = [];
 
+        error_log("Setting data for dynamic submission in FORM CLASS: " . print_r($this->_ajaxformdata, true));
+
         if (!empty($this->_ajaxformdata['masterid'])) {
             $data['masterid'] = $this->_ajaxformdata['masterid'];
         }
@@ -181,21 +186,47 @@ class edit_checklist_category_form extends dynamic_form {
                 $data['id'] = $category->id;
                 $data['masterid'] = $category->masterid;
                 $data['name'] = $category->name;
-            } catch (\Exception $e) {
+                $data['checklistitems'] = json_encode($this->_ajaxformdata['checklistitems']);
 
+            } catch (\Exception $e) {
+                error_log("Error loading checklist category with ID $id: " . $e->getMessage());
             }
         }
 
         $this->set_data($data);
+        error_log("Data set for dynamic submission AFTER: " . print_r($data, true));
     }
     public function process_put_request($ajaxdata = []): array {
         global $USER;
+
+        // error_log(json_encode($ajaxdata['checklistitems'] ?? []));
+
+        // error_log(print_r(json_decode(json_encode($ajaxdata['checklistitems'] ?? [])), true));
+
+        $lol = $ajaxdata['checklistitems'];
+        // Log the type of the decoded JSON
+        error_log("Type of lol: " . gettype($lol));
+        error_log("Value of lol: " . print_r($lol, true));
+
+        // Convert the checklistitems object to an array if needed
+        if (is_object($lol) || is_array($lol)) {
+            // If the conversion was successful, store it in a format that can be saved
+            $checklistitems = json_encode($lol);
+            error_log("Converted checklistitems: " . $checklistitems);
+        } else {
+            // Handle case where JSON decoding didn't result in expected type
+            $checklistitems = '[]';
+            error_log("Invalid checklistitems format. Using empty array.");
+        }
+
+
 
         if (!empty($ajaxdata['id'])) {
             error_log("Processing PUT request for existing category with ID: " . $ajaxdata['id']);
             $category = bookit_checklist_category::from_database($ajaxdata['id']);
             $category->name = $ajaxdata['name'];
             $category->description = $ajaxdata['description'] ?? '';
+            $category->checklistitems = json_encode($ajaxdata['checklistitems'] ?? []);
             $category->usermodified = $USER->id;
             $category->timemodified = time();
 
@@ -231,7 +262,7 @@ class edit_checklist_category_form extends dynamic_form {
                     'id' => $id,
                     'name' => $ajaxdata['name'],
                     'order' => 0,
-                    'items' => $ajaxdata['items'],
+                    'items' => $ajaxdata['checklistitems'],
                 ],
             ],
         ];

@@ -6,7 +6,7 @@
 <tbody id="bookit-master-checklist-tbody-category-{{id}}" data-bookit-tbody-category-id="{{id}}" data-bookit-category-name="{{name}}" data-bookit-category-id="{{id}}">
 {{> mod_bookit/bookit_checklist_category_row }}
 {{#checklistitems}}
-    {{{.}}}
+    {{> mod_bookit/bookit_checklist_item }}
 {{/checklistitems}}
 </tbody>
 {{#js}}

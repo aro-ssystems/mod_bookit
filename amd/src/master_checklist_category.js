@@ -37,7 +37,7 @@ export default class extends BaseComponent {
 
     getWatchers() {
         return [
-            {watch: 'checklistcategories:updated', handler: this._refreshEditButtonListener},
+            {watch: 'checklistcategories.name:updated', handler: this._refreshEditButtonListener},
             {watch: 'mod_bookit:master_checklist_category_rendered', handler: this._foo},
             // {watch: 'state:updated', handler: this._handleStateEvent},
             // {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
@@ -81,7 +81,8 @@ export default class extends BaseComponent {
             moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 id: this.element.dataset.bookitCategoryId,
-                masterid: 1
+                masterid: 1,
+                checklistitems: JSON.stringify(this.reactive.state.checklistcategories.get(this.element.dataset.bookitCategoryId).items),
             },
             modalConfig: {
                 title: await getString('checklistcategory', 'mod_bookit'),

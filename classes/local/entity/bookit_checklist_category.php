@@ -62,7 +62,7 @@ class bookit_checklist_category implements \renderable, \templatable {
         /** @var ?string description */
         public ?string $description,
         /** @var ?array checklistitems */
-        public ?array $checklistitems = null,
+        public $checklistitems = null,
         /** @var int sortorder */
         public int $sortorder = 0,
         /** @var ?int usermodified */
@@ -108,6 +108,7 @@ class bookit_checklist_category implements \renderable, \templatable {
         if (empty(json_decode($record->checklistitems ?? ''))) {
             $checklistitems = checklist_manager::get_items_by_category_id($record->id);
         } else {
+            // TODO we need to get the items from the JSON string
             $checklistitems = [];
         }
 
@@ -139,6 +140,7 @@ class bookit_checklist_category implements \renderable, \templatable {
         $record->masterid = $this->masterid;
         $record->name = $this->name;
         $record->description = $this->description;
+        $record->checklistitems = json_encode($this->checklistitems ?? []);
         $record->sortorder = $this->sortorder;
         $record->usermodified = $USER->id;
         $record->timemodified = time();
@@ -179,7 +181,8 @@ class bookit_checklist_category implements \renderable, \templatable {
         $data->checklistitems = [];
 
         foreach ($this->checklistitems as $item) {
-            $data->checklistitems[] = $output->render($item);
+            // die(json_encode($item));
+            $data->checklistitems[] = $item->export_for_template($output);
         }
 
         // die('Debugging export_for_template: ' . json_encode($data));
