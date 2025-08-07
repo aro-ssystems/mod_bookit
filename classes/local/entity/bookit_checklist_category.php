@@ -104,11 +104,14 @@ class bookit_checklist_category implements \renderable, \templatable {
     public static function from_record(array|object $record): self {
         $record = (object) $record;
 
+        // die($record->checklistitems);
+
         // TODO fix empty check
         if (empty(json_decode($record->checklistitems ?? ''))) {
             $checklistitems = checklist_manager::get_items_by_category_id($record->id);
         } else {
             // TODO we need to get the items from the JSON string
+            // die('Debugging from_record: ' . json_encode($record->checklistitems));
             $checklistitems = [];
         }
 
@@ -140,7 +143,7 @@ class bookit_checklist_category implements \renderable, \templatable {
         $record->masterid = $this->masterid;
         $record->name = $this->name;
         $record->description = $this->description;
-        $record->checklistitems = json_encode($this->checklistitems ?? []);
+        $record->checklistitems = trim($this->checklistitems, '"');
         $record->sortorder = $this->sortorder;
         $record->usermodified = $USER->id;
         $record->timemodified = time();
