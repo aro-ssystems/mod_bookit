@@ -42,7 +42,8 @@
         </thead>
         {{! <tbody id="mod-bookit-master-checklist-tbody"> }}
             {{#checklistcategories}}
-                {{{.}}}
+                {{> mod_bookit/bookit_checklist_category }}
+
             {{/checklistcategories}}
             {{^checklistcategories}}
             <tr>

@@ -105,7 +105,10 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
-            this.reactive.stateManager.processUpdates(response.detail);
+
+            // TODO dispatch event to update state
+            this.reactive.dispatch('checklistitemCreated', response.detail);
+            // this.reactive.stateManager.processUpdates(response.detail);
         });
 
         modalForm.show();
@@ -301,38 +304,6 @@ export default class extends BaseComponent {
         const category = this.reactive.state.checklistcategories.get(event.element.id);
         window.console.log('category in _handleCategoryItemUpdatedEvent', category);
 
-
-        // const modalForm = new ModalForm({
-        //     formClass: 'mod_bookit\\form\\edit_checklist_category_form',
-        //     moduleName: 'mod_bookit/modal_delete_save_cancel',
-        //     args: {
-        //         id: category.id,
-        //         masterid: 1,
-        //         checklistitems: JSON.stringify(category.items),
-        //     },
-        //     modalConfig: {
-        //         title: await getString('checklistcategory', 'mod_bookit'),
-        //     },
-        // })
-
-        // modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
-        //     this.reactive.stateManager.processUpdates(response.detail);
-        // });
-
-        // modalForm.addEventListener(modalForm.events.LOADED, (response) => {
-
-        //     const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
-
-        //     deleteButton.on('click', (e) => {
-        //         modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
-        //         modalForm.submitFormAjax();
-        //     });
-        // });
-
-        // modalForm.show();
-
-        // // // Convert all the form elements values to a serialised string.
-        // const form = modalForm.modal.getRoot().find('form');
         const formDataObj = {
             id: category.id,
             masterid: 1,
@@ -345,7 +316,7 @@ export default class extends BaseComponent {
         const formData = new URLSearchParams(formDataObj).toString();
 
         window.console.log('formData', formData);
-        // // Now we can continue...
+
         Ajax.call([{
             methodname: 'core_form_dynamic_form',
             args: {

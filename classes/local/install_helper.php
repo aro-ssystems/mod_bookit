@@ -103,7 +103,7 @@ class install_helper {
             $masterid,
             $categoryname,
             'Essential tasks for preparing university examinations',
-            [], // checklist items
+            '', // checklist items
             1 // sortorder
         );
 

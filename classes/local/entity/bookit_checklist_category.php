@@ -106,15 +106,15 @@ class bookit_checklist_category implements \renderable, \templatable {
 
         // die($record->checklistitems);
 
-        // TODO fix empty check
-        if (empty(json_decode($record->checklistitems ?? ''))) {
-            // $checklistitems = checklist_manager::get_items_by_category_id($record->id);
-            $checklistitems = '';
-        } else {
-            // TODO we need to get the items from the JSON string
-            // die('Debugging from_record: ' . json_encode($record->checklistitems));
-            $checklistitems = '';
-        }
+        // // TODO fix empty check
+        // if (empty(json_decode($record->checklistitems ?? ''))) {
+        //     // $checklistitems = checklist_manager::get_items_by_category_id($record->id);
+        //     $checklistitems = '';
+        // } else {
+        //     // TODO we need to get the items from the JSON string
+        //     // die('Debugging from_record: ' . json_encode($record->checklistitems));
+        //     $checklistitems = '';
+        // }
 
         // die('Debugging from_record: ' . json_encode($checklistitems));
 
@@ -123,7 +123,7 @@ class bookit_checklist_category implements \renderable, \templatable {
                 $record->masterid,
                 $record->name,
                 $record->description,
-                $checklistitems,
+                $record->checklistitems,
                 $record->sortorder,
                 $record->usermodified,
                 $record->timecreated,
@@ -184,12 +184,18 @@ class bookit_checklist_category implements \renderable, \templatable {
 
         $data->checklistitems = [];
 
-        foreach ($this->checklistitems as $item) {
-            // die(json_encode($item));
-            $data->checklistitems[] = $item->export_for_template($output);
+        if (!empty($this->checklistitems)) {
+            $itemids = explode(',', $this->checklistitems);
+
+            foreach ($itemids as $itemid) {
+
+                $item = bookit_checklist_item::from_database($itemid);
+
+                $data->checklistitems[] = $item->export_for_template($output);
+            }
         }
 
-        // die('Debugging export_for_template: ' . json_encode($data));
+        error_log('Debugging export_for_template category: ' . print_r($data, true));
 
         return $data;
     }

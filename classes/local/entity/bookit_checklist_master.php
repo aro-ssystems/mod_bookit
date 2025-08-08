@@ -185,7 +185,7 @@ class bookit_checklist_master implements \renderable, \templatable {
         error_log('Debugging export_for_template ROOMS: ' . print_r($data->rooms, true));
 
         foreach ($this->checklistcategories as $category) {
-            $data->checklistcategories[] = $output->render($category);
+            $data->checklistcategories[] = $category->export_for_template($output);
         }
 
         return $data;

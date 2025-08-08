@@ -105,4 +105,11 @@ export default class {
 
         stateManager.setReadOnly(true);
     }
+
+    checklistitemCreated(stateManager, data) {
+        const state = stateManager.state;
+        window.console.log('checklist item created');
+        window.console.log(data);
+        stateManager.processUpdates(data);
+    }
 }
