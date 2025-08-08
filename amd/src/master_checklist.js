@@ -339,6 +339,35 @@ export default class extends BaseComponent {
             // Now you can use itemsArray for rendering the ordered category items
             itemsArray.forEach(item => {
                 window.console.log('item', item);
+                const itemObject = this.reactive.state.checklistitems.get(item);
+                window.console.log('itemObject', itemObject);
+                window.console.log('category', category);
+                Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+                {
+                    id: itemObject.id,
+                    title: itemObject.title,
+                    order: itemObject.order,
+                    categoryid: category.id,
+                    roomid: itemObject.roomid,
+                    roomname: itemObject.roomname,
+                    roleid: itemObject.roleid,
+                    rolename: itemObject.rolename,
+                })
+                .then(({html, js}) => {
+                    // window.console.log('rendered item');
+                    // window.console.log(html);
+                    // window.console.log(js);
+                    this.getElement(`#bookit-master-checklist-item-${itemObject.id}`).remove();
+                    Templates.appendNodeContents(targetElement, html, js);
+                })
+                .then(async () => {
+                    // Toast.add(await getString('checklistitemsuccess', 'mod_bookit'),
+                    //     {type: 'success' });
+                })
+                .catch(error => {
+                    window.console.error('Error rendering checklist item:', error);
+                });
+
             });
             // TODO render the new ordered category items
 
