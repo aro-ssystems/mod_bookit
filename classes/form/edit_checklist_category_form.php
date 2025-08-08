@@ -215,7 +215,7 @@ class edit_checklist_category_form extends dynamic_form {
             error_log("Converted checklistitems: " . $checklistitems);
         } else {
             // Handle case where JSON decoding didn't result in expected type
-            $checklistitems = '[]';
+            $checklistitems = '';
             error_log("Invalid checklistitems format. Using empty array.");
         }
 
@@ -226,7 +226,7 @@ class edit_checklist_category_form extends dynamic_form {
             $category = bookit_checklist_category::from_database($ajaxdata['id']);
             $category->name = $ajaxdata['name'];
             $category->description = $ajaxdata['description'] ?? '';
-            $category->checklistitems = json_encode($ajaxdata['checklistitems'] ?? []);
+            $category->checklistitems = $ajaxdata['checklistitems'] ?? '';
             $category->usermodified = $USER->id;
             $category->timemodified = time();
 
@@ -241,7 +241,7 @@ class edit_checklist_category_form extends dynamic_form {
                 $ajaxdata['masterid'],
                 $ajaxdata['name'],
                 $ajaxdata['description'] ?? '',
-                [],
+                '',
                 0,
                 $USER->id,
                 time(),

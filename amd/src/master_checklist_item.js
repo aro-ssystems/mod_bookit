@@ -9,7 +9,7 @@ export default class extends BaseComponent {
 
     create(descriptor) {
 
-        window.console.log('create item component: ' + descriptor.element.dataset.bookitChecklistitemName);
+        window.console.log('create item component: ' + descriptor.element.dataset.bookitChecklistitemTitle);
 
         const itemEditBtnSelector = 'EDIT_CHECKLISTITEM_BTN_' + descriptor.element.dataset.bookitChecklistitemId;
 

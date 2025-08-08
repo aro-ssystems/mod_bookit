@@ -76,7 +76,7 @@ class bookit_checklist_category implements \renderable, \templatable {
         global $USER;
 
         $now = time();
-        $this->checklistitems ??= [];
+        $this->checklistitems ??= '';
         $this->usermodified ??= $USER->id;
         $this->timecreated ??= $now;
         $this->timemodified ??= $now;
@@ -108,11 +108,12 @@ class bookit_checklist_category implements \renderable, \templatable {
 
         // TODO fix empty check
         if (empty(json_decode($record->checklistitems ?? ''))) {
-            $checklistitems = checklist_manager::get_items_by_category_id($record->id);
+            // $checklistitems = checklist_manager::get_items_by_category_id($record->id);
+            $checklistitems = '';
         } else {
             // TODO we need to get the items from the JSON string
             // die('Debugging from_record: ' . json_encode($record->checklistitems));
-            $checklistitems = [];
+            $checklistitems = '';
         }
 
         // die('Debugging from_record: ' . json_encode($checklistitems));
