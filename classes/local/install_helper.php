@@ -186,7 +186,7 @@ class install_helper {
         $categories = $DB->get_records('bookit_checklist_category', ['masterid' => $masterid], 'sortorder ASC', 'id');
         $categoryids = array_keys($categories);
 
-        $master->checklistcategories = $categoryids;
+        $master->checklistcategories = implode(',', $categoryids);
         $master->save();
 
         if ($verbose) {

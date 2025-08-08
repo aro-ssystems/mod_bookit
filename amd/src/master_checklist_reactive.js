@@ -107,7 +107,7 @@ const loadState = async(reactive) => {
 
         const checklistItems = [];
         categoryItemRows.forEach(itemRow => {
-            checklistItems.push(itemRow.dataset.bookitChecklistitemId)
+            checklistItems.push(parseInt(itemRow.dataset.bookitChecklistitemId))
         });
 
         stateData.checklistcategories.push({

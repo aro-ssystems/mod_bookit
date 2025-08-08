@@ -104,20 +104,6 @@ class bookit_checklist_category implements \renderable, \templatable {
     public static function from_record(array|object $record): self {
         $record = (object) $record;
 
-        // die($record->checklistitems);
-
-        // // TODO fix empty check
-        // if (empty(json_decode($record->checklistitems ?? ''))) {
-        //     // $checklistitems = checklist_manager::get_items_by_category_id($record->id);
-        //     $checklistitems = '';
-        // } else {
-        //     // TODO we need to get the items from the JSON string
-        //     // die('Debugging from_record: ' . json_encode($record->checklistitems));
-        //     $checklistitems = '';
-        // }
-
-        // die('Debugging from_record: ' . json_encode($checklistitems));
-
         return new self(
                 $record->id ?? null,
                 $record->masterid,

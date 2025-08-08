@@ -31,8 +31,8 @@ export default class {
                 targetCategory.items = [];
             }
 
-            const idToMove = data.id;
-            const targetId = data.targetId;
+            const idToMove = parseInt(data.id);
+            const targetId = parseInt(data.targetId);
 
             // Remove the item from the source category
             sourceCategory.items = sourceCategory.items.filter(item => item !== idToMove);
@@ -70,8 +70,8 @@ export default class {
             }
 
             const currentItems = [...category.items];
-            const idToMove = data.id;
-            const targetId = data.targetId;
+            const idToMove = parseInt(data.id);
+            const targetId = parseInt(data.targetId);
 
             const currentIndex = currentItems.indexOf(idToMove);
 
@@ -110,6 +110,19 @@ export default class {
         const state = stateManager.state;
         window.console.log('checklist item created');
         window.console.log(data);
+        window.console.log(data[0]);
+        window.console.log(data[0].fields);
+        window.console.log(data[0].fields.category);
         stateManager.processUpdates(data);
+
+        stateManager.setReadOnly(false);
+        const category = state.checklistcategories.get(data[0].fields.category);
+        const currentItems = [...category.items];
+        currentItems.push(data[0].fields.id);
+        category.items = currentItems;
+        stateManager.setReadOnly(true);
+
+
     }
+
 }

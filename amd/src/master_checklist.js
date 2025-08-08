@@ -328,6 +328,20 @@ export default class extends BaseComponent {
 
             window.console.log('AJAX response received');
             window.console.log(response);
+
+            const data = JSON.parse(response.data);
+
+            window.console.log('data', data);
+            window.console.log(data[0].fields.items);
+            const itemsArray = data[0].fields.items.split(',').map(item => parseInt(item));
+            window.console.log('Items as array:', itemsArray);
+
+            // Now you can use itemsArray for rendering the ordered category items
+            itemsArray.forEach(item => {
+                window.console.log('item', item);
+            });
+            // TODO render the new ordered category items
+
             // if (!response.submitted) {
             //     // Form was not submitted because validation failed.
             //     const promise = new Promise(
