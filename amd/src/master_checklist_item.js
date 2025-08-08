@@ -77,7 +77,57 @@ export default class extends BaseComponent {
         dropdata.targetId = this.element.dataset.bookitChecklistitemId;
         dropdata.targetParentId = this.element.dataset.bookitChecklistitemCategory;
         window.console.log('whoops you dropped this on an item', dropdata);
-        this.reactive.dispatch('reOrderCategoryItems', dropdata);
+
+        const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
+
+        const newEl = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+                    if (newEl) {
+                        this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
+                    } else {
+                        window.console.warn('New element not found after appending');
+                    }
+
+        // Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+        //         {
+        //             id: itemObject.id,
+        //             title: itemObject.title,
+        //             order: itemObject.order,
+        //             categoryid: dropdata.targetParentId,
+        //             roomid: itemObject.roomid,
+        //             roomname: itemObject.roomname,
+        //             roleid: itemObject.roleid,
+        //             rolename: itemObject.rolename,
+        //         })
+        //         .then(({html, js}) => {
+        //             // window.console.log('rendered item');
+        //             // window.console.log(html);
+        //             // window.console.log(js);
+        //             // this.getElement(`#bookit-master-checklist-item-${itemObject.id}`).remove();
+        //             this.reactive.dispatch('reOrderCategoryItems', dropdata);
+        //             // document.getElementById(`bookit-master-checklist-item-${dropdata.id}`).remove();
+        //             window.console.log('element: ', this.element);
+        //             window.console.log('element next sibling: ', this.element.nextElementSibling);
+        //             // Templates.appendNodeContents(this.element.parentNode, html, js);
+
+        //             // Step 2: Move the newly inserted element before the target
+        //             const newEl = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+        //             if (newEl) {
+        //                 this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
+        //             } else {
+        //                 window.console.warn('New element not found after appending');
+        //             }
+        //         })
+        //         .then(async () => {
+        //             // Toast.add(await getString('checklistitemsuccess', 'mod_bookit'),
+        //             //     {type: 'success' });
+        //         })
+        //         .catch(error => {
+        //             window.console.error('Error rendering checklist item:', error);
+        //         });
+
+        // this.reactive.dispatch('reOrderCategoryItems', dropdata);
+
+        // document.getElementById(`bookit-master-checklist-item-${dropdata.id}`).remove();
     }
 
 
