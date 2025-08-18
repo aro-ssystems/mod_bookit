@@ -58,7 +58,7 @@ class bookit_checklist_master implements \renderable, \templatable {
      * @param string $name
      * @param string $description
      * @param int $isdefault
-     * @param array|null $checklistcategories
+     * @param $checklistcategories
      * @param int|null $usermodified
      * @param int|null $timecreated
      * @param int|null $timemodified
@@ -72,8 +72,8 @@ class bookit_checklist_master implements \renderable, \templatable {
         public string $description,
         /** @var int isdefault */
         public ?int $isdefault = null,
-        /** @var ?array checklistcategories */
-        public ?array $checklistcategories = null,
+        /** @var checklistcategories */
+        public $checklistcategories = null,
         /** @var ?int usermodified */
         public ?int $usermodified = null,
         /** @var ?int timecreated */
