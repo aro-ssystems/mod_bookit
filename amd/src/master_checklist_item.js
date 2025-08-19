@@ -4,6 +4,7 @@ import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
 import {getString} from 'core/str';
+import Ajax from 'core/ajax';
 
 export default class extends BaseComponent {
 
@@ -81,11 +82,97 @@ export default class extends BaseComponent {
         const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
 
         const newEl = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
-                    if (newEl) {
-                        this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
-                    } else {
-                        window.console.warn('New element not found after appending');
-                    }
+        if (newEl) {
+
+            const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
+
+            window.console.log('item has changed parent: ', itemHasChangedParent);
+
+            this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
+
+            const targetElement = document.getElementById(`bookit-master-checklist-tbody-category-${dropdata.targetParentId}`);
+
+            window.console.log('target element', targetElement);
+
+            const category = this.reactive.state.checklistcategories.get(dropdata.targetParentId);
+            window.console.log('category in _handleCategoryItemUpdatedEvent', category);
+
+            const formDataObj = {
+                id: category.id,
+                masterid: 1,
+                name: category.name,
+                checklistitems: category.items,
+                action: 'put',
+                _qf__mod_bookit_form_edit_checklist_category_form: 1,
+            };
+
+            const formData = new URLSearchParams(formDataObj).toString();
+
+            window.console.log('formData', formData);
+
+
+            Ajax.call([{
+                methodname: 'core_form_dynamic_form',
+                args: {
+                    formdata: formData,
+                    form: 'mod_bookit\\form\\edit_checklist_category_form'
+                }
+            }])[0]
+            .then((response) => {
+
+                window.console.log('AJAX response received');
+                window.console.log(response);
+
+                if (itemHasChangedParent) {
+                    const formDataObj = {
+                        itemid: dropdata.id,
+                        masterid: 1,
+                        title: itemObject.title,
+                        categoryid: category.id,
+                        roomid: itemObject.roomid,
+                        roleid: itemObject.roleid,
+                        action: 'put',
+                        _qf__mod_bookit_form_edit_checklistitem_form: 1,
+                    };
+
+                    const formData = new URLSearchParams(formDataObj).toString();
+
+                    window.console.log('formData ITEM', formData);
+
+
+                    Ajax.call([{
+                        methodname: 'core_form_dynamic_form',
+                        args: {
+                            formdata: formData,
+                            form: 'mod_bookit\\form\\edit_checklistitem_form'
+                        }
+                        }])[0]
+                        .then((response) => {
+
+                            window.console.log('AJAX response received');
+                            window.console.log(response);
+
+                            })
+                            .catch(exception => {
+                                window.console.error('AJAX error:', exception);
+                            });
+
+
+                }
+
+                return null;
+            })
+            .catch(exception => {
+                window.console.error('AJAX error:', exception);
+            });
+
+
+
+            } else {
+            window.console.warn('New element not found after appending');
+            }
+
+        this.reactive.dispatch('reOrderCategoryItems', dropdata);
 
         // Templates.renderForPromise('mod_bookit/bookit_checklist_item',
         //         {

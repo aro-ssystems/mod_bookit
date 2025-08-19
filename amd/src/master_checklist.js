@@ -293,107 +293,117 @@ export default class extends BaseComponent {
 
     }
 
-    async _handleCategoryItemUpdatedEvent(event) {
+    _handleCategoryItemUpdatedEvent(event) {
         window.console.log('handle category item updated event');
         window.console.log(event);
 
-        const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
+        // const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
 
-        window.console.log('target element', targetElement);
+        // window.console.log('target element', targetElement);
 
-        const category = this.reactive.state.checklistcategories.get(event.element.id);
-        window.console.log('category in _handleCategoryItemUpdatedEvent', category);
+        // const category = this.reactive.state.checklistcategories.get(event.element.id);
+        // window.console.log('category in _handleCategoryItemUpdatedEvent', category);
 
-        const formDataObj = {
-            id: category.id,
-            masterid: 1,
-            name: category.name,
-            checklistitems: category.items,
-            action: 'put',
-            _qf__mod_bookit_form_edit_checklist_category_form: 1,
-        };
+        // const formDataObj = {
+        //     id: category.id,
+        //     masterid: 1,
+        //     name: category.name,
+        //     checklistitems: category.items,
+        //     action: 'put',
+        //     _qf__mod_bookit_form_edit_checklist_category_form: 1,
+        // };
 
-        const formData = new URLSearchParams(formDataObj).toString();
+        // const formData = new URLSearchParams(formDataObj).toString();
 
-        window.console.log('formData', formData);
+        // window.console.log('formData', formData);
 
-        Ajax.call([{
-            methodname: 'core_form_dynamic_form',
-            args: {
-                formdata: formData,
-                form: 'mod_bookit\\form\\edit_checklist_category_form'
-            }
-        }])[0]
-        .then((response) => {
 
-            window.console.log('AJAX response received');
-            window.console.log(response);
+        // Ajax.call([{
+        //     methodname: 'core_form_dynamic_form',
+        //     args: {
+        //         formdata: formData,
+        //         form: 'mod_bookit\\form\\edit_checklist_category_form'
+        //     }
+        // }])[0]
+        // .then((response) => {
 
-            // const data = JSON.parse(response.data);
+        //     window.console.log('AJAX response received');
+        //     window.console.log(response);
 
-            // window.console.log('data', data);
-            // window.console.log(data[0].fields.items);
-            // const itemsArray = data[0].fields.items.split(',').map(item => parseInt(item));
-            // window.console.log('Items as array:', itemsArray);
+        //     // const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
 
-            // // Now you can use itemsArray for rendering the ordered category items
-            // itemsArray.forEach(item => {
-            //     window.console.log('item', item);
-            //     const itemObject = this.reactive.state.checklistitems.get(item);
-            //     window.console.log('itemObject', itemObject);
-            //     window.console.log('category', category);
-            //     Templates.renderForPromise('mod_bookit/bookit_checklist_item',
-            //     {
-            //         id: itemObject.id,
-            //         title: itemObject.title,
-            //         order: itemObject.order,
-            //         categoryid: category.id,
-            //         roomid: itemObject.roomid,
-            //         roomname: itemObject.roomname,
-            //         roleid: itemObject.roleid,
-            //         rolename: itemObject.rolename,
-            //     })
-            //     .then(({html, js}) => {
-            //         // window.console.log('rendered item');
-            //         // window.console.log(html);
-            //         // window.console.log(js);
-            //         this.getElement(`#bookit-master-checklist-item-${itemObject.id}`).remove();
-            //         Templates.appendNodeContents(targetElement, html, js);
-            //     })
-            //     .then(async () => {
-            //         // Toast.add(await getString('checklistitemsuccess', 'mod_bookit'),
-            //         //     {type: 'success' });
-            //     })
-            //     .catch(error => {
-            //         window.console.error('Error rendering checklist item:', error);
-            //     });
+        //     // const newEl = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+        //     //         if (newEl) {
+        //     //             this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
+        //     //         } else {
+        //     //             window.console.warn('New element not found after appending');
+        //     //         }
 
-            // });
-            // TODO render the new ordered category items
+        //     // const data = JSON.parse(response.data);
 
-            // if (!response.submitted) {
-            //     // Form was not submitted because validation failed.
-            //     const promise = new Promise(
-            //         resolve => resolve({html: response.html, js: Fragment.processCollectedJavascript(response.javascript)}));
-            //     this.modal.setBodyContent(promise);
-            //     this.enableButtons();
-            //     this.trigger(this.events.SERVER_VALIDATION_ERROR);
-            // } else {
-            //     // Form was submitted properly. Hide the modal and execute callback.
-            //     const data = JSON.parse(response.data);
-            //     FormChangeChecker.markFormSubmitted(form[0]);
-            //     const event = this.trigger(this.events.FORM_SUBMITTED, data);
-            //     if (!event.defaultPrevented) {
-            //         this.modal.hide();
-            //     }
-            // }
-            return null;
-        })
-        .catch(exception => {
-            window.console.error('AJAX error:', exception);
-            // this.enableButtons();
-            // this.onSubmitError(exception);
-        });
+        //     // window.console.log('data', data);
+        //     // window.console.log(data[0].fields.items);
+        //     // const itemsArray = data[0].fields.items.split(',').map(item => parseInt(item));
+        //     // window.console.log('Items as array:', itemsArray);
+
+        //     // // Now you can use itemsArray for rendering the ordered category items
+        //     // itemsArray.forEach(item => {
+        //     //     window.console.log('item', item);
+        //     //     const itemObject = this.reactive.state.checklistitems.get(item);
+        //     //     window.console.log('itemObject', itemObject);
+        //     //     window.console.log('category', category);
+        //     //     Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+        //     //     {
+        //     //         id: itemObject.id,
+        //     //         title: itemObject.title,
+        //     //         order: itemObject.order,
+        //     //         categoryid: category.id,
+        //     //         roomid: itemObject.roomid,
+        //     //         roomname: itemObject.roomname,
+        //     //         roleid: itemObject.roleid,
+        //     //         rolename: itemObject.rolename,
+        //     //     })
+        //     //     .then(({html, js}) => {
+        //     //         // window.console.log('rendered item');
+        //     //         // window.console.log(html);
+        //     //         // window.console.log(js);
+        //     //         this.getElement(`#bookit-master-checklist-item-${itemObject.id}`).remove();
+        //     //         Templates.appendNodeContents(targetElement, html, js);
+        //     //     })
+        //     //     .then(async () => {
+        //     //         // Toast.add(await getString('checklistitemsuccess', 'mod_bookit'),
+        //     //         //     {type: 'success' });
+        //     //     })
+        //     //     .catch(error => {
+        //     //         window.console.error('Error rendering checklist item:', error);
+        //     //     });
+
+        //     // });
+        //     // TODO render the new ordered category items
+
+        //     // if (!response.submitted) {
+        //     //     // Form was not submitted because validation failed.
+        //     //     const promise = new Promise(
+        //     //         resolve => resolve({html: response.html, js: Fragment.processCollectedJavascript(response.javascript)}));
+        //     //     this.modal.setBodyContent(promise);
+        //     //     this.enableButtons();
+        //     //     this.trigger(this.events.SERVER_VALIDATION_ERROR);
+        //     // } else {
+        //     //     // Form was submitted properly. Hide the modal and execute callback.
+        //     //     const data = JSON.parse(response.data);
+        //     //     FormChangeChecker.markFormSubmitted(form[0]);
+        //     //     const event = this.trigger(this.events.FORM_SUBMITTED, data);
+        //     //     if (!event.defaultPrevented) {
+        //     //         this.modal.hide();
+        //     //     }
+        //     // }
+        //     return null;
+        // })
+        // .catch(exception => {
+        //     window.console.error('AJAX error:', exception);
+        //     // this.enableButtons();
+        //     // this.onSubmitError(exception);
+        // });
     }
 
 }
