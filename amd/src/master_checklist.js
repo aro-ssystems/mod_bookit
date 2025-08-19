@@ -48,6 +48,7 @@ export default class extends BaseComponent {
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
             {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
             {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},
+            {watch: 'checklistitems.category:updated', handler: this._handleItemCategoryUpdatedEvent},
         ];
     }
 
@@ -216,33 +217,38 @@ export default class extends BaseComponent {
 
         // TODO if category is changed, element needs to be moved, not just replaced
 
-        Templates.renderForPromise('mod_bookit/bookit_checklist_item',
-            {
-                id: event.element.id,
-                title: event.element.title,
-                order: event.element.order,
-                categoryid: event.element.category,
-                roomid: event.element.roomid,
-                roomname: event.element.roomname,
-                roleid: event.element.roleid,
-                rolename: event.element.rolename,
-            })
-            .then(({html, js}) => {
-                window.console.log('rendered item');
-                window.console.log(html);
-                // window.console.log(js);
-                Templates.replaceNode(targetElement, html, js);
-            })
-            .then(async () => {
-                Toast.add(await getString('checklistitemupdatesuccess', 'mod_bookit'),
-                    {type: 'success' });
-                    // this.dispatchEvent(this.events.categoryRendered, {
-                    //     component: this
-                    // });
-            })
-            .catch(error => {
-                window.console.error('Error rendering checklist item:', error);
-            });
+        // Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+        //     {
+        //         id: event.element.id,
+        //         title: event.element.title,
+        //         order: event.element.order,
+        //         categoryid: event.element.category,
+        //         roomid: event.element.roomid,
+        //         roomname: event.element.roomname,
+        //         roleid: event.element.roleid,
+        //         rolename: event.element.rolename,
+        //     })
+        //     .then(({html, js}) => {
+        //         window.console.log('rendered item');
+        //         window.console.log(html);
+        //         // window.console.log(js);
+        //         Templates.replaceNode(targetElement, html, js);
+        //     })
+        //     .then(async () => {
+        //         Toast.add(await getString('checklistitemupdatesuccess', 'mod_bookit'),
+        //             {type: 'success' });
+        //             // this.dispatchEvent(this.events.categoryRendered, {
+        //             //     component: this
+        //             // });
+        //     })
+        //     .catch(error => {
+        //         window.console.error('Error rendering checklist item:', error);
+        //     });
+    }
+
+    _handleItemCategoryUpdatedEvent(event) {
+        window.console.log('handle checklistitem category updated event');
+        window.console.log(event);
     }
 
     _handleCategoryDeletedEvent(event) {
@@ -294,41 +300,44 @@ export default class extends BaseComponent {
     }
 
     _handleCategoryItemUpdatedEvent(event) {
-        window.console.log('handle category item updated event');
+        window.console.log('handle category checklistitems updated event');
         window.console.log(event);
 
-        // const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
+        const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
 
-        // window.console.log('target element', targetElement);
+        window.console.log('target element', targetElement);
 
-        // const category = this.reactive.state.checklistcategories.get(event.element.id);
-        // window.console.log('category in _handleCategoryItemUpdatedEvent', category);
+        const category = this.reactive.state.checklistcategories.get(event.element.id);
+        window.console.log('category in _handleCategoryItemUpdatedEvent', category);
 
-        // const formDataObj = {
-        //     id: category.id,
-        //     masterid: 1,
-        //     name: category.name,
-        //     checklistitems: category.items,
-        //     action: 'put',
-        //     _qf__mod_bookit_form_edit_checklist_category_form: 1,
-        // };
+        const formDataObj = {
+            id: category.id,
+            masterid: 1,
+            name: category.name,
+            checklistitems: category.items,
+            action: 'put',
+            _qf__mod_bookit_form_edit_checklist_category_form: 1,
+        };
 
-        // const formData = new URLSearchParams(formDataObj).toString();
+        const formData = new URLSearchParams(formDataObj).toString();
 
-        // window.console.log('formData', formData);
+        window.console.log('formData', formData);
 
 
-        // Ajax.call([{
-        //     methodname: 'core_form_dynamic_form',
-        //     args: {
-        //         formdata: formData,
-        //         form: 'mod_bookit\\form\\edit_checklist_category_form'
-        //     }
-        // }])[0]
-        // .then((response) => {
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
+            args: {
+                formdata: formData,
+                form: 'mod_bookit\\form\\edit_checklist_category_form'
+            }
+        }])[0]
+        .then((response) => {
 
-        //     window.console.log('AJAX response received');
-        //     window.console.log(response);
+            window.console.log('AJAX response received');
+            window.console.log(response);
+
+
+            // TODO this response could trigger item updates via processUpdates maybe
 
         //     // const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
 
@@ -398,12 +407,12 @@ export default class extends BaseComponent {
         //     //     }
         //     // }
         //     return null;
-        // })
-        // .catch(exception => {
-        //     window.console.error('AJAX error:', exception);
+        })
+        .catch(exception => {
+            window.console.error('AJAX error:', exception);
         //     // this.enableButtons();
         //     // this.onSubmitError(exception);
-        // });
+        });
     }
 
 }

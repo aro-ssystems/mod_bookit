@@ -208,19 +208,41 @@ class edit_checklistitem_form extends dynamic_form {
         if (!empty($ajaxdata['itemid'])) {
             error_log("Processing PUT request for existing item with ID: " . $ajaxdata['itemid']);
             $item = bookit_checklist_item::from_database($ajaxdata['itemid']);
-            $item->itemid = $item->id;
+            // $item->itemid = $item->id;
 
-            $item->title = $ajaxdata['title'];
-            $item->description = $ajaxdata['description'] ?? '';
-            $item->categoryid = $ajaxdata['categoryid'];
-            $item->roomid = $ajaxdata['roomid'];
-            $item->roleid = $ajaxdata['roleid'];
+            // $item->title = $ajaxdata['title'];
+            // $item->description = $ajaxdata['description'] ?? '';
+            // $item->categoryid = $ajaxdata['categoryid'];
+            // $item->roomid = $ajaxdata['roomid'];
+            // $item->roleid = $ajaxdata['roleid'];
+            // $item->usermodified = $USER->id;
+            // $item->timemodified = time();
+
+            $fields =  [
+                    'title' => $ajaxdata['title'],
+                    'order' => 0,
+                    'category' => $ajaxdata['categoryid'],
+                    'roomid' => $ajaxdata['roomid'],
+                    // 'roomname' => checklist_manager::get_roomname_by_id($ajaxdata['roomid']),
+                    'roleid' => $ajaxdata['roleid'],
+                    // 'rolename' => checklist_manager::get_rolename_by_id($ajaxdata['roleid']),
+            ];
+
+            foreach ($fields as $key => $value) {
+                if (isset($item->$key) && $item->$key === $value) {
+                    unset($fields[$key]);
+                } else {
+                    $item->$key = $value;
+                }
+            }
+
             $item->usermodified = $USER->id;
             $item->timemodified = time();
+            $item->itemid = $item->id;
 
-            $item->save();
+            // $item->save();
 
-            $id = $item->id;
+            // $id = $item->id;
 
         } else {
             error_log("Creating new checklist item with AJAX data in NEW FUNCTION: " . print_r($ajaxdata, true));
@@ -245,24 +267,38 @@ class edit_checklistitem_form extends dynamic_form {
                     time()
                 );
 
-            $id = $item->save();
+            // $id = $item->save();
+
 
         }
+
+        $id = $item->save();
+
+        if (!isset($fields)) {
+            $fields = [
+                'id' => $id,
+                'title' => $ajaxdata['title'],
+                'order' => 0,
+                'category' => $ajaxdata['categoryid'],
+                'roomid' => $ajaxdata['roomid'],
+                // 'roomname' => checklist_manager::get_roomname_by_id($ajaxdata['roomid']),
+                'roleid' => $ajaxdata['roleid'],
+                // 'rolename' => checklist_manager::get_rolename_by_id($ajaxdata['roleid']),
+            ];
+        }
+
+
+        $fields['id'] = $id;
+        $fields['roomname'] = checklist_manager::get_roomname_by_id($fields['roomid']);
+        $fields['rolename'] = checklist_manager::get_rolename_by_id($fields['roleid']);
+
+
 
         return [
             [
                 'name' => 'checklistitems',
                 'action' => 'put',
-                'fields' => [
-                    'id' => $id,
-                    'title' => $ajaxdata['title'],
-                    'order' => 0,
-                    'category' => $ajaxdata['categoryid'],
-                    'roomid' => $ajaxdata['roomid'],
-                    'roomname' => checklist_manager::get_roomname_by_id($ajaxdata['roomid']),
-                    'roleid' => $ajaxdata['roleid'],
-                    'rolename' => checklist_manager::get_rolename_by_id($ajaxdata['roleid']),
-                ],
+                'fields' => $fields,
             ],
         ];
     }

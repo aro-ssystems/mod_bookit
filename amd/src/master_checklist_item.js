@@ -79,98 +79,101 @@ export default class extends BaseComponent {
         dropdata.targetParentId = this.element.dataset.bookitChecklistitemCategory;
         window.console.log('whoops you dropped this on an item', dropdata);
 
-        const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
+        // const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
 
-        const newEl = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
-        if (newEl) {
+        // const newEl = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+        // if (newEl) {
 
-            const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
+        //     const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
 
-            window.console.log('item has changed parent: ', itemHasChangedParent);
+        //     window.console.log('item has changed parent: ', itemHasChangedParent);
 
-            this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
+        //     this.element.parentNode.insertBefore(newEl, this.element.nextElementSibling);
 
-            const targetElement = document.getElementById(`bookit-master-checklist-tbody-category-${dropdata.targetParentId}`);
+        //     const targetElement = document.getElementById(`bookit-master-checklist-tbody-category-${dropdata.targetParentId}`);
 
-            window.console.log('target element', targetElement);
+        //     window.console.log('target element', targetElement);
 
-            const category = this.reactive.state.checklistcategories.get(dropdata.targetParentId);
-            window.console.log('category in _handleCategoryItemUpdatedEvent', category);
+        //     const category = this.reactive.state.checklistcategories.get(dropdata.targetParentId);
+        //     window.console.log('category in _handleCategoryItemUpdatedEvent', category);
 
-            const formDataObj = {
-                id: category.id,
-                masterid: 1,
-                name: category.name,
-                checklistitems: category.items,
-                action: 'put',
-                _qf__mod_bookit_form_edit_checklist_category_form: 1,
-            };
+        //     const formDataObj = {
+        //         id: category.id,
+        //         masterid: 1,
+        //         name: category.name,
+        //         checklistitems: category.items,
+        //         action: 'put',
+        //         _qf__mod_bookit_form_edit_checklist_category_form: 1,
+        //     };
 
-            const formData = new URLSearchParams(formDataObj).toString();
+        //     const formData = new URLSearchParams(formDataObj).toString();
 
-            window.console.log('formData', formData);
-
-
-            Ajax.call([{
-                methodname: 'core_form_dynamic_form',
-                args: {
-                    formdata: formData,
-                    form: 'mod_bookit\\form\\edit_checklist_category_form'
-                }
-            }])[0]
-            .then((response) => {
-
-                window.console.log('AJAX response received');
-                window.console.log(response);
-
-                if (itemHasChangedParent) {
-                    const formDataObj = {
-                        itemid: dropdata.id,
-                        masterid: 1,
-                        title: itemObject.title,
-                        categoryid: category.id,
-                        roomid: itemObject.roomid,
-                        roleid: itemObject.roleid,
-                        action: 'put',
-                        _qf__mod_bookit_form_edit_checklistitem_form: 1,
-                    };
-
-                    const formData = new URLSearchParams(formDataObj).toString();
-
-                    window.console.log('formData ITEM', formData);
+        //     window.console.log('formData', formData);
 
 
-                    Ajax.call([{
-                        methodname: 'core_form_dynamic_form',
-                        args: {
-                            formdata: formData,
-                            form: 'mod_bookit\\form\\edit_checklistitem_form'
-                        }
-                        }])[0]
-                        .then((response) => {
+        //     Ajax.call([{
+        //         methodname: 'core_form_dynamic_form',
+        //         args: {
+        //             formdata: formData,
+        //             form: 'mod_bookit\\form\\edit_checklist_category_form'
+        //         }
+        //     }])[0]
+        //     .then((response) => {
 
-                            window.console.log('AJAX response received');
-                            window.console.log(response);
+        //         window.console.log('AJAX response received');
+        //         window.console.log(response);
 
-                            })
-                            .catch(exception => {
-                                window.console.error('AJAX error:', exception);
-                            });
+        //         if (itemHasChangedParent) {
+
+        //             // TODO call category update
+
+        //             const formDataObj = {
+        //                 itemid: dropdata.id,
+        //                 masterid: 1,
+        //                 title: itemObject.title,
+        //                 categoryid: category.id,
+        //                 roomid: itemObject.roomid,
+        //                 roleid: itemObject.roleid,
+        //                 action: 'put',
+        //                 _qf__mod_bookit_form_edit_checklistitem_form: 1,
+        //             };
+
+        //             const formData = new URLSearchParams(formDataObj).toString();
+
+        //             window.console.log('formData ITEM', formData);
 
 
-                }
+        //             Ajax.call([{
+        //                 methodname: 'core_form_dynamic_form',
+        //                 args: {
+        //                     formdata: formData,
+        //                     form: 'mod_bookit\\form\\edit_checklistitem_form'
+        //                 }
+        //                 }])[0]
+        //                 .then((response) => {
 
-                return null;
-            })
-            .catch(exception => {
-                window.console.error('AJAX error:', exception);
-            });
+        //                     window.console.log('AJAX response received');
+        //                     window.console.log(response);
+
+        //                     })
+        //                     .catch(exception => {
+        //                         window.console.error('AJAX error:', exception);
+        //                     });
+
+
+        //         }
+
+        //         return null;
+        //     })
+        //     .catch(exception => {
+        //         window.console.error('AJAX error:', exception);
+        //     });
 
 
 
-            } else {
-            window.console.warn('New element not found after appending');
-            }
+        //     } else {
+        //     window.console.warn('New element not found after appending');
+        //     }
 
         this.reactive.dispatch('reOrderCategoryItems', dropdata);
 

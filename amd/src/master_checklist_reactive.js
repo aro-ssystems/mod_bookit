@@ -124,7 +124,7 @@ const loadState = async(reactive) => {
             id: itemRow.dataset.bookitChecklistitemId,
             title: itemRow.dataset.bookitChecklistitemTitle,
             order: itemRow.dataset.bookitChecklistitemOrder,
-            category: itemRow.dataset.bookitCategoryId,
+            category: itemRow.dataset.bookitChecklistitemCategory,
             roomid: itemRow.dataset.bookitChecklistitemRoom,
             roomname: itemRow.dataset.bookitChecklistitemRoomname,
             roleid: itemRow.dataset.bookitChecklistitemRole,
