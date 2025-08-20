@@ -211,8 +211,8 @@ export default class extends BaseComponent {
     }
 
     _handleItemUpdatedEvent(event) {
-        // window.console.log('handle item updated event');
-        // window.console.log(event);
+        window.console.log('handle item updated event');
+        window.console.log(event);
 
         // const targetElement = this.getElement(`#bookit-master-checklist-item-${event.element.id}`);
 
@@ -251,30 +251,55 @@ export default class extends BaseComponent {
 
     _replaceRenderedItem(event) {
 
-        const targetElement = this.getElement(`#bookit-master-checklist-item-${event.element.id}`);
+        window.console.log('replace rendered item');
+        window.console.log(event.action);
 
-        Templates.renderForPromise('mod_bookit/bookit_checklist_item',
-            {
-                id: event.element.id,
-                title: event.element.title,
-                order: event.element.order,
-                categoryid: event.element.categoryid,
-                roomid: event.element.roomid,
-                roomname: event.element.roomname,
-                roleid: event.element.roleid,
-                rolename: event.element.rolename,
-            })
-            .then(({html, js}) => {
-                Templates.replaceNode(targetElement, html, js);
-            })
-            .then(async () => {
-                Toast.add(await getString('checklistitemupdatesuccess', 'mod_bookit'),
-                    {type: 'success' });
+        const actionParts = event.action.split('.');
+        const fieldPart = actionParts[1].split(':')[0];
 
-            })
-            .catch(error => {
-                window.console.error('Error rendering checklist item:', error);
-            });
+        const elementSelector = `td[data-bookit-checklistitem-tabledata-${fieldPart}-id="${event.element.id}"]`;
+
+        window.console.log('elementSelector', elementSelector);
+
+        const targetElement = this.getElement(elementSelector);
+
+        window.console.log('targetElement', targetElement);
+
+
+        if (fieldPart.endsWith('id')) {
+            const nameField = fieldPart.substring(0, fieldPart.length - 2) + 'name';
+
+            if (nameField in event.element) {
+                targetElement.innerHTML = event.element[nameField];
+            }
+        } else {
+            targetElement.innerHTML = event.element[fieldPart];
+        }
+
+        // targetElement.innerHTML = event.element[fieldPart];
+
+        // Templates.renderForPromise('mod_bookit/bookit_checklist_item',
+        //     {
+        //         id: event.element.id,
+        //         title: event.element.title,
+        //         order: event.element.order,
+        //         categoryid: event.element.categoryid,
+        //         roomid: event.element.roomid,
+        //         roomname: event.element.roomname,
+        //         roleid: event.element.roleid,
+        //         rolename: event.element.rolename,
+        //     })
+        //     .then(({html, js}) => {
+        //         Templates.replaceNode(targetElement, html, js);
+        //     })
+        //     .then(async () => {
+        //         Toast.add(await getString('checklistitemupdatesuccess', 'mod_bookit'),
+        //             {type: 'success' });
+
+        //     })
+        //     .catch(error => {
+        //         window.console.error('Error rendering checklist item:', error);
+        //     });
     }
 
     _handleItemCategoryUpdatedEvent(event) {

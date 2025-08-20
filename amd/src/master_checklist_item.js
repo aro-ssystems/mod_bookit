@@ -13,8 +13,16 @@ export default class extends BaseComponent {
         window.console.log('create item component: ' + descriptor.element.dataset.bookitChecklistitemTitle);
 
         const itemEditBtnSelector = 'EDIT_CHECKLISTITEM_BTN_' + descriptor.element.dataset.bookitChecklistitemId;
-
         this.selectors[itemEditBtnSelector] = `#edit-checklistitem-${descriptor.element.dataset.bookitChecklistitemId}`;
+
+        const itemTitleSelector = 'ITEM_TITLE_' + descriptor.element.dataset.bookitChecklistitemId;
+        this.selectors[itemTitleSelector] = `td[data-bookit-checklistitem-tabledata-title-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
+
+        const itemRoomSelector = 'ITEM_ROOM_' + descriptor.element.dataset.bookitChecklistitemId;
+        this.selectors[itemRoomSelector] = `td[data-bookit-checklistitem-tabledata-roomid-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
+
+        const itemRoleSelector = 'ITEM_ROLE_' + descriptor.element.dataset.bookitChecklistitemId;
+        this.selectors[itemRoleSelector] = `td[data-bookit-checklistitem-tabledata-roleid-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
 
     }
 
