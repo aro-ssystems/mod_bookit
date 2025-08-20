@@ -156,19 +156,17 @@ export default class extends BaseComponent {
 
             const parentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
 
-            const targetParentCategoryObject = this.reactive.state.checklistcategories.get(response.detail[0].fields.categoryid);
-
-            window.console.log("TARGET PARENT ITEMS", targetParentCategoryObject.items);
-
-            const copiedArray = [...targetParentCategoryObject.items];
-
-            const lastItemOfParentCategoryId = copiedArray.pop();
-
             const updatedParentId = parseInt(response.detail[0].fields.categoryid);
 
-            window.console.log('last item of category id', lastItemOfParentCategoryId);
-
             if (parentId !== updatedParentId) {
+
+                const targetParentCategoryObject = this.reactive.state.checklistcategories.get(response.detail[0].fields.categoryid);
+
+                window.console.log("TARGET PARENT ITEMS", targetParentCategoryObject.items);
+
+                const copiedArray = [...targetParentCategoryObject.items];
+
+                const lastItemOfParentCategoryId = copiedArray.pop();
 
                 const data = {
                     id: parseInt(this.element.dataset.bookitChecklistitemId),
