@@ -58,7 +58,7 @@ export default class {
 
             const targetItem = state.checklistitems.get(idToMove);
 
-            targetItem.category = targetCategory.id;
+            targetItem.categoryid = parseInt(targetCategory.id);
 
             window.console.log('New source category items:', sourceCategory.items);
             window.console.log('New target category items:', targetCategory.items);

@@ -44,11 +44,11 @@ export default class extends BaseComponent {
             {watch: 'checklistcategories:created', handler: this._handleCategoryCreatedEvent},
             {watch: 'checklistcategories:deleted', handler: this._handleCategoryDeletedEvent},
             {watch: 'checklistcategories.name:updated', handler: this._handleCategoryNameUpdatedEvent},
-            {watch: 'checklistcategories.items:updated', handler: this._handleCategoryItemUpdatedEvent},
+            {watch: 'checklistcategories.items:updated', handler: this._handleCategoryItemsUpdatedEvent},
             {watch: 'checklistitems:created', handler: this._handleItemCreatedEvent},
             {watch: 'checklistitems:deleted', handler: this._handleItemDeletedEvent},
             {watch: 'checklistitems:updated', handler: this._handleItemUpdatedEvent},
-            {watch: 'checklistitems.category:updated', handler: this._handleItemCategoryUpdatedEvent},
+            {watch: 'checklistitems.categoryid:updated', handler: this._handleItemCategoryUpdatedEvent},
         ];
     }
 
@@ -249,6 +249,39 @@ export default class extends BaseComponent {
     _handleItemCategoryUpdatedEvent(event) {
         window.console.log('handle checklistitem category updated event');
         window.console.log(event);
+
+        const itemObject = this.reactive.state.checklistitems.get(event.element.id);
+
+        const formDataObj = {
+            itemid: itemObject.id,
+            masterid: 1,
+            title: itemObject.title,
+            categoryid: itemObject.categoryid,
+            roomid: itemObject.roomid,
+            roleid: itemObject.roleid,
+            action: 'put',
+            _qf__mod_bookit_form_edit_checklistitem_form: 1,
+        };
+
+        const formData = new URLSearchParams(formDataObj).toString();
+
+        window.console.log('formData ITEM', formData);
+
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
+            args: {
+                formdata: formData,
+                form: 'mod_bookit\\form\\edit_checklistitem_form'
+            }
+            }])[0]
+            .then((response) => {
+                window.console.log('AJAX response received');
+                window.console.log(response);
+                })
+                .catch(exception => {
+                    window.console.error('AJAX error:', exception);
+                });
+
     }
 
     _handleCategoryDeletedEvent(event) {
@@ -299,7 +332,7 @@ export default class extends BaseComponent {
 
     }
 
-    _handleCategoryItemUpdatedEvent(event) {
+    _handleCategoryItemsUpdatedEvent(event) {
         window.console.log('handle category checklistitems updated event');
         window.console.log(event);
 

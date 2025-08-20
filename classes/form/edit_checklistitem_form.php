@@ -205,8 +205,10 @@ class edit_checklistitem_form extends dynamic_form {
     public function process_put_request($ajaxdata = []): array {
         global $USER;
 
+        error_log("PUT REQUEST DATA HERE" . print_r($ajaxdata, true));
+
         if (!empty($ajaxdata['itemid'])) {
-            error_log("Processing PUT request for existing item with ID: " . $ajaxdata['itemid']);
+            error_log("Processing PUT request for existing item with ID: " . print_r($ajaxdata, true));
             $item = bookit_checklist_item::from_database($ajaxdata['itemid']);
             // $item->itemid = $item->id;
 
@@ -218,15 +220,21 @@ class edit_checklistitem_form extends dynamic_form {
             // $item->usermodified = $USER->id;
             // $item->timemodified = time();
 
+
+            // TODO we need to use $item->categoryid everywhere
+
+
             $fields =  [
                     'title' => $ajaxdata['title'],
                     'order' => 0,
-                    'category' => $ajaxdata['categoryid'],
+                    'categoryid' => $ajaxdata['categoryid'],
                     'roomid' => $ajaxdata['roomid'],
                     // 'roomname' => checklist_manager::get_roomname_by_id($ajaxdata['roomid']),
                     'roleid' => $ajaxdata['roleid'],
                     // 'rolename' => checklist_manager::get_rolename_by_id($ajaxdata['roleid']),
             ];
+
+            error_log("Fields BEFORE " . print_r($fields, true));
 
             foreach ($fields as $key => $value) {
                 if (isset($item->$key) && $item->$key === $value) {
@@ -235,6 +243,8 @@ class edit_checklistitem_form extends dynamic_form {
                     $item->$key = $value;
                 }
             }
+
+            error_log("Fields AFTER " . print_r($fields, true));
 
             $item->usermodified = $USER->id;
             $item->timemodified = time();
@@ -273,6 +283,10 @@ class edit_checklistitem_form extends dynamic_form {
         }
 
         $id = $item->save();
+
+        error_log("HERE IN FORM Item saved with ID: " . $id);
+
+
 
         if (!isset($fields)) {
             $fields = [
