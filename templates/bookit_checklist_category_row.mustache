@@ -7,7 +7,8 @@
     id="bookit-master-checklist-category-row-{{id}}"
     data-bookit-category-id="{{id}}"
     data-bookit-category-name="{{name}}"
-    data-bookit-category-order="{{order}}">
+    data-bookit-category-order="{{order}}"
+    data-bookit-drag-handle-category-id="{{id}}">
                 <td>{{name}}</td>
                 <td></td>
                 <td></td>
@@ -16,5 +17,6 @@
                         {{#pix}} i/edit, core {{/pix}}
                     </button>
                 </td>
-                <td>{{#pix}} t/sort, core {{/pix}}</td>
+
+                {{> mod_bookit/bookit_checklist_drag_handle }}
 </tr>

@@ -3,15 +3,16 @@
 
     Checklist category template with a bootstrap table row
 }}
-<td class="bookit-drag-handle" id="bookit-drag-handle-{{id}}"
+<td class="bookit-drag-handle" id="bookit-drag-handle-{{type}}-{{id}}"
     data-bookit-drag-handle-id="{{id}}"
     data-bookit-drag-handle-type="{{type}}"
+    data-bookit-drag-handle-{{type}}-id="{{id}}"
     style="cursor: grab;">
     {{#pix}} t/sort, core {{/pix}}
 </td>
 
 {{#js}}
 require(['mod_bookit/drag_handle'], function(component) {
-    component.init('#bookit-drag-handle-{{id}}');
+    component.init('#bookit-drag-handle-{{type}}-{{id}}');
 });
 {{/js}}

@@ -181,6 +181,8 @@ class bookit_checklist_category implements \renderable, \templatable {
             }
         }
 
+        $data->type = 'category';
+
         error_log('Debugging export_for_template category: ' . print_r($data, true));
 
         return $data;

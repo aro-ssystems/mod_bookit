@@ -17,7 +17,10 @@ export default class extends BaseComponent {
 
         // this.dragdrop = new DragDrop(this);
 
-        const itemSelector = `tr[data-bookit-drag-handle-id="${this.element.dataset.bookitDragHandleId}"]`;
+        const dragType = this.element.dataset.bookitDragHandleType;
+        const dragId = this.element.dataset.bookitDragHandleId;
+
+        const itemSelector = `tr[data-bookit-drag-handle-${dragType}-id="${dragId}"]`;
         window.console.log('itemSelector: ', itemSelector);
 
         const itemRow = document.querySelector(itemSelector);
