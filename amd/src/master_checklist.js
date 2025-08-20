@@ -277,6 +277,13 @@ export default class extends BaseComponent {
             .then((response) => {
                 window.console.log('AJAX response received');
                 window.console.log(response);
+
+                // // TODO move item to target category
+
+                // const itemElement = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+
+
+
                 })
                 .catch(exception => {
                     window.console.error('AJAX error:', exception);

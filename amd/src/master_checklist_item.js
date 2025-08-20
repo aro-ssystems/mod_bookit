@@ -1,9 +1,9 @@
-import {BaseComponent, DragDrop} from 'core/reactive';
+import { BaseComponent, DragDrop } from 'core/reactive';
 import { masterChecklistReactiveInstance } from 'mod_bookit/master_checklist_reactive';
 import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalForm from 'core_form/modalform';
 import Templates from 'core/templates';
-import {getString} from 'core/str';
+import { getString } from 'core/str';
 import Ajax from 'core/ajax';
 
 export default class extends BaseComponent {
@@ -76,8 +76,22 @@ export default class extends BaseComponent {
 
     drop(dropdata, event) {
         dropdata.targetId = this.element.dataset.bookitChecklistitemId;
-        dropdata.targetParentId = this.element.dataset.bookitChecklistitemCategory;
+        dropdata.targetParentId = this.element.dataset.bookitChecklistitemCategoryid;
         window.console.log('whoops you dropped this on an item', dropdata);
+
+        this.reactive.dispatch('reOrderCategoryItems', dropdata);
+
+        const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
+
+        const itemElement = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+
+        const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
+
+        if (itemHasChangedParent) {
+            itemElement.dataset.bookitChecklistitemCategoryid = dropdata.targetParentId;
+        }
+
+        this.element.parentNode.insertBefore(itemElement, this.element.nextElementSibling);
 
         // const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
 
@@ -175,7 +189,7 @@ export default class extends BaseComponent {
         //     window.console.warn('New element not found after appending');
         //     }
 
-        this.reactive.dispatch('reOrderCategoryItems', dropdata);
+        // this.reactive.dispatch('reOrderCategoryItems', dropdata);
 
         // Templates.renderForPromise('mod_bookit/bookit_checklist_item',
         //         {
@@ -273,7 +287,50 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            window.console.log('EDIT ITEM FORM SUBMITTED - RESPONSE:');
+            window.console.log(response);
+            // TODO handle response
+            // this.reactive.stateManager.processUpdates(response.detail);
             this.reactive.stateManager.processUpdates(response.detail);
+
+            const parentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
+
+            const targetParentCategoryObject = this.reactive.state.checklistcategories.get(response.detail[0].fields.categoryid);
+
+            window.console.log("TARGET PARENT ITEMS", targetParentCategoryObject.items);
+
+            const copiedArray = [...targetParentCategoryObject.items];
+
+            const lastItemOfParentCategoryId = copiedArray.pop();
+
+            const updatedParentId = parseInt(response.detail[0].fields.categoryid);
+
+            window.console.log('last item of category id', lastItemOfParentCategoryId);
+
+            // const data = {
+            //     id: parseInt(this.element.dataset.bookitChecklistitemId),
+            //     type: 'item',
+            //     parentId: updatedParentId,
+            //     targetId: lastItemOfParentCategoryId,
+            //     targetParentId: updatedParentId,
+            // }
+
+            if (parentId !== updatedParentId) {
+
+                const data = {
+                    id: parseInt(this.element.dataset.bookitChecklistitemId),
+                    type: 'item',
+                    parentId: parentId,
+                    targetId: lastItemOfParentCategoryId,
+                    targetParentId: updatedParentId,
+                }
+
+                window.console.log('item has changed parent - DISPATCHING REORDER EVENT');
+                window.console.log('data for reOrderCategoryItems ind item edit btn handler', data);
+                this.reactive.dispatch('reOrderCategoryItems', data);
+            }
+
+
         });
 
         modalForm.addEventListener(modalForm.events.LOADED, (response) => {

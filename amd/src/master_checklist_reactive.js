@@ -103,7 +103,7 @@ const loadState = async(reactive) => {
     const checklistCategoryRows = document.querySelectorAll(SELECTORS.ALL_CATEGORY_TABLE_ROWS);
     checklistCategoryRows.forEach(categoryRow => {
 
-        const categoryItemRows = document.querySelectorAll(`tr[data-bookit-checklistitem-category="${categoryRow.dataset.bookitCategoryId}"]`);
+        const categoryItemRows = document.querySelectorAll(`tr[data-bookit-checklistitem-categoryid="${categoryRow.dataset.bookitCategoryId}"]`);
 
         const checklistItems = [];
         categoryItemRows.forEach(itemRow => {
@@ -124,7 +124,7 @@ const loadState = async(reactive) => {
             id: itemRow.dataset.bookitChecklistitemId,
             title: itemRow.dataset.bookitChecklistitemTitle,
             order: itemRow.dataset.bookitChecklistitemOrder,
-            categoryid: itemRow.dataset.bookitChecklistitemCategory,
+            categoryid: itemRow.dataset.bookitChecklistitemCategoryid,
             roomid: itemRow.dataset.bookitChecklistitemRoom,
             roomname: itemRow.dataset.bookitChecklistitemRoomname,
             roleid: itemRow.dataset.bookitChecklistitemRole,
