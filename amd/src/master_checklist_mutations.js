@@ -126,7 +126,32 @@ export default class {
         category.items = currentItems;
         stateManager.setReadOnly(true);
 
+    }
 
+    checklistitemDeleted(stateManager, data) {
+        const state = stateManager.state;
+        window.console.log('checklist item deleted');
+        window.console.log(data);
+
+        stateManager.setReadOnly(false);
+
+        const category = state.checklistcategories.get(data.categoryid);
+
+        window.console.log('category items before deletion: ', category.items);
+
+        const currentItems = [...category.items];
+        const itemIndex = currentItems.indexOf(data.id);
+
+        window.console.log('item index to delete: ', itemIndex);
+
+        if (itemIndex !== -1) {
+            window.console.log('item found in category items - removing');
+            currentItems.splice(itemIndex, 1);
+            category.items = currentItems;
+        }
+        window.console.log('category items after deletion: ', category.items);
+
+        stateManager.setReadOnly(true);
     }
 
 }

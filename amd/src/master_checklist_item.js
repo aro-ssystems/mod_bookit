@@ -15,14 +15,14 @@ export default class extends BaseComponent {
         const itemEditBtnSelector = 'EDIT_CHECKLISTITEM_BTN_' + descriptor.element.dataset.bookitChecklistitemId;
         this.selectors[itemEditBtnSelector] = `#edit-checklistitem-${descriptor.element.dataset.bookitChecklistitemId}`;
 
-        const itemTitleSelector = 'ITEM_TITLE_' + descriptor.element.dataset.bookitChecklistitemId;
-        this.selectors[itemTitleSelector] = `td[data-bookit-checklistitem-tabledata-title-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
+        // const itemTitleSelector = 'ITEM_TITLE_' + descriptor.element.dataset.bookitChecklistitemId;
+        // this.selectors[itemTitleSelector] = `td[data-bookit-checklistitem-tabledata-title-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
 
-        const itemRoomSelector = 'ITEM_ROOM_' + descriptor.element.dataset.bookitChecklistitemId;
-        this.selectors[itemRoomSelector] = `td[data-bookit-checklistitem-tabledata-roomid-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
+        // const itemRoomSelector = 'ITEM_ROOM_' + descriptor.element.dataset.bookitChecklistitemId;
+        // this.selectors[itemRoomSelector] = `td[data-bookit-checklistitem-tabledata-roomid-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
 
-        const itemRoleSelector = 'ITEM_ROLE_' + descriptor.element.dataset.bookitChecklistitemId;
-        this.selectors[itemRoleSelector] = `td[data-bookit-checklistitem-tabledata-roleid-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
+        // const itemRoleSelector = 'ITEM_ROLE_' + descriptor.element.dataset.bookitChecklistitemId;
+        // this.selectors[itemRoleSelector] = `td[data-bookit-checklistitem-tabledata-roleid-id="${descriptor.element.dataset.bookitChecklistitemId}"]`;
 
     }
 
@@ -161,6 +161,19 @@ export default class extends BaseComponent {
             // TODO handle response
             // this.reactive.stateManager.processUpdates(response.detail);
             this.reactive.stateManager.processUpdates(response.detail);
+
+            // TODO if delete, skip rest but trigger db update for cat
+
+            if (response.detail[0].action === 'delete') {
+                window.console.log('item deleted - removing & unregistering');
+                this.reactive.dispatch('checklistitemDeleted',
+                    {
+                        id: parseInt(response.detail[0].fields.id),
+                        categoryid: parseInt(this.element.dataset.bookitChecklistitemCategoryid),
+                    });
+                this.remove();
+                return;
+            }
 
             const parentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
 

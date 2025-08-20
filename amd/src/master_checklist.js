@@ -351,6 +351,8 @@ export default class extends BaseComponent {
         window.console.log('handle category deleted event');
         window.console.log(event);
 
+        // TODO fix this like on item with this.remove()
+
         const targetElement = this.getElement(`#bookit-master-checklist-tbody-category-${event.element.id}`);
 
         targetElement.remove();
