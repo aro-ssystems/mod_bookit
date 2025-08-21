@@ -97,19 +97,66 @@ export default class extends BaseComponent {
 
 
     showDropZone(dropdata, event) {
+
+        window.console.log('show drop zone');
+        window.console.log(dropdata);
+        window.console.log(event);
         const root = document.querySelector('html');
         const primaryColor = getComputedStyle(root).getPropertyValue('--primary');
 
-        window.console.log('primary color: ', primaryColor);
+        switch (dropdata.type) {
+            case 'item':
+            this.element.style.boxShadow = `0px -5px 0px 0px ${primaryColor} inset`;
+            this.element.style.transition = 'box-shadow 0.1s ease';
+                break;
+            case 'category':
+                // probably needs last element, right now this looks weird
+                const itemParentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
+                const categoryParentElement = document.getElementById(`bookit-master-checklist-tbody-category-${itemParentId}`);
+                var isActive = parseInt(categoryParentElement.dataset.bookitCategoryActive || 0);
+                if (!isActive) {
+                    categoryParentElement.dataset.bookitCategoryActive = 1;
+                }
+                const categoryLastChild = categoryParentElement.lastElementChild;
+                setTimeout(() => {
+                    categoryParentElement.dataset.bookitCategoryActive = 0;
+                    // categoryLastChild.style.boxShadow = `0px -5px 0px 0px ${primaryColor} inset`;
+                    // categoryLastChild.style.transition = 'box-shadow 0.1s ease';
+                }, 5);
+                categoryLastChild.style.boxShadow = `0px -5px 0px 0px ${primaryColor} inset`;
+                categoryLastChild.style.transition = 'box-shadow 0.1s ease';
+                break;
+            default:
+                throw new Error(`Unknown drop type: ${dropdata.type}`);
+        }
 
-        this.element.style.boxShadow = `0px -5px 0px 0px ${primaryColor} inset`;
-        this.element.style.transition = 'box-shadow 0.1s ease';
     }
 
     hideDropZone(dropdata, event) {
-        this.element.style.boxShadow = '';
-        this.element.style.backgroundBlendMode = '';
-        this.element.style.transition = '';
+
+        window.console.log('hide drop zone');
+        window.console.log(dropdata);
+        window.console.log(event);
+
+        switch (dropdata.type) {
+            case 'item':
+                this.element.style.boxShadow = '';
+                this.element.style.transition = '';
+                break;
+            case 'category':
+                const itemParentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
+                const categoryParentElement = document.getElementById(`bookit-master-checklist-tbody-category-${itemParentId}`);
+                const categoryLastChild = categoryParentElement.lastElementChild;
+                var isActive = parseInt(categoryParentElement.dataset.bookitCategoryActive || 0);
+                if (!isActive) {
+                    categoryLastChild.style.boxShadow = '';
+                    categoryLastChild.style.transition = '';
+                }
+                break;
+            default:
+                throw new Error(`Unknown drop type: ${dropdata.type}`);
+        }
+
     }
 
     _handleItemDrop(dropdata, event) {
@@ -152,6 +199,10 @@ export default class extends BaseComponent {
         // const categoryElement = document.getElementById(`bookit-master-checklist-tbody-category-${dropdata.id}`);
 
         const tableElement = document.querySelector(this.selectors.TABLE);
+
+        categoryElement.dataset.bookitCategoryActive = 1;
+
+        this.hideDropZone(dropdata, event);
 
         // tableElement.append(categoryElement);
         tableElement.insertBefore(categoryElement, this.element.parentNode.nextElementSibling);
