@@ -83,24 +83,16 @@ export default class extends BaseComponent {
     }
 
     drop(dropdata, event) {
-        dropdata.targetId = this.element.dataset.bookitChecklistitemId;
-        dropdata.targetParentId = this.element.dataset.bookitChecklistitemCategoryid;
-        window.console.log('whoops you dropped this on an item', dropdata);
-
-        this.reactive.dispatch('reOrderCategoryItems', dropdata);
-
-        const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
-
-        const itemElement = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
-
-        const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
-
-        if (itemHasChangedParent) {
-            itemElement.dataset.bookitChecklistitemCategoryid = dropdata.targetParentId;
+        switch (dropdata.type) {
+            case 'item':
+                this._handleItemDrop(dropdata, event);
+                break;
+            case 'category':
+                this._handleCategoryDrop(dropdata, event);
+                break;
+            default:
+                throw new Error(`Unknown drop type: ${dropdata.type}`);
         }
-
-        this.element.parentNode.insertBefore(itemElement, this.element.nextElementSibling);
-
     }
 
 
@@ -118,6 +110,57 @@ export default class extends BaseComponent {
         this.element.style.boxShadow = '';
         this.element.style.backgroundBlendMode = '';
         this.element.style.transition = '';
+    }
+
+    _handleItemDrop(dropdata, event) {
+        window.console.log('handle item drop on item');
+        window.console.log(event);
+
+        dropdata.targetId = parseInt(this.element.dataset.bookitChecklistitemId);
+        dropdata.targetParentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
+        window.console.log(`whoops you dropped an ${dropdata.type} on an item`, dropdata);
+
+        this.reactive.dispatch('reOrderCategoryItems', dropdata);
+
+        const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
+
+        const itemElement = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+
+        const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
+
+        if (itemHasChangedParent) {
+            itemElement.dataset.bookitChecklistitemCategoryid = dropdata.targetParentId;
+        }
+
+        this.element.parentNode.insertBefore(itemElement, this.element.nextElementSibling);
+    }
+
+
+    _handleCategoryDrop(dropdata, event) {
+        window.console.log('handle category drop on item');
+        window.console.log(dropdata);
+        window.console.log(event);
+
+        const categoryElement = document.getElementById(`bookit-master-checklist-tbody-category-${dropdata.id}`);
+
+        dropdata.targetId = this.element.dataset.bookitChecklistitemCategoryid;
+        dropdata.targetParentId = categoryElement.dataset.bookitCategoryMasterid;
+        window.console.log(`whoops you dropped an ${dropdata.type} on an item`, dropdata);
+
+        this.reactive.dispatch('reOrderCategories', dropdata);
+
+        // const categoryElement = document.getElementById(`bookit-master-checklist-tbody-category-${dropdata.id}`);
+
+        const tableElement = document.querySelector(this.selectors.TABLE);
+
+        // tableElement.append(categoryElement);
+        tableElement.insertBefore(categoryElement, this.element.parentNode.nextElementSibling);
+
+        // const categoryObject = this.reactive.state.checklistcategories.get(dropdata.id);
+
+        // const categoryElement = document.getElementById(`bookit-master-checklist-tbody-category-${categoryObject.id}`);
+
+        // this.element.parentNode.append(categoryElement);
     }
 
     // getDraggableData() {

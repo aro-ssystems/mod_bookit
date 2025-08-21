@@ -3,7 +3,11 @@
 
     Checklist category template with a bootstrap table row
 }}
-<tbody id="bookit-master-checklist-tbody-category-{{id}}" data-bookit-tbody-category-id="{{id}}" data-bookit-category-name="{{name}}" data-bookit-category-id="{{id}}">
+<tbody id="bookit-master-checklist-tbody-category-{{id}}"
+       data-bookit-tbody-category-id="{{id}}"
+       data-bookit-category-name="{{name}}"
+       data-bookit-category-id="{{id}}"
+       data-bookit-category-masterid="{{masterid}}">
 {{> mod_bookit/bookit_checklist_category_row }}
 {{#checklistitems}}
     {{> mod_bookit/bookit_checklist_item }}

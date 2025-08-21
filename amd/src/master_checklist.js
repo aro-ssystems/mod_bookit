@@ -147,13 +147,15 @@ export default class extends BaseComponent {
     }
 
     _handleCategoryCreatedEvent(event) {
-        window.console.log('handle category created event');
+        window.console.log('handle category created event', event);
 
         Templates.renderForPromise('mod_bookit/bookit_checklist_category',
             {
                 id: event.element.id,
                 name: event.element.name,
-                order: event.element.order
+                order: event.element.order,
+                masterid: 1, // TODO get from state
+                type: 'category',
             })
             .then(({html, js}) => {
                 Templates.appendNodeContents(this.getElement(this.selectors.TABLE), html, js);
@@ -184,6 +186,7 @@ export default class extends BaseComponent {
                 roomname: event.element.roomname,
                 roleid: event.element.roleid,
                 rolename: event.element.rolename,
+                type: 'item',
             })
             .then(({html, js}) => {
                 // window.console.log('rendered item');

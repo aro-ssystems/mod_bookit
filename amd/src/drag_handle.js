@@ -20,16 +20,30 @@ export default class extends BaseComponent {
         const dragType = this.element.dataset.bookitDragHandleType;
         const dragId = this.element.dataset.bookitDragHandleId;
 
-        const itemSelector = `tr[data-bookit-drag-handle-${dragType}-id="${dragId}"]`;
-        window.console.log('itemSelector: ', itemSelector);
+        // TODO fullregion needs to differentiate between type item & category
 
-        const itemRow = document.querySelector(itemSelector);
+        var fullRegionSelector = '';
 
-        window.console.log('DragDrop initialized for item: ', itemRow);
+        switch (dragType) {
+            case 'item':
+                fullRegionSelector = `tr[data-bookit-drag-handle-${dragType}-id="${dragId}"]`;
+                break;
+            case 'category':
+                fullRegionSelector = `tbody[data-bookit-tbody-category-id="${dragId}"]`;
+                break;
+            default:
+                throw new Error(`Unknown drag handle type: ${dragType}`);
+        }
+
+        window.console.log('fullRegionSelector: ', fullRegionSelector);
+
+        const fullRegionElement = document.querySelector(fullRegionSelector);
+
+        window.console.log('DragDrop initialized for item: ', fullRegionElement);
 
         window.console.log(this.element)
 
-        this.fullregion = itemRow;
+        this.fullregion = fullRegionElement;
 
         this.dragdrop = new DragDrop(this);
     }
@@ -41,10 +55,24 @@ export default class extends BaseComponent {
     }
 
     getDraggableData() {
+        const dragType = this.element.dataset.bookitDragHandleType;
+        var parentId = undefined;
+
+        switch (dragType) {
+            case 'item':
+                parentId = this.fullregion.dataset.bookitChecklistitemCategoryid;
+                break;
+            case 'category':
+                parentId = this.fullregion.dataset.bookitCategoryMasterid;
+                break;
+            default:
+                throw new Error(`Unknown drag handle type: ${dragType}`);
+        }
+
         return {
             id: this.element.dataset.bookitDragHandleId,
             type: this.element.dataset.bookitDragHandleType,
-            parentId: this.fullregion.dataset.bookitDragHandleParentId,
+            parentId: parentId,
         };
     }
 

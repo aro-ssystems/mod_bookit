@@ -167,6 +167,7 @@ class bookit_checklist_category implements \renderable, \templatable {
         $data->id = $this->id;
         $data->name = $this->name;
         $data->order = $this->sortorder;
+        $data->masterid = $this->masterid;
 
         $data->checklistitems = [];
 

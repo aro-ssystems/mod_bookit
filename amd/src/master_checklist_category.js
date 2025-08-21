@@ -1,4 +1,4 @@
-import { BaseComponent } from 'core/reactive';
+import { BaseComponent, DragDrop } from 'core/reactive';
 import { masterChecklistReactiveInstance } from 'mod_bookit/master_checklist_reactive';
 import { SELECTORS } from 'mod_bookit/master_checklist_reactive';
 import ModalForm from 'core_form/modalform';
@@ -47,6 +47,8 @@ export default class extends BaseComponent {
     stateReady(state) {
         window.console.log(this.element.dataset);
 
+        this.dragdrop = new DragDrop(this);
+
         const categoryEditBtnSelector = 'EDIT_CHECKLISTCATEGORY_BTN_' + this.element.dataset.bookitCategoryId;
 
         this.addEventListener(this.getElement(this.selectors[categoryEditBtnSelector]), 'click', (e) => {
@@ -70,8 +72,17 @@ export default class extends BaseComponent {
             window.console.log('NOW THIS', e.detail);
             this._refreshEditButtonListener(e);
         }, true);
+    }
 
+    destroy() {
+        if (this.dragdrop !== undefined) {
+            this.dragdrop.unregister();
+        }
+    }
 
+    validateDropData(dropdata) {
+
+        return true;
     }
 
     async _handleEditChecklistCategoryButtonClick(event) {
@@ -119,6 +130,86 @@ export default class extends BaseComponent {
             window.console.log('EDIT CHECKLIST CATEGORY BUTTON CLICKED', e.currentTarget);
             this._handleEditChecklistCategoryButtonClick(e);
         });
+    }
+
+    drop(dropdata, event) {
+        switch (dropdata.type) {
+            case 'item':
+                this._handleItemDrop(dropdata, event);
+                break;
+            case 'category':
+                this._handleCategoryDrop(dropdata, event);
+                break;
+            default:
+                throw new Error(`Unknown drop type: ${dropdata.type}`);
+        }
+    }
+
+    showDropZone(dropdata, event) {
+        const root = document.querySelector('html');
+        const primaryColor = getComputedStyle(root).getPropertyValue('--primary');
+
+        window.console.log('primary color: ', primaryColor);
+
+        this.element.style.boxShadow = `0px -5px 0px 0px ${primaryColor} inset`;
+        this.element.style.transition = 'box-shadow 0.1s ease';
+    }
+
+    hideDropZone(dropdata, event) {
+        this.element.style.boxShadow = '';
+        this.element.style.backgroundBlendMode = '';
+        this.element.style.transition = '';
+    }
+
+    _handleItemDrop(dropdata, event) {
+        window.console.log('handle item drop on category');
+        // window.console.log(dropdata);
+        window.console.log(event);
+
+        const categoryObject = this.reactive.state.checklistcategories.get(this.element.dataset.bookitCategoryId);
+
+        const categoryObjectItems = [...categoryObject.items];
+
+        const lastItemId = categoryObjectItems[categoryObjectItems.length - 1];
+
+        dropdata.targetId = parseInt(lastItemId);
+        dropdata.targetParentId = parseInt(this.element.dataset.bookitCategoryId);
+
+        this.reactive.dispatch('reOrderCategoryItems', dropdata);
+
+        const itemObject = this.reactive.state.checklistitems.get(dropdata.id);
+
+        const itemElement = document.getElementById(`bookit-master-checklist-item-${itemObject.id}`);
+
+        const itemHasChangedParent = dropdata.parentId !== dropdata.targetParentId;
+
+        if (itemHasChangedParent) {
+            itemElement.dataset.bookitChecklistitemCategoryid = dropdata.targetParentId;
+        }
+
+        this.element.append(itemElement);
+    }
+
+
+    _handleCategoryDrop(dropdata, event) {
+        window.console.log('handle category drop on category');
+        window.console.log(event);
+
+        dropdata.targetId = parseInt(this.element.dataset.bookitCategoryId);
+        dropdata.targetParentId = parseInt(this.element.dataset.bookitCategoryMasterid);
+        window.console.log(`whoops you dropped an ${dropdata.type} on a category`, dropdata);
+
+        this.reactive.dispatch('reOrderCategories', dropdata);
+
+        const categoryObject = this.reactive.state.checklistcategories.get(dropdata.id);
+
+        const categoryElement = document.getElementById(`bookit-master-checklist-tbody-category-${categoryObject.id}`);
+
+        // this.element.parentNode.append(categoryElement);
+        const tableElement = document.querySelector(this.selectors.TABLE);
+
+        tableElement.insertBefore(categoryElement, this.element.nextElementSibling);
+
     }
 
     _foo(event) {

@@ -110,6 +110,12 @@ export default class {
         stateManager.setReadOnly(true);
     }
 
+    reOrderCategories(stateManager, data) {
+        const state = stateManager.state;
+        window.console.log('reorder categories');
+        window.console.log(data);
+    }
+
     checklistitemCreated(stateManager, data) {
         const state = stateManager.state;
         window.console.log('checklist item created');
