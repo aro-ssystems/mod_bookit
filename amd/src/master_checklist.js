@@ -82,6 +82,15 @@ export default class extends BaseComponent {
             this._handleAddChecklistCategoryButtonClick(e);
         });
 
+        this.addEventListener(this.getElement(this.selectors.ROLE_SELECT), 'change', (e) => {
+            window.console.log('ROLE SELECT CHANGE', e);
+            this.reactive.dispatch('roleChanged', { id: e.target.value });
+        });
+        this.addEventListener(this.getElement(this.selectors.ROOM_SELECT), 'change', (e) => {
+            window.console.log('ROOM SELECT CHANGE', e);
+            this.reactive.dispatch('roomChanged', { id: e.target.value });
+        });
+
     }
 
     _handleStateEvent(event) {

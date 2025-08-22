@@ -12,6 +12,8 @@ export const SELECTORS = {
             TABLE_BODY: '#mod-bookit-master-checklist-tbody',
             ALL_ROLE_OPTIONS: 'option[data-bookit-roleoption]',
             ALL_ROOM_OPTIONS: 'option[data-bookit-roomoption]',
+            ROLE_SELECT: '#bookit-master-role-select',
+            ROOM_SELECT: '#bookit-master-room-select',
         };
 
 
@@ -79,7 +81,6 @@ const loadState = async(reactive) => {
     window.console.log('loading state');
 
     const tableElement = document.querySelector(SELECTORS.TABLE);
-
 
     const stateData = {
         masterchecklists: [{

@@ -12,14 +12,14 @@
     <div class="sticky-top">
     <form>
         <div class="form-group d-flex mx-n2 my-5 py-2">
-            <select class="form-control mx-2 w-25" id="bookit-role-select" name="roleid">
-            <option selected>{{#str}} role, mod_bookit {{/str}}</option>
+            <select class="form-control mx-2 w-25" id="bookit-master-role-select" name="roleid">
+            <option value="0" selected>{{#str}} role, mod_bookit {{/str}}</option>
             {{#roles}}
                 <option value="{{id}}" data-bookit-roleoption="{{id}}" data-bookit-rolename="{{name}}">{{name}}</option>
             {{/roles}}
             </select>
-            <select class="form-control mx-2 w-25" id="bookit-room-select" name="roomid">
-            <option selected>{{#str}} room, mod_bookit {{/str}}</option>
+            <select class="form-control mx-2 w-25" id="bookit-master-room-select" name="roomid">
+            <option value="0" selected>{{#str}} room, mod_bookit {{/str}}</option>
             {{#rooms}}
                 <option value="{{id}}" data-bookit-roomoption="{{id}}" data-bookit-roomname="{{name}}">{{name}}</option>
             {{/rooms}}

@@ -217,4 +217,28 @@ export default class {
         stateManager.setReadOnly(true);
     }
 
+    roomChanged(stateManager, data) {
+        const state = stateManager.state;
+        window.console.log('room changed');
+        window.console.log(data);
+
+        stateManager.setReadOnly(false);
+
+        state.activeRoom.id = parseInt(data.id);
+
+        stateManager.setReadOnly(true);
+    }
+
+    roleChanged(stateManager, data) {
+        const state = stateManager.state;
+        window.console.log('role changed');
+        window.console.log(data);
+
+        stateManager.setReadOnly(false);
+
+        state.activeRole.id = parseInt(data.id);
+
+        stateManager.setReadOnly(true);
+    }
+
 }
