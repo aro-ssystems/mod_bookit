@@ -589,27 +589,60 @@ export default class extends BaseComponent {
 
         });
 
-
-        // const allItemElements = document.querySelectorAll(this.selectors.ALL_ITEM_TABLE_ROWS);
-        // allItemElements.forEach(itemElement => {
-
-        //     if (event.element.id === 0) {
-        //         itemElement.classList.remove('d-none');
-        //         return;
-        //     }
-
-        //     const itemRoleId = parseInt(itemElement.dataset.bookitChecklistitemRole);
-        //     if (itemRoleId === event.element.id) {
-        //         itemElement.classList.remove('d-none');
-        //     } else {
-        //         itemElement.classList.add('d-none');
-        //     }
-        // });
     }
 
     _handleRoomUpdate(event) {
         window.console.log('handle room update');
         window.console.log(event);
+        const allCategoryElements = document.querySelectorAll(this.selectors.ALL_CATEGORY_TABLE_ROWS);
+        allCategoryElements.forEach(categoryElement => {
+
+            window.console.log('categoryElement', categoryElement);
+
+            const category = this.reactive.state.checklistcategories.get(categoryElement.dataset.bookitCategoryId);
+
+            window.console.log('category', category);
+            const items = [...category.items];
+            window.console.log('items', items);
+            var hasVisibleItems = false;
+
+            const activeRole = this.reactive.state.activeRole.id;
+
+            items.forEach(itemId => {
+
+                window.console.log('itemId', itemId);
+                const itemElement = document.querySelector(`tr[data-bookit-checklistitem-id="${itemId}"]`);
+                window.console.log('itemElement', itemElement);
+
+                if (parseInt(itemElement.dataset.bookitChecklistitemRoom) === event.element.id) {
+                    if (activeRole === 0 || parseInt(itemElement.dataset.bookitChecklistitemRole) === activeRole) {
+                        itemElement.classList.remove('d-none');
+                        if (!hasVisibleItems) {
+                            hasVisibleItems = true;
+                        }
+                    } else {
+                        itemElement.classList.add('d-none');
+                    }
+                } else {
+                    // TODO this
+                    if (event.element.id === 0 && parseInt(itemElement.dataset.bookitChecklistitemRole) === activeRole) {
+                        itemElement.classList.remove('d-none');
+                        if (!hasVisibleItems) {
+                            hasVisibleItems = true;
+                        }
+                    } else {
+                        itemElement.classList.add('d-none');
+                    }
+                }
+            });
+
+            if (!hasVisibleItems) {
+                categoryElement.classList.add('d-none');
+            } else {
+                categoryElement.classList.remove('d-none');
+            }
+
+        });
     }
 
 }
