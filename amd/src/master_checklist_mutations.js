@@ -8,6 +8,27 @@ export default class {
         // window.console.log(state);
     }
 
+    callDynamicForm(stateManager, data) {
+        const type = data.formType;
+        data.formData[`_qf__mod_bookit_form_edit_checklist_${type}_form`] = 1;
+        const formData = new URLSearchParams(data.formData).toString();
+
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
+            args: {
+                formdata: formData,
+                form: `mod_bookit\\form\\edit_checklist_${type}_form`
+            }
+        }])[0]
+        .then((response) => {
+                stateManager.processUpdates(JSON.parse(response.data));
+        })
+        .catch(exception => {
+            window.console.error('AJAX error:', exception);
+        });
+
+    }
+
     reOrderCategoryItems(stateManager, data) {
         const state = stateManager.state;
         window.console.log('reorder category items');
@@ -144,23 +165,12 @@ export default class {
             id: data.parentId,
             mastercategoryorder: updatedCategoryOrder,
             action: 'put',
-            _qf__mod_bookit_form_edit_checklist_master_form: 1,
         };
-        const formData = new URLSearchParams(formDataObj).toString();
 
-        Ajax.call([{
-            methodname: 'core_form_dynamic_form',
-            args: {
-                formdata: formData,
-                form: 'mod_bookit\\form\\edit_checklist_master_form'
-            }
-        }])[0]
-        .then((response) => {
-                stateManager.processUpdates(JSON.parse(response.data));
-            })
-            .catch(exception => {
-                window.console.error('AJAX error:', exception);
-            });
+        data.formData = formDataObj;
+        data.formType = 'master';
+
+        this.callDynamicForm(stateManager, data);
     }
 
     checklistitemCreated(stateManager, data) {
