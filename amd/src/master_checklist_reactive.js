@@ -96,10 +96,10 @@ const loadState = async(reactive) => {
         roles: [],
         rooms: [],
         activeRole: {
-            id: 1,
+            id: 0,
         },
         activeRoom: {
-            id: 1,
+            id: 0,
         },
     };
     const checklistCategoryRows = document.querySelectorAll(SELECTORS.ALL_CATEGORY_TABLE_ROWS);
