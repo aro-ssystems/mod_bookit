@@ -84,7 +84,8 @@ const loadState = async(reactive) => {
     const stateData = {
         masterchecklists: [{
             id: tableElement.dataset.masterChecklistId,
-            name: tableElement.dataset.masterChecklistName
+            name: tableElement.dataset.masterChecklistName,
+            mastercategoryorder: tableElement.dataset.masterChecklistCategoryorder,
         }],
         activechecklist: {
             id: tableElement.dataset.masterChecklistId,

@@ -74,6 +74,8 @@ class bookit_checklist_master implements \renderable, \templatable {
         public ?int $isdefault = null,
         /** @var checklistcategories */
         public $checklistcategories = null,
+        /** @var string|null mastercategoryorder */
+        public ?string $mastercategoryorder = null,
         /** @var ?int usermodified */
         public ?int $usermodified = null,
         /** @var ?int timecreated */
@@ -85,7 +87,7 @@ class bookit_checklist_master implements \renderable, \templatable {
 
         $now = time();
         $this->isdefault ??= 0;
-        $this->checklistcategories ??= [];
+        $this->checklistcategories ??= '';
         $this->usermodified ??= $USER->id;
         $this->timecreated ??= $now;
         $this->timemodified ??= $now;
@@ -104,8 +106,25 @@ class bookit_checklist_master implements \renderable, \templatable {
         global $DB;
         $record = $DB->get_record("bookit_checklist_master", ["id" => $id], '*', MUST_EXIST);
 
-        if (!empty(json_decode($record->checklistcategories))) {
+        if (!empty($record->checklistcategories)) {
+
             $checklistcategories = checklist_manager::get_categories_by_master_id($record->id);
+
+            $categoryorder = array_map('intval', explode(',', $record->checklistcategories));
+            $sortedcategories = [];
+
+            $categorymap = [];
+            foreach ($checklistcategories as $category) {
+                $categorymap[$category->id] = $category;
+            }
+
+            foreach ($categoryorder as $categoryid) {
+                if (isset($categorymap[$categoryid])) {
+                    $sortedcategories[] = $categorymap[$categoryid];
+                }
+            }
+
+            $checklistcategories = $sortedcategories;
         } else {
             $checklistcategories = [];
         }
@@ -116,6 +135,7 @@ class bookit_checklist_master implements \renderable, \templatable {
                 $record->description,
                 $record->isdefault,
                 $checklistcategories,
+                $record->checklistcategories,
                 $record->usermodified,
                 $record->timecreated,
                 $record->timemodified
@@ -135,7 +155,7 @@ class bookit_checklist_master implements \renderable, \templatable {
         $record->name = $this->name;
         $record->description = $this->description;
         $record->isdefault = $this->isdefault;
-        $record->checklistcategories = json_encode($this->checklistcategories);
+        $record->checklistcategories = $this->mastercategoryorder ?? '';
         $record->usermodified = $USER->id;
         $record->timemodified = time();
 
@@ -177,6 +197,7 @@ class bookit_checklist_master implements \renderable, \templatable {
 
         $data->id = $this->id;
         $data->name = $this->name;
+        $data->mastercategoryorder = $this->mastercategoryorder;
         $data->tableheaders = $tableheaders;
         $data->checklistcategories = [];
         $data->roles = checklist_manager::get_bookit_roles();

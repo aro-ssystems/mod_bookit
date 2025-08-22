@@ -114,6 +114,45 @@ export default class {
         const state = stateManager.state;
         window.console.log('reorder categories');
         window.console.log(data);
+
+        stateManager.setReadOnly(false);
+
+        // Find the master checklist we're working with
+        const masterChecklist = state.masterchecklists.get(1);
+        if (!masterChecklist) {
+            window.console.error('Master checklist not found');
+            stateManager.setReadOnly(true);
+            return;
+        }
+
+        // Get the current category order
+        let categoryOrder = masterChecklist.mastercategoryorder ?
+            masterChecklist.mastercategoryorder.split(',').map(id => parseInt(id)) : [];
+
+        // Find the category to move and the target category
+        const idToMove = parseInt(data.id);
+        const targetId = parseInt(data.targetId);
+
+        // Remove the category to move from its current position
+        categoryOrder = categoryOrder.filter(id => id !== idToMove);
+
+        // Find the target index
+        const targetIndex = categoryOrder.indexOf(targetId);
+
+        if (targetIndex !== -1) {
+            // Insert after the target category
+            categoryOrder.splice(targetIndex + 1, 0, idToMove);
+        } else {
+            // If target not found, add to the end
+            categoryOrder.push(idToMove);
+        }
+
+        // Update the master checklist with the new order
+        masterChecklist.mastercategoryorder = categoryOrder.join(',');
+
+        window.console.log('New category order:', masterChecklist.mastercategoryorder);
+
+        stateManager.setReadOnly(true);
     }
 
     checklistitemCreated(stateManager, data) {

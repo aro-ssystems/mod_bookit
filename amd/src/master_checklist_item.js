@@ -110,7 +110,6 @@ export default class extends BaseComponent {
             this.element.style.transition = 'box-shadow 0.1s ease';
                 break;
             case 'category':
-                // probably needs last element, right now this looks weird
                 const itemParentId = parseInt(this.element.dataset.bookitChecklistitemCategoryid);
                 const categoryParentElement = document.getElementById(`bookit-master-checklist-tbody-category-${itemParentId}`);
                 var isActive = parseInt(categoryParentElement.dataset.bookitCategoryActive || 0);
