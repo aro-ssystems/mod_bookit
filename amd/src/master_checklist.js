@@ -543,17 +543,40 @@ export default class extends BaseComponent {
             window.console.log('items', items);
             var hasVisibleItems = false;
 
+            const activeRoom = this.reactive.state.activeRoom.id;
+
             items.forEach(itemId => {
 
                 window.console.log('itemId', itemId);
                 const itemElement = document.querySelector(`tr[data-bookit-checklistitem-id="${itemId}"]`);
                 window.console.log('itemElement', itemElement);
-                if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id) {
-                    itemElement.classList.remove('d-none');
-                    if (!hasVisibleItems) {
-                        hasVisibleItems = true;
+
+                window.console.log('activeRoom', activeRoom);
+
+                if (activeRoom === 0) {
+
+                    window.console.log('activeRoom is 0, showing all items');
+
+                    if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id) {
+                        itemElement.classList.remove('d-none');
+                        if (!hasVisibleItems) {
+                            hasVisibleItems = true;
+                        }
+                    } else {
+                        itemElement.classList.add('d-none');
+                    }
+                } else if (activeRoom === parseInt(itemElement.dataset.bookitChecklistitemRoom)) {
+                    window.console.log('activeRoom matches item room, checking role');
+                    if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id) {
+                        itemElement.classList.remove('d-none');
+                        if (!hasVisibleItems) {
+                            hasVisibleItems = true;
+                        }
+                    } else {
+                        itemElement.classList.add('d-none');
                     }
                 } else {
+                    window.console.log('activeRoom does not match item room, hiding item');
                     itemElement.classList.add('d-none');
                 }
             });
@@ -567,21 +590,21 @@ export default class extends BaseComponent {
         });
 
 
-        const allItemElements = document.querySelectorAll(this.selectors.ALL_ITEM_TABLE_ROWS);
-        allItemElements.forEach(itemElement => {
+        // const allItemElements = document.querySelectorAll(this.selectors.ALL_ITEM_TABLE_ROWS);
+        // allItemElements.forEach(itemElement => {
 
-            if (event.element.id === 0) {
-                itemElement.classList.remove('d-none');
-                return;
-            }
+        //     if (event.element.id === 0) {
+        //         itemElement.classList.remove('d-none');
+        //         return;
+        //     }
 
-            const itemRoleId = parseInt(itemElement.dataset.bookitChecklistitemRole);
-            if (itemRoleId === event.element.id) {
-                itemElement.classList.remove('d-none');
-            } else {
-                itemElement.classList.add('d-none');
-            }
-        });
+        //     const itemRoleId = parseInt(itemElement.dataset.bookitChecklistitemRole);
+        //     if (itemRoleId === event.element.id) {
+        //         itemElement.classList.remove('d-none');
+        //     } else {
+        //         itemElement.classList.add('d-none');
+        //     }
+        // });
     }
 
     _handleRoomUpdate(event) {
