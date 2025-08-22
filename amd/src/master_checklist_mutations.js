@@ -2,7 +2,7 @@ import Ajax from 'core/ajax';
 
 export default class {
     masterChecklistStateEvent(stateManager, data) {
-        const state = stateManager.state;
+        // const state = stateManager.state;
         // window.console.log('state master checklist state event');
         // window.console.log(data);
         // window.console.log(state);
@@ -115,9 +115,6 @@ export default class {
         window.console.log('reorder categories');
         window.console.log(data);
 
-        stateManager.setReadOnly(false);
-
-        // Find the master checklist we're working with
         const masterChecklist = state.masterchecklists.get(1);
         if (!masterChecklist) {
             window.console.error('Master checklist not found');
@@ -125,34 +122,45 @@ export default class {
             return;
         }
 
-        // Get the current category order
         let categoryOrder = masterChecklist.mastercategoryorder ?
             masterChecklist.mastercategoryorder.split(',').map(id => parseInt(id)) : [];
 
-        // Find the category to move and the target category
         const idToMove = parseInt(data.id);
         const targetId = parseInt(data.targetId);
 
-        // Remove the category to move from its current position
         categoryOrder = categoryOrder.filter(id => id !== idToMove);
 
-        // Find the target index
         const targetIndex = categoryOrder.indexOf(targetId);
 
         if (targetIndex !== -1) {
-            // Insert after the target category
             categoryOrder.splice(targetIndex + 1, 0, idToMove);
         } else {
-            // If target not found, add to the end
             categoryOrder.push(idToMove);
         }
 
-        // Update the master checklist with the new order
-        masterChecklist.mastercategoryorder = categoryOrder.join(',');
+        const updatedCategoryOrder =  categoryOrder.join(',');
 
-        window.console.log('New category order:', masterChecklist.mastercategoryorder);
+        const formDataObj = {
+            id: data.parentId,
+            mastercategoryorder: updatedCategoryOrder,
+            action: 'put',
+            _qf__mod_bookit_form_edit_checklist_master_form: 1,
+        };
+        const formData = new URLSearchParams(formDataObj).toString();
 
-        stateManager.setReadOnly(true);
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
+            args: {
+                formdata: formData,
+                form: 'mod_bookit\\form\\edit_checklist_master_form'
+            }
+        }])[0]
+        .then((response) => {
+                stateManager.processUpdates(JSON.parse(response.data));
+            })
+            .catch(exception => {
+                window.console.error('AJAX error:', exception);
+            });
     }
 
     checklistitemCreated(stateManager, data) {
