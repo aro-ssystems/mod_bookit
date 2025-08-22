@@ -557,7 +557,7 @@ export default class extends BaseComponent {
 
                     window.console.log('activeRoom is 0, showing all items');
 
-                    if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id) {
+                    if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id ||  event.element.id === 0) {
                         itemElement.classList.remove('d-none');
                         if (!hasVisibleItems) {
                             hasVisibleItems = true;
@@ -567,7 +567,7 @@ export default class extends BaseComponent {
                     }
                 } else if (activeRoom === parseInt(itemElement.dataset.bookitChecklistitemRoom)) {
                     window.console.log('activeRoom matches item room, checking role');
-                    if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id) {
+                    if (parseInt(itemElement.dataset.bookitChecklistitemRole) === event.element.id || event.element.id === 0) {
                         itemElement.classList.remove('d-none');
                         if (!hasVisibleItems) {
                             hasVisibleItems = true;
@@ -624,8 +624,9 @@ export default class extends BaseComponent {
                         itemElement.classList.add('d-none');
                     }
                 } else {
-                    // TODO this
-                    if (event.element.id === 0 && parseInt(itemElement.dataset.bookitChecklistitemRole) === activeRole) {
+
+                    if (event.element.id === 0 &&
+                        (parseInt(itemElement.dataset.bookitChecklistitemRole) === activeRole || activeRole === 0)) {
                         itemElement.classList.remove('d-none');
                         if (!hasVisibleItems) {
                             hasVisibleItems = true;
