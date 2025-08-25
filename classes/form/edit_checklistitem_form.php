@@ -80,27 +80,47 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->setType('roleid', PARAM_INT);
         $mform->addRule('roleid', null, 'required', null, 'client');
 
-        // $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+        // $mform->addElement('editor', 'customtemplate', get_string('customtemplate', 'mod_bookit'));
+        // $mform->setType('customtemplate', PARAM_RAW);
+        // $mform->setDefault('customtemplate', [
+        //     'text'   => get_string('customtemplatedefaultmessage', 'mod_bookit'),
+        //     'format' => FORMAT_HTML,
+        //     'itemid' => 0
+        // ]);
 
-        // foreach ($alltypes as $slottype => $val) {
+        $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+
+        // $itemslots = bookit_notification_slot::get_slots_for_item($itemid);
+
+        foreach ($alltypes as $slottype => $val) {
 
 
-        //     $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
+            $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
 
-        //     $select = $mform->addElement('select',
-        //             strtolower($slottype) . '_recipient',
-        //             get_string('recipient', 'mod_bookit'),
-        //             $allroles,
-        //             ['style'=>'width:50%;']);
-        //     $select->setMultiple(true);
+            $select = $mform->addElement('select',
+                    strtolower($slottype) . '_recipient',
+                    get_string('recipient', 'mod_bookit'),
+                    $allroles,
+                    ['style'=>'width:50%;']);
+            $select->setMultiple(true);
 
-        //     $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
+            $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
 
-        //     $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
+            $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
 
-        //     $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
+            $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
 
-        // }
+            $mform->addElement('editor', strtolower($slottype) . '_messagetext', get_string('customtemplate', 'mod_bookit'));
+
+            $mform->setType(strtolower($slottype) . '_messagetext', PARAM_RAW);
+            $mform->setDefault(strtolower($slottype) . '_messagetext', [
+                'text'   => get_string('customtemplatedefaultmessage', 'mod_bookit'),
+                'format' => FORMAT_HTML,
+                'itemid' => 0
+            ]);
+            $mform->hideIf(strtolower($slottype) . '_messagetext', strtolower($slottype));
+
+        }
 
         // $alltypenames = array_map(fn($type) => get_string(strtolower($type), 'mod_bookit'),
         //                                         array_keys($alltypes));
@@ -189,13 +209,17 @@ class edit_checklistitem_form extends dynamic_form {
 
         $item = new \StdClass;
         $id = $this->optional_param('itemid', null, PARAM_INT);
+        $itemslots = [];
         if (!empty($id)) {
             error_log("ID IS NOT EMPTY");
             $item = bookit_checklist_item::from_database($id);
             $item->itemid = $item->id;
+            $itemslots = bookit_notification_slot::get_slots_for_item($item->id);
         } else {
             error_log("ID IS EMPTY");
         }
+
+        // $itemslots = bookit_notification_slot::get_slots_for_item($item->itemid);
 
         error_log("Item data: " . print_r($item, true));
 

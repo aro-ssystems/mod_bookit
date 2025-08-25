@@ -131,3 +131,5 @@ $string['type_when_done'] = 'When done';
 $string['recipient'] = 'Recipient';
 $string['time'] = 'Time';
 $string['checklistitemname'] = 'Checklist item name';
+$string['customtemplate'] = 'Message';
+$string['customtemplatedefaultmessage'] = 'This the default message and test is: {{test}}';
