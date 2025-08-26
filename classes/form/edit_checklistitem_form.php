@@ -95,8 +95,12 @@ class edit_checklistitem_form extends dynamic_form {
             $select->setMultiple(true);
             $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
 
-            $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
-            $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
+            // error_log("SLOTTYPE: " . $slottype . 'VAL: ' . $val);
+            // error_log(array_search($val, [0,2]));
+            if (array_search($val, [0,2]) !== false) {
+                $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
+                $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
+            }
 
             $mform->addElement('editor', strtolower($slottype) . '_messagetext', get_string('customtemplate', 'mod_bookit'));
 
@@ -332,8 +336,8 @@ class edit_checklistitem_form extends dynamic_form {
                         implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []),
                         $ajaxdata[strtolower($slottype) . '_time']['number'] ?? 0,
                         0,
-                        0,
-                        0,
+                        1,
+                        $ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '',
                         $USER->id,
                         time(),
                         time()
