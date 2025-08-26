@@ -327,11 +327,13 @@ class edit_checklistitem_form extends dynamic_form {
         foreach ($alltypes as $slottype => $val) {
             if (!empty($ajaxdata[strtolower($slottype)])) {
                 error_log("SLOT TYPE " . $slottype . " is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype)], true));
+                $daysoffset = array_search($val, [0,2]) !== false ? $ajaxdata[strtolower($slottype) . '_time']['number'] : 0;
                 if (!empty($ajaxdata[strtolower($slottype) . '_id'])) {
                     error_log("SLOT TYPE " . $slottype . " ID is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype) . '_id'], true));
                     $slot = bookit_notification_slot::from_database($ajaxdata[strtolower($slottype) . '_id']);
                     $slot->roleids = implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []);
-                    $slot->messagetext = $ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '';
+                    $slot->messagetext = format_text($ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '', FORMAT_HTML);
+                    $slot->duedaysoffset = $daysoffset;
 
                     $slot->save();
 
@@ -342,10 +344,10 @@ class edit_checklistitem_form extends dynamic_form {
                         $id,
                         $val,
                         implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []),
-                        array_search($val, [0,2]) !== false ? $ajaxdata[strtolower($slottype) . '_time']['number'] : 0,
+                        $daysoffset,
                         0,
                         1,
-                        $ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '',
+                        format_text($ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '', FORMAT_HTML),
                         $USER->id,
                         time(),
                         time()
