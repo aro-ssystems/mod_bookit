@@ -226,8 +226,12 @@ class edit_checklistitem_form extends dynamic_form {
             foreach ($itemslots as $slot) {
                 $slottype = array_search($slot->type, $alltypes);
                 error_log("SLOTTYPE: " . $slottype);
-                $item->{"{$slottype}_id"} = $slot->id;
+                // TODO set time here
+                if (array_search($alltypes[$slottype], [0,2]) !== false) {}
+                $item->{strtolower($slottype) . '_id'} = $slot->id;
                 $item->{strtolower($slottype)} = 1;
+                $item->{strtolower($slottype) . '_recipient'} = explode(',', $slot->roleids);
+                $item->{strtolower($slottype) . '_messagetext'}['text'] = $slot->messagetext;
             }
         }
 
@@ -326,6 +330,10 @@ class edit_checklistitem_form extends dynamic_form {
                 if (!empty($ajaxdata[strtolower($slottype) . '_id'])) {
                     error_log("SLOT TYPE " . $slottype . " ID is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype) . '_id'], true));
                     $slot = bookit_notification_slot::from_database($ajaxdata[strtolower($slottype) . '_id']);
+                    $slot->roleids = implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []);
+                    $slot->messagetext = $ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '';
+
+                    $slot->save();
 
                 } else {
                     error_log("SLOT TYPE " . $slottype . " ID is NOT set in AJAX data, creating new slot.");
@@ -334,7 +342,7 @@ class edit_checklistitem_form extends dynamic_form {
                         $id,
                         $val,
                         implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []),
-                        $ajaxdata[strtolower($slottype) . '_time']['number'] ?? 0,
+                        array_search($val, [0,2]) !== false ? $ajaxdata[strtolower($slottype) . '_time']['number'] : 0,
                         0,
                         1,
                         $ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '',
