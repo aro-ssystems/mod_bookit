@@ -80,17 +80,7 @@ class edit_checklistitem_form extends dynamic_form {
         $mform->setType('roleid', PARAM_INT);
         $mform->addRule('roleid', null, 'required', null, 'client');
 
-        // $mform->addElement('editor', 'customtemplate', get_string('customtemplate', 'mod_bookit'));
-        // $mform->setType('customtemplate', PARAM_RAW);
-        // $mform->setDefault('customtemplate', [
-        //     'text'   => get_string('customtemplatedefaultmessage', 'mod_bookit'),
-        //     'format' => FORMAT_HTML,
-        //     'itemid' => 0
-        // ]);
-
         $alltypes = bookit_notification_slot::get_all_notification_slot_types();
-
-        // $itemslots = bookit_notification_slot::get_slots_for_item($itemid);
 
         foreach ($alltypes as $slottype => $val) {
 
@@ -103,11 +93,9 @@ class edit_checklistitem_form extends dynamic_form {
                     $allroles,
                     ['style'=>'width:50%;']);
             $select->setMultiple(true);
-
             $mform->hideIf(strtolower($slottype) . '_recipient', strtolower($slottype));
 
             $mform->addElement('duration', strtolower($slottype) . '_time', get_string('time', 'mod_bookit'));
-
             $mform->hideIf(strtolower($slottype) . '_time', strtolower($slottype));
 
             $mform->addElement('editor', strtolower($slottype) . '_messagetext', get_string('customtemplate', 'mod_bookit'));
@@ -119,6 +107,9 @@ class edit_checklistitem_form extends dynamic_form {
                 'itemid' => 0
             ]);
             $mform->hideIf(strtolower($slottype) . '_messagetext', strtolower($slottype));
+
+            $mform->addElement('hidden', strtolower($slottype) . '_id');
+            $mform->setType(strtolower($slottype) . '_id', PARAM_INT);
 
         }
 
@@ -221,6 +212,21 @@ class edit_checklistitem_form extends dynamic_form {
 
         // $itemslots = bookit_notification_slot::get_slots_for_item($item->itemid);
 
+        if (empty($itemslots)) {
+            error_log("Item slots are empty");
+        } else {
+            $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+
+        // foreach ($alltypes as $slottype => $val) {
+            error_log("Item slots: " . print_r($itemslots, true));
+            foreach ($itemslots as $slot) {
+                $slottype = array_search($slot->type, $alltypes);
+                error_log("SLOTTYPE: " . $slottype);
+                $item->{"{$slottype}_id"} = $slot->id;
+                $item->{strtolower($slottype)} = 1;
+            }
+        }
+
         error_log("Item data: " . print_r($item, true));
 
         $this->set_data($item);
@@ -307,6 +313,37 @@ class edit_checklistitem_form extends dynamic_form {
         }
 
         $id = $item->save();
+
+        $alltypes = bookit_notification_slot::get_all_notification_slot_types();
+
+        foreach ($alltypes as $slottype => $val) {
+            if (!empty($ajaxdata[strtolower($slottype)])) {
+                error_log("SLOT TYPE " . $slottype . " is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype)], true));
+                if (!empty($ajaxdata[strtolower($slottype) . '_id'])) {
+                    error_log("SLOT TYPE " . $slottype . " ID is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype) . '_id'], true));
+                    $slot = bookit_notification_slot::from_database($ajaxdata[strtolower($slottype) . '_id']);
+
+                } else {
+                    error_log("SLOT TYPE " . $slottype . " ID is NOT set in AJAX data, creating new slot.");
+                    $slot = new bookit_notification_slot(
+                        0,
+                        $id,
+                        $val,
+                        implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []),
+                        $ajaxdata[strtolower($slottype) . '_time']['number'] ?? 0,
+                        0,
+                        0,
+                        0,
+                        $USER->id,
+                        time(),
+                        time()
+                    );
+
+                    $slot->save();
+                }
+            }
+        }
+
 
         error_log("HERE IN FORM Item saved with ID: " . $id);
 
