@@ -232,6 +232,7 @@ class edit_checklistitem_form extends dynamic_form {
                 $item->{strtolower($slottype)} = 1;
                 $item->{strtolower($slottype) . '_recipient'} = explode(',', $slot->roleids);
                 $item->{strtolower($slottype) . '_messagetext'}['text'] = $slot->messagetext;
+                $item->{strtolower($slottype) . '_time'}['number'] = $slot->duedaysoffset;
             }
         }
 
