@@ -310,7 +310,7 @@ class edit_checklistitem_form extends dynamic_form {
                         $val,
                         implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []),
                         $daysoffset,
-                        0,
+                        $val == 0 ? 'before' : ($val == 2 ? 'after' : 0),
                         1,
                         format_text($ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '', FORMAT_HTML),
                         $USER->id,

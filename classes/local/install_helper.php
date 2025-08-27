@@ -63,13 +63,25 @@ class install_helper {
         $taskitems = [
             'Reserve room',
             'Prepare exam papers',
-            'Notify students'
+            'Notify students',
+            'Arrange supervision staff',
+            'Prepare answer sheets',
+            'Setup exam room',
+            'Print attendance list',
+            'Grade exams',
+            'Record results'
         ];
 
         $descriptions = [
             'Ensure room is booked at least two weeks before the exam date',
             'Must be reviewed and approved by department chair before printing',
-            'Send examination details to all enrolled students via email and LMS'
+            'Send examination details to all enrolled students via email and LMS',
+            'Ensure sufficient staff is available for exam supervision',
+            'Prepare standardized answer sheets for the exam',
+            'Setup room according to examination requirements',
+            'Print complete list of registered students',
+            'Grade all exams within the deadline',
+            'Record all results in the academic system'
         ];
 
         // Create the master checklist.
@@ -90,107 +102,148 @@ class install_helper {
             mtrace("Created master checklist with ID: $masterid");
         }
 
-        // Create single category with 3 items.
-        $categoryname = 'Exam Preparation';
+        // Define category data
+        $categories = [
+            [
+                'name' => 'Exam Preparation',
+                'description' => 'Essential tasks for preparing university examinations',
+                'sortorder' => 1,
+                'items_count' => 3  // We'll create 3 items for each category
+            ],
+            [
+                'name' => 'Exam Day',
+                'description' => 'Tasks to be completed on the day of the examination',
+                'sortorder' => 2,
+                'items_count' => 3
+            ],
+            [
+                'name' => 'Post-Exam',
+                'description' => 'Follow-up tasks after the examination is complete',
+                'sortorder' => 3,
+                'items_count' => 3
+            ]
+        ];
 
-        if ($verbose) {
-            mtrace("Creating category: $categoryname");
-        }
-
-        // Create category.
-        $category = new bookit_checklist_category(
-            null,
-            $masterid,
-            $categoryname,
-            'Essential tasks for preparing university examinations',
-            '', // checklist items
-            1 // sortorder
-        );
-
-        $categoryid = $category->save();
-        if ($verbose) {
-            mtrace("  Category ID: $categoryid");
-        }
-
+        $categoryids = [];
         $itemtypes = [1, 2, 3]; // 1=text, 2=number, 3=date
+        $itemIndex = 0;
 
-        // Create exactly 3 items
-        for ($i = 0; $i < 3; $i++) {
-            $itemname = $taskitems[$i];
-            $itemtype = $itemtypes[$i];
-            $desc = $descriptions[$i];
-
-            // Create options based on item type.
-            $options = null;
-
-            $defaultvalue = null;
-            switch ($itemtype) {
-                case 1: // text
-                    $defaultvalue = 'Enter details here';
-                    break;
-                case 2: // number
-                    $defaultvalue = 25;
-                    break;
-                case 3: // date
-                    $defaultvalue = time() + (7 * 86400); // 7 days from now
-                    break;
-            }
-
+        // Create three categories
+        foreach ($categories as $categoryData) {
             if ($verbose) {
-                mtrace("    Creating item: $itemname");
+                mtrace("Creating category: {$categoryData['name']}");
             }
 
-            // Randomly select a room and role if available
-            $roomid = null;
-            $roleid = null;
-
-            $rooms = \mod_bookit\local\manager\checklist_manager::get_bookit_rooms();
-            if (!empty($rooms)) {
-                $room = $rooms[array_rand($rooms)];
-                $roomid = $room['id'];
-            }
-
-            $roles = \mod_bookit\local\manager\checklist_manager::get_bookit_roles();
-            if (!empty($roles)) {
-                $role = $roles[array_rand($roles)];
-                $roleid = $role->id;
-            }
-
-            $item = new bookit_checklist_item(
-                0, // ID will be set by save_to_database
+            // Create category
+            $category = new bookit_checklist_category(
+                null,
                 $masterid,
-                $categoryid,
-                null, // No parent
-                $roomid, // Room ID (may be null)
-                $roleid, // Role ID (may be null)
-                $itemname,
-                $desc,
-                $itemtype,
-                $options,
-                $i + 1, // sortorder
-                1, // is_required (all required)
-                $defaultvalue,
-                ($i * 7), // due_days_offset (0, 7, 14 days)
-                null,
-                null,
-                null
+                $categoryData['name'],
+                $categoryData['description'],
+                '', // checklist items - will be updated later
+                $categoryData['sortorder']
             );
 
-            $itemid = $item->save();
+            $categoryid = $category->save();
+            $categoryids[] = $categoryid;
+
             if ($verbose) {
-                mtrace("      Item ID: $itemid");
+                mtrace("  Category ID: $categoryid");
             }
+
+            $itemids = [];
+
+            // Create items for this category
+            for ($i = 0; $i < $categoryData['items_count']; $i++) {
+                $currentItemIndex = $itemIndex + $i;
+                $itemname = $taskitems[$currentItemIndex];
+                $itemtype = $itemtypes[$i % 3]; // Cycle through item types
+                $desc = $descriptions[$currentItemIndex];
+
+                // Create options based on item type
+                $options = null;
+
+                $defaultvalue = null;
+                switch ($itemtype) {
+                    case 1: // text
+                        $defaultvalue = 'Enter details here';
+                        break;
+                    case 2: // number
+                        $defaultvalue = 25;
+                        break;
+                    case 3: // date
+                        $defaultvalue = time() + (7 * 86400); // 7 days from now
+                        break;
+                }
+
+                if ($verbose) {
+                    mtrace("    Creating item: $itemname");
+                }
+
+                // Randomly select a room and role if available
+                $roomid = null;
+                $roleid = null;
+
+                $rooms = \mod_bookit\local\manager\checklist_manager::get_bookit_rooms();
+                if (!empty($rooms)) {
+                    $room = $rooms[array_rand($rooms)];
+                    $roomid = $room['id'];
+                }
+
+                $roles = \mod_bookit\local\manager\checklist_manager::get_bookit_roles();
+                if (!empty($roles)) {
+                    $role = $roles[array_rand($roles)];
+                    $roleid = $role->id;
+                }
+
+                $item = new bookit_checklist_item(
+                    0, // ID will be set by save_to_database
+                    $masterid,
+                    $categoryid,
+                    null, // No parent
+                    $roomid, // Room ID (may be null)
+                    $roleid, // Role ID (may be null)
+                    $itemname,
+                    $desc,
+                    $itemtype,
+                    $options,
+                    $i + 1, // sortorder
+                    1, // is_required (all required)
+                    $defaultvalue,
+                    ($i * 7), // due_days_offset (0, 7, 14 days)
+                    null,
+                    null,
+                    null
+                );
+
+                $itemid = $item->save();
+                $itemids[] = $itemid;
+
+                if ($verbose) {
+                    mtrace("      Item ID: $itemid");
+                }
+            }
+
+            // Update the category with the item IDs
+            $category->checklistitems = implode(',', $itemids);
+            $category->save();
+
+            if ($verbose) {
+                mtrace("  Updated category with item IDs: " . implode(',', $itemids));
+            }
+
+            $itemIndex += $categoryData['items_count'];
         }
 
-        // Update the master checklist with the category IDs.
-        $categories = $DB->get_records('bookit_checklist_category', ['masterid' => $masterid], 'sortorder ASC', 'id');
-        $categoryids = array_keys($categories);
-
-        $master->checklistcategories = implode(',', $categoryids);
+        // Update the master checklist with the category IDs
+        // Fix: Verwende das korrekte Feld 'checklistcategories' für den Master
+        $categoryidstr = implode(',', $categoryids);
+        $master = bookit_checklist_master::from_database($masterid);
+        $master->mastercategoryorder = $categoryidstr;
         $master->save();
 
         if ($verbose) {
-            mtrace("Updated master checklist with category IDs: " . implode(', ', $categoryids));
+            mtrace("Updated master checklist with category IDs: " . $categoryidstr);
             mtrace('Default checklist data created successfully!');
         }
 

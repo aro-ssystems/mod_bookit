@@ -55,7 +55,7 @@ class bookit_notification_slot implements \renderable, \templatable {
      * @param int $type Type of notification (e.g. email, dashboard, etc.)
      * @param string|null $roleids JSON-encoded list of role IDs to notify
      * @param int|null $duedaysoffset
-     * @param int|null $duedaysrelation
+     * @param string|null $duedaysrelation
      * @param int $isactive
      * @param string|null $messagetext
      * @param int|null $usermodified
@@ -73,8 +73,8 @@ class bookit_notification_slot implements \renderable, \templatable {
         public ?string $roleids,
         /** @var int|null duedaysoffset */
         public ?int $duedaysoffset,
-        /** @var int|null duedaysrelation */
-        public ?int $duedaysrelation,
+        /** @var string|null duedaysrelation */
+        public ?string $duedaysrelation,
         /** @var int isactive */
         public int $isactive = 0,
         /** @var string|null messagetext */
