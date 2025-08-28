@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Form for creating and editing an event.
+ * Form for creating and editing a checklist item.
  *
  * @package     mod_bookit
  * @copyright   2025 ssystems GmbH <oss@ssystems.de>
@@ -52,12 +52,9 @@ class edit_checklistitem_form extends dynamic_form {
 
         $ajaxdata = $this->_ajaxformdata;
 
-        error_log("AJAX data in definition: " . print_r($ajaxdata, true));
-
         $categories = [];
 
         if (!empty($ajaxdata['categories'])) {
-            error_log(print_r($ajaxdata['categories'], true));
             $categories = array_column($ajaxdata['categories'], 'name', 'id');
         }
 
@@ -81,7 +78,6 @@ class edit_checklistitem_form extends dynamic_form {
         $alltypes = bookit_notification_slot::get_all_notification_slot_types();
 
         foreach ($alltypes as $slottype => $val) {
-
 
             $mform->addElement('checkbox', strtolower($slottype), get_string(strtolower($slottype), 'mod_bookit'));
 
@@ -140,11 +136,8 @@ class edit_checklistitem_form extends dynamic_form {
      * @return \moodle_url
      */
     protected function get_page_url_for_dynamic_submission(): \moodle_url {
-        if (!empty($this->_ajaxformdata['cmid'])) {
-            $cmid = $this->_ajaxformdata['cmid'];
-            return new \moodle_url('/mod/bookit/master_checklist.php', ['id' => $cmid]);
-        }
-        return new \moodle_url('/');
+        return new \moodle_url('/mod/bookit/master_checklist.php');
+
     }
 
     /**
@@ -154,15 +147,11 @@ class edit_checklistitem_form extends dynamic_form {
      */
     public function process_dynamic_submission() {
         $data = $this->get_data();
-
         $ajaxdata = $this->_ajaxformdata;
-        error_log("AJAX data: " . print_r($ajaxdata, true));
 
         if (empty($data->categoryid)) {
             $data->categoryid = $ajaxdata['categoryid'] ?? null;
         }
-
-        error_log("Creating new checklist item with data: " . print_r($data, true));
 
         if (!empty($data->action)) {
             switch ($data->action) {
@@ -180,37 +169,29 @@ class edit_checklistitem_form extends dynamic_form {
      * Set data for the form.
      */
     public function set_data_for_dynamic_submission(): void {
-
-        error_log("Setting data for dynamic submission in edit_checklistitem_form");
-
         $ajaxdata = $this->_ajaxformdata;
-
-        error_log("AJAX data set data: " . print_r($ajaxdata, true));
 
         $item = new \StdClass;
         $id = $this->optional_param('itemid', null, PARAM_INT);
         $itemslots = [];
         if (!empty($id)) {
-            error_log("ID IS NOT EMPTY");
             $item = bookit_checklist_item::from_database($id);
             $item->itemid = $item->id;
             $itemslots = bookit_notification_slot::get_slots_for_item($item->id);
         } else {
-            error_log("ID IS EMPTY");
+
         }
 
         if (empty($itemslots)) {
-            error_log("Item slots are empty");
+
         } else {
             $alltypes = bookit_notification_slot::get_all_notification_slot_types();
 
-            error_log("Item slots: " . print_r($itemslots, true));
             foreach ($itemslots as $slot) {
                 if ($slot->isactive == 0) {
                     continue;
                 }
                 $slottype = array_search($slot->type, $alltypes);
-                error_log("SLOTTYPE: " . $slottype);
 
                 if (array_search($alltypes[$slottype], [0,2]) !== false) {
                     $item->{strtolower($slottype) . '_time'}['number'] = $slot->duedaysoffset;
@@ -223,18 +204,13 @@ class edit_checklistitem_form extends dynamic_form {
             }
         }
 
-        error_log("Item data: " . print_r($item, true));
-
         $this->set_data($item);
     }
 
     public function process_put_request($ajaxdata = []): array {
         global $USER;
 
-        error_log("PUT REQUEST DATA HERE" . print_r($ajaxdata, true));
-
         if (!empty($ajaxdata['itemid'])) {
-            error_log("Processing PUT request for existing item with ID: " . print_r($ajaxdata, true));
             $item = bookit_checklist_item::from_database($ajaxdata['itemid']);
 
             $fields =  [
@@ -245,8 +221,6 @@ class edit_checklistitem_form extends dynamic_form {
                     'roleid' => $ajaxdata['roleid'],
             ];
 
-            error_log("Fields BEFORE " . print_r($fields, true));
-
             foreach ($fields as $key => $value) {
                 if (isset($item->$key) && $item->$key === $value) {
                     unset($fields[$key]);
@@ -255,14 +229,11 @@ class edit_checklistitem_form extends dynamic_form {
                 }
             }
 
-            error_log("Fields AFTER " . print_r($fields, true));
-
             $item->usermodified = $USER->id;
             $item->timemodified = time();
             $item->itemid = $item->id;
 
         } else {
-            error_log("Creating new checklist item with AJAX data in NEW FUNCTION: " . print_r($ajaxdata, true));
 
             $item = new bookit_checklist_item(
                     0,
@@ -291,10 +262,10 @@ class edit_checklistitem_form extends dynamic_form {
 
         foreach ($alltypes as $slottype => $val) {
             if (!empty($ajaxdata[strtolower($slottype)])) {
-                error_log("SLOT TYPE " . $slottype . " is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype)], true));
+
                 $daysoffset = array_search($val, [0,2]) !== false ? $ajaxdata[strtolower($slottype) . '_time']['number'] : 0;
                 if (!empty($ajaxdata[strtolower($slottype) . '_id'])) {
-                    error_log("SLOT TYPE " . $slottype . " ID is set in AJAX data: " . print_r($ajaxdata[strtolower($slottype) . '_id'], true));
+
                     $slot = bookit_notification_slot::from_database($ajaxdata[strtolower($slottype) . '_id']);
                     $slot->roleids = implode(',', $ajaxdata[strtolower($slottype) . '_recipient'] ?? []);
                     $slot->messagetext = format_text($ajaxdata[strtolower($slottype) . '_messagetext']['text'] ?? '', FORMAT_HTML);
@@ -303,7 +274,7 @@ class edit_checklistitem_form extends dynamic_form {
                     $slot->save();
 
                 } else {
-                    error_log("SLOT TYPE " . $slottype . " ID is NOT set in AJAX data, creating new slot.");
+
                     $slot = new bookit_notification_slot(
                         0,
                         $id,
@@ -322,7 +293,6 @@ class edit_checklistitem_form extends dynamic_form {
                 }
             } else {
                 if (!empty($ajaxdata[strtolower($slottype) . '_id'])) {
-                    error_log("SLOT TYPE " . $slottype . " ID is set in AJAX data but slot is not active, deactivating slot with ID: " . print_r($ajaxdata[strtolower($slottype) . '_id'], true));
                     $slot = bookit_notification_slot::from_database($ajaxdata[strtolower($slottype) . '_id']);
                     $slot->isactive = 0;
                     $slot->save();

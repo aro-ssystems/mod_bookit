@@ -26,9 +26,7 @@
 namespace mod_bookit\form;
 
 use core_form\dynamic_form;
-use mod_bookit\local\entity\bookit_checklist_category;
 use mod_bookit\local\entity\bookit_checklist_master;
-use mod_bookit\local\manager\checklist_manager;
 
 class edit_checklist_master_form extends dynamic_form {
 
@@ -44,10 +42,6 @@ class edit_checklist_master_form extends dynamic_form {
 
         $mform->addElement('hidden', 'mastercategoryorder');
         $mform->setType('mastercategoryorder', PARAM_TEXT);
-
-        // $mform->addElement('text', 'name', get_string('category_name', 'mod_bookit'));
-        // $mform->setType('name', PARAM_TEXT);
-        // $mform->addRule('name', null, 'required', null, 'client');
 
     }
 
@@ -77,11 +71,8 @@ class edit_checklist_master_form extends dynamic_form {
      * @return \moodle_url
      */
     protected function get_page_url_for_dynamic_submission(): \moodle_url {
-        if (!empty($this->_ajaxformdata['cmid'])) {
-            $cmid = $this->_ajaxformdata['cmid'];
-            return new \moodle_url('/mod/bookit/master_checklist.php');
-        }
-        return new \moodle_url('/');
+        return new \moodle_url('/mod/bookit/master_checklist.php');
+
     }
 
     /**
@@ -90,11 +81,9 @@ class edit_checklist_master_form extends dynamic_form {
      * @return mixed
      */
     public function process_dynamic_submission() {
-        global $USER;
         $data = $this->get_data();
 
         $ajaxdata = $this->_ajaxformdata;
-        error_log("AJAX data: " . print_r($ajaxdata, true));
 
         if (!empty($data->action)) {
             switch ($data->action) {
@@ -106,7 +95,6 @@ class edit_checklist_master_form extends dynamic_form {
                     return ['success' => false, 'message' => 'Unknown action: ' . $data->action];
             }
         }
-
     }
 
     /**
@@ -114,8 +102,6 @@ class edit_checklist_master_form extends dynamic_form {
      */
     public function set_data_for_dynamic_submission(): void {
         $data = [];
-
-        error_log("Setting data for dynamic submission in FORM CLASS: " . print_r($this->_ajaxformdata, true));
 
         if (!empty($this->_ajaxformdata['id'])) {
             $data['id'] = $this->_ajaxformdata['id'];
@@ -127,8 +113,6 @@ class edit_checklist_master_form extends dynamic_form {
             try {
                 $master = bookit_checklist_master::from_database($id);
                 $data['id'] = $master->id;
-                // $data['name'] = $master->name;
-                // $data['description'] = $master->description;
                 $data['mastercategoryorder'] = $master->checklistcategories;
 
             } catch (\Exception $e) {
@@ -137,10 +121,8 @@ class edit_checklist_master_form extends dynamic_form {
         }
 
         $this->set_data($data);
-        error_log("Data set for dynamic submission AFTER: " . print_r($data, true));
     }
     public function process_put_request($ajaxdata = []): array {
-
         $master = bookit_checklist_master::from_database($ajaxdata['id']);
         $master->mastercategoryorder = $ajaxdata['mastercategoryorder'];
         $master->save();
@@ -158,18 +140,7 @@ class edit_checklist_master_form extends dynamic_form {
     }
 
     public function process_delete_request($id): array {
-        // $category = bookit_checklist_category::from_database($id);
-        // $category->delete();
 
-        // return [
-        //     [
-        //         'name' => 'checklistcategories',
-        //         'action' => 'delete',
-        //         'fields' => [
-        //             'id' => $id,
-        //         ],
-        //     ],
-        // ];
     }
 
 }

@@ -236,7 +236,6 @@ class install_helper {
         }
 
         // Update the master checklist with the category IDs
-        // Fix: Verwende das korrekte Feld 'checklistcategories' für den Master
         $categoryidstr = implode(',', $categoryids);
         $master = bookit_checklist_master::from_database($masterid);
         $master->mastercategoryorder = $categoryidstr;

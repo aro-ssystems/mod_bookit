@@ -31,9 +31,6 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/mod/bookit/classes/local/install_helper.php');
 
 use mod_bookit\local\install_helper;
-use mod_bookit\local\entity\bookit_checklist_master;
-use mod_bookit\local\entity\bookit_checklist_category;
-use mod_bookit\local\entity\bookit_checklist_item;
 
 // Get cli options.
 list($options, $unrecognized) = cli_get_params(
@@ -69,8 +66,6 @@ Example:
 cli_heading('Creating test checklist data for BookIt');
 cli_writeln('');
 
-// Verwenden Sie die Helper-Klasse, um die Testdaten zu erstellen
-// Der zweite Parameter "true" aktiviert die ausführliche Ausgabe für CLI
 $result = install_helper::create_default_checklists($options['force'], true);
 
 if ($result) {

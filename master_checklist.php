@@ -26,29 +26,21 @@ use mod_bookit\local\manager\checklist_manager;
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-global $CFG, $OUTPUT;
+global $OUTPUT;
 
 use mod_bookit\local\entity\bookit_checklist_master;
-// use mod_bookit\local\manager\checklist_manager;
 
 require_login();
 
 $PAGE->set_context(context_system::instance());
 
-// admin_externalpage_setup('mod_bookit_master_checklist');
+
 $PAGE->set_url(new moodle_url('/mod/bookit/master_checklist.php'));
 $PAGE->set_heading(get_string('master_checklist', 'mod_bookit'));
-// $PAGE->set_context(context_system::instance());
+
 $PAGE->set_pagelayout('admin');
 
 echo $OUTPUT->header();
-
-// echo $OUTPUT->render(new \core\output\single_button(
-//     new moodle_url('/mod/bookit/master_checklist.php'),
-//     get_string('master_checklist', 'mod_bookit'),
-//     'get',
-//     single_button::BUTTON_PRIMARY
-// )) . '<br><br>';
 
 
 $defaultchecklistmaster = checklist_manager::get_default_master();
@@ -68,6 +60,5 @@ $output = $PAGE->get_renderer('mod_bookit');
 
 echo $output->render($defaultchecklistmaster);
 
-// $PAGE->requires->js_call_amd('mod_bookit/master_checklist_reactive', 'init', ['mod-bookit-master-checklist']);
 
 echo $OUTPUT->footer();

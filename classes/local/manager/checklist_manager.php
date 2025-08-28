@@ -18,7 +18,8 @@
  * Checklist manager class.
  *
  * @package     mod_bookit
- * @copyright   2024 Melanie Treitinger, Ruhr-Universität Bochum <melanie.treitinger@ruhr-uni-bochum.de>
+ * @copyright   2025 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_bookit\local\manager;
@@ -96,18 +97,14 @@ class checklist_manager {
         $params = ['categoryid' => $categoryid];
         $records = $DB->get_records_sql($sql, $params);
 
-        error_log('Debugging get_items_by_category_id: ' . json_encode($records));
         return array_map(fn($record) => bookit_checklist_item::from_record($record), $records);
     }
 
     public static function get_bookit_roles() {
 
-        $target_shortnames = ['bookingperson', 'examiner', 'observer', 'serviceteam', 'supportonside'];
-
-        $systemcontext = \context_system::instance();
+        $target_shortnames = ['bookit_bookingperson', 'bookit_examiner', 'bookit_observer', 'bookit_serviceteam', 'bookit_supportonside'];
         $roles = get_all_roles();
-        // error_log('Debugging get_bookit_roles: ' . print_r($roles, true));
-        $rolenames = role_fix_names($roles, $systemcontext, ROLENAME_ORIGINAL);
+
         $bookitroles = [];
         foreach ($roles as $role) {
             if (in_array($role->shortname, $target_shortnames)) {

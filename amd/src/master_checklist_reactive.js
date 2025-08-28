@@ -22,32 +22,13 @@ const EVENTNAME = 'mod_bookit:master_checklist_state_event'
 export const masterChecklistReactiveInstance = new Reactive({
         eventName: EVENTNAME,
         eventDispatch: dispatchMasterChecklistStateEvent,
-        // target: document.getElementById(elementId),
         mutations: new Mutations(),
         name: 'Moodle Bookit Master Checklist',
-        // state: {}
     });
 
 export const init = (elementId) => {
 
-    window.console.log('THIS IS REACTIVE');
-
-    // const masterChecklistReactiveInstance = new Reactive({
-    //     eventName: EVENTNAME,
-    //     eventDispatch: dispatchMasterChecklistStateEvent,
-    //     target: document.getElementById(elementId),
-    //     mutations: new Mutations(),
-    //     name: 'Moodle Bookit Master Checklist',
-    //     // state: {}
-    // });
-
     loadState(masterChecklistReactiveInstance);
-
-    // return new MasterChecklist({
-    //     element: document.getElementById(elementId),
-    //     reactive: masterChecklistReactiveInstance,
-    //     selectors: SELECTORS,
-    // });
 }
 
 function dispatchMasterChecklistStateEvent(detail, target) {
@@ -152,12 +133,5 @@ const loadState = async(reactive) => {
         });
     });
 
-    // const categoryLists = document.querySelectorAll(SELECTORS.CATEGORY_LIST);
-    // categoryLists.forEach(categoryList => {
-    //     stateData.categoryLists.push({
-    //         id: categoryList.dataset.categoryid,
-    //         childCount: categoryList.querySelectorAll(SELECTORS.CATEGORY_ITEM).length,
-    //     });
-    // });
     reactive.setInitialState(stateData);
 };

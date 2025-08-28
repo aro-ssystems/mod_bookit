@@ -26,7 +26,6 @@
 namespace mod_bookit\local\entity;
 
 use dml_exception;
-use mod_bookit\local\manager\checklist_manager;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -155,10 +154,7 @@ class bookit_checklist_category implements \renderable, \templatable {
     public function delete(): bool {
         global $DB;
 
-        // $DB->set_field("bookit_checklist_item", "categoryid", null, ["categoryid" => $this->id]);
-
         return $DB->delete_records("bookit_checklist_category", ["id" => $this->id]);
-        // return true;
     }
 
     public function export_for_template(\renderer_base $output) {
@@ -183,8 +179,6 @@ class bookit_checklist_category implements \renderable, \templatable {
         }
 
         $data->type = 'category';
-
-        error_log('Debugging export_for_template category: ' . print_r($data, true));
 
         return $data;
     }

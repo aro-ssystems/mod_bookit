@@ -2,10 +2,7 @@ import Ajax from 'core/ajax';
 
 export default class {
     masterChecklistStateEvent(stateManager, data) {
-        // const state = stateManager.state;
-        // window.console.log('state master checklist state event');
-        // window.console.log(data);
-        // window.console.log(state);
+
     }
 
     callDynamicForm(stateManager, data) {
@@ -31,8 +28,6 @@ export default class {
 
     reOrderCategoryItems(stateManager, data) {
         const state = stateManager.state;
-        window.console.log('reorder category items');
-        window.console.log(data);
 
         stateManager.setReadOnly(false);
 
@@ -81,13 +76,9 @@ export default class {
 
             targetItem.categoryid = parseInt(targetCategory.id);
 
-            window.console.log('New source category items:', sourceCategory.items);
-            window.console.log('New target category items:', targetCategory.items);
         } else {
             // Same category - original logic for reordering within a category
             const category = state.checklistcategories.get(data.targetParentId);
-
-            window.console.log('category items order: ', category.items);
 
             // Initialize items array if it doesn't exist or isn't iterable
             if (!category.items || !Array.isArray(category.items)) {
@@ -125,7 +116,6 @@ export default class {
             // Update the items array
             category.items = currentItems;
 
-            window.console.log('new category items order: ', category.items);
         }
 
         stateManager.setReadOnly(true);
@@ -133,8 +123,6 @@ export default class {
 
     reOrderCategories(stateManager, data) {
         const state = stateManager.state;
-        window.console.log('reorder categories');
-        window.console.log(data);
 
         const masterChecklist = state.masterchecklists.get(1);
         if (!masterChecklist) {
@@ -175,11 +163,7 @@ export default class {
 
     checklistitemCreated(stateManager, data) {
         const state = stateManager.state;
-        window.console.log('checklist item created');
-        window.console.log(data);
-        window.console.log(data[0]);
-        window.console.log(data[0].fields);
-        window.console.log(data[0].fields.category);
+
         stateManager.processUpdates(data);
 
         stateManager.setReadOnly(false);
@@ -193,34 +177,25 @@ export default class {
 
     checklistitemDeleted(stateManager, data) {
         const state = stateManager.state;
-        window.console.log('checklist item deleted');
-        window.console.log(data);
 
         stateManager.setReadOnly(false);
 
         const category = state.checklistcategories.get(data.categoryid);
 
-        window.console.log('category items before deletion: ', category.items);
-
         const currentItems = [...category.items];
         const itemIndex = currentItems.indexOf(data.id);
-
-        window.console.log('item index to delete: ', itemIndex);
 
         if (itemIndex !== -1) {
             window.console.log('item found in category items - removing');
             currentItems.splice(itemIndex, 1);
             category.items = currentItems;
         }
-        window.console.log('category items after deletion: ', category.items);
 
         stateManager.setReadOnly(true);
     }
 
     roomChanged(stateManager, data) {
         const state = stateManager.state;
-        window.console.log('room changed');
-        window.console.log(data);
 
         stateManager.setReadOnly(false);
 
@@ -231,8 +206,6 @@ export default class {
 
     roleChanged(stateManager, data) {
         const state = stateManager.state;
-        window.console.log('role changed');
-        window.console.log(data);
 
         stateManager.setReadOnly(false);
 

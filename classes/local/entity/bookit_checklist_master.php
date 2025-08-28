@@ -177,13 +177,7 @@ class bookit_checklist_master implements \renderable, \templatable {
      * @throws dml_exception
      */
     public function delete(): bool {
-        global $DB;
-
-        // // Delete associated items first
-        // $DB->delete_records("bookit_checklist_item", ["masterid" => $this->id]);
-
-        // // Delete the master checklist
-        // return $DB->delete_records("bookit_checklist_master", ["id" => $this->id]);
+        // TODO remove or implement
         return true;
     }
 
@@ -202,8 +196,6 @@ class bookit_checklist_master implements \renderable, \templatable {
         $data->checklistcategories = [];
         $data->roles = checklist_manager::get_bookit_roles();
         $data->rooms = checklist_manager::get_bookit_rooms();
-        error_log('Debugging export_for_template ROLES: ' . print_r($data->roles, true));
-        error_log('Debugging export_for_template ROOMS: ' . print_r($data->rooms, true));
 
         foreach ($this->checklistcategories as $category) {
             $data->checklistcategories[] = $category->export_for_template($output);

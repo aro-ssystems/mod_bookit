@@ -15,12 +15,8 @@ export default class extends BaseComponent {
     stateReady() {
         this.relativeDrag = true;
 
-        // this.dragdrop = new DragDrop(this);
-
         const dragType = this.element.dataset.bookitDragHandleType;
         const dragId = this.element.dataset.bookitDragHandleId;
-
-        // TODO fullregion needs to differentiate between type item & category
 
         var fullRegionSelector = '';
 
@@ -35,13 +31,7 @@ export default class extends BaseComponent {
                 throw new Error(`Unknown drag handle type: ${dragType}`);
         }
 
-        window.console.log('fullRegionSelector: ', fullRegionSelector);
-
         const fullRegionElement = document.querySelector(fullRegionSelector);
-
-        window.console.log('DragDrop initialized for item: ', fullRegionElement);
-
-        window.console.log(this.element)
 
         this.fullregion = fullRegionElement;
 
@@ -76,22 +66,4 @@ export default class extends BaseComponent {
         };
     }
 
-    dragStart(dragData, event) {
-        // This method is called when the drag operation starts.
-        window.console.log('Drag started', dragData);
-    }
-
-    dragEnd(dragData, event) {
-        // This method is called when the drag operation ends.
-        window.console.log('Drag ended', dragData);
-    }
-
-    // validateDropData(dropdata) {
-
-    //     return true;
-    // }
-
-    // drop(dropdata, event) {
-    //     window.console.log('whoops you dropped this on a handle', dropdata);
-    // }
 }

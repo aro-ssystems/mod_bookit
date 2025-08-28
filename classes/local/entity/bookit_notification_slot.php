@@ -201,6 +201,8 @@ class bookit_notification_slot implements \renderable, \templatable {
             return [];
         }
 
+        // TODO this is string?
+
         return json_decode($this->roleids, true) ?: [];
     }
 
@@ -211,6 +213,7 @@ class bookit_notification_slot implements \renderable, \templatable {
      * @return void
      */
     public function set_role_ids(array $roleids): void {
+        // TODO this is string?
         $this->roleids = json_encode($roleids);
     }
 

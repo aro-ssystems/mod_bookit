@@ -111,7 +111,7 @@ function xmldb_bookit_install() {
 
     // Create default checklist data
     mtrace('Setting up default checklist data for BookIt...');
-    $result = \mod_bookit\local\install_helper::create_default_checklists(false, false);
+    $result = install_helper::create_default_checklists(false, false);
 
     if ($result) {
         mtrace('Default checklist data was created successfully.');

@@ -192,16 +192,7 @@ class bookit_checklist_item implements \renderable, \templatable {
     public function delete(): bool {
         global $DB;
 
-        // Delete all child items first
-        // $children = $DB->get_records("bookit_checklist_item", ["parentid" => $this->id]);
-        // foreach ($children as $child) {
-        //     $childitem = self::from_record($child);
-        //     $childitem->delete_from_database();
-        // }
-
-        // // Delete this item
         return $DB->delete_records("bookit_checklist_item", ["id" => $this->id]);
-        // return true;
     }
 
     public function export_for_template(\renderer_base $output) {
