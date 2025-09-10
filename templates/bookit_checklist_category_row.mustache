@@ -3,17 +3,17 @@
 
     Checklist category template with a bootstrap table row
 }}
-<tr class="table-active bookit-category"
+<tr class="bg-light border-bottom bookit-category"
     id="bookit-master-checklist-category-row-{{id}}"
     data-bookit-category-id="{{id}}"
     data-bookit-category-name="{{name}}"
     data-bookit-category-order="{{order}}"
     data-bookit-drag-handle-category-id="{{id}}">
-                <td>{{name}}</td>
-                <td></td>
-                <td></td>
-                <td>
-                    <button type="button" class="btn" value="{{id}}" name="edit-checklistcategory-{{id}}" id="edit-checklistcategory-{{id}}">
+                <td class="font-weight-bold text-dark py-3">{{name}}</td>
+                <td class="text-muted"></td>
+                <td class="text-muted"></td>
+                <td class="py-3 text-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" value="{{id}}" name="edit-checklistcategory-{{id}}" id="edit-checklistcategory-{{id}}">
                         {{#pix}} i/edit, core {{/pix}}
                     </button>
                 </td>
