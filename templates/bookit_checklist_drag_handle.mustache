@@ -3,12 +3,14 @@
 
     Checklist drag handle template
 }}
-<td class="bookit-drag-handle" id="bookit-drag-handle-{{type}}-{{id}}"
+<td class="bookit-drag-handle align-middle text-center py-3" id="bookit-drag-handle-{{type}}-{{id}}"
     data-bookit-drag-handle-id="{{id}}"
     data-bookit-drag-handle-type="{{type}}"
     data-bookit-drag-handle-{{type}}-id="{{id}}"
-    style="cursor: grab;">
-    {{#pix}} t/sort, core {{/pix}}
+    style="cursor: grab; width: 50px;">
+    <button class="btn btn-sm btn-light border" style="padding: 0.25rem 0.5rem;">
+        {{#pix}} t/sort, core {{/pix}}
+    </button>
 </td>
 
 {{#js}}

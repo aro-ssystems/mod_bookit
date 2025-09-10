@@ -30,15 +30,17 @@
     </form>
     </div>
 
-    <table class="table table-hover border rounded p-4" id="mod-bookit-master-checklist-table"
+    <table class="table table-borderless shadow-sm bg-white rounded" id="mod-bookit-master-checklist-table"
         data-master-checklist-id="{{id}}"
         data-master-checklist-name="{{name}}"
         data-master-checklist-categoryorder="{{mastercategoryorder}}">
-        <thead>
+        <thead class="bg-light border-bottom">
             <tr>
-            {{#tableheaders}}
-                <th scope="col" class="px-2 py-3">{{.}}</th>
-            {{/tableheaders}}
+                <th scope="col" class="px-4 py-3 font-weight-bold">{{#str}} checklistitem, mod_bookit {{/str}}</th>
+                <th scope="col" class="px-4 py-3 font-weight-bold">{{#str}} room, mod_bookit {{/str}}</th>
+                <th scope="col" class="px-4 py-3 font-weight-bold">{{#str}} responsibility, mod_bookit {{/str}}</th>
+                <th scope="col" class="px-4 py-3 font-weight-bold text-center">{{#str}} edit, core {{/str}}</th>
+                <th scope="col" class="px-4 py-3 font-weight-bold text-center">{{#str}} sort {{/str}}</th>
             </tr>
         </thead>
 
