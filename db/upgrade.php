@@ -50,5 +50,38 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
         }
         upgrade_mod_savepoint(true, $newversion, 'bookit');
     }
+
+    // Add sortorder and active fields to resource tables.
+    $newversion = 2025511306;
+
+    if ($oldversion < $newversion) {
+        // Add sortorder and active to bookit_resource_categories.
+        $table = new xmldb_table('bookit_resource_categories');
+
+        $field = new xmldb_field('sortorder', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'description');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('active', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'sortorder');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Add sortorder and active to bookit_resource.
+        $table = new xmldb_table('bookit_resource');
+
+        $field = new xmldb_field('sortorder', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'categoryid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('active', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'sortorder');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, $newversion, 'bookit');
+    }
     return true;
 }
