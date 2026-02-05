@@ -1,0 +1,82 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/resource_category_card
+
+    Resource category card with resources.
+
+    Context variables from resource_category_card::export_for_template()
+}}
+<div class="card mb-3 resource-category-card {{^active}}opacity-50{{/active}}"
+     id="resource-category-{{id}}"
+     data-category-id="{{id}}"
+     data-category-sortorder="{{sortorder}}"
+     data-category-active="{{active}}"
+     data-reactive="category">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="drag-handle mr-2" data-reactive="drag-handle">
+            <i class="fa fa-grip-vertical text-muted"></i>
+        </div>
+
+        <h5 class="mb-0 flex-grow-1">{{name}}</h5>
+
+        <div class="btn-group">
+            <button class="btn btn-sm btn-secondary"
+                    data-reactive="toggle-collapse"
+                    data-toggle="collapse"
+                    data-target="#category-resources-{{id}}">
+                <i class="fa fa-chevron-down"></i>
+            </button>
+
+            <button class="btn btn-sm btn-primary"
+                    data-reactive="edit-category"
+                    data-category-id="{{id}}">
+                {{#str}}edit{{/str}}
+            </button>
+
+            <button class="btn btn-sm btn-danger"
+                    data-reactive="delete-category"
+                    data-category-id="{{id}}">
+                {{#str}}delete{{/str}}
+            </button>
+        </div>
+    </div>
+
+    <div class="collapse show" id="category-resources-{{id}}">
+        <div class="card-body">
+            {{#description}}
+                <p class="text-muted">{{description}}</p>
+            {{/description}}
+
+            <div class="resource-items">
+                {{#resources}}
+                    {{> mod_bookit/resource_item_card }}
+                {{/resources}}
+                {{^resources}}
+                    <p class="text-muted">{{#str}}resources:no_resources, mod_bookit{{/str}}</p>
+                {{/resources}}
+            </div>
+
+            <button class="btn btn-sm btn-outline-primary mt-3"
+                    data-reactive="add-resource"
+                    data-category-id="{{id}}">
+                {{#str}}resources:add_resource, mod_bookit{{/str}}
+            </button>
+        </div>
+    </div>
+</div>
