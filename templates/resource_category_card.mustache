@@ -20,6 +20,16 @@
     Resource category card with resources.
 
     Context variables from resource_category_card::export_for_template()
+
+    Example context (json):
+    {
+        "id": 1,
+        "name": "Category Name",
+        "description": "Category Description",
+        "sortorder": 0,
+        "active": true,
+        "resources": []
+    }
 }}
 <div class="card mb-3 resource-category-card {{^active}}opacity-50{{/active}}"
      id="resource-category-{{id}}"
