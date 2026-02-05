@@ -217,7 +217,7 @@ final class resource_manager_test extends advanced_testcase {
             $description,
             $categoryid,
             $amount,
-            false, // Amountirrelevant (not in DB, only in Entity).
+            false, // Amountirrelevant.
             $sortorder,
             $active,
             0,
@@ -242,7 +242,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->assertEquals($description, $retrieved->get_description());
         $this->assertEquals($categoryid, $retrieved->get_categoryid());
         $this->assertEquals($amount, $retrieved->get_amount());
-        // Skip amountirrelevant check - not in database schema.
+        $this->assertFalse($retrieved->is_amountirrelevant());
         $this->assertEquals($sortorder, $retrieved->get_sortorder());
         $this->assertTrue($retrieved->is_active());
 
@@ -252,7 +252,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->assertEquals($name, $record->name);
         $this->assertEquals($categoryid, $record->categoryid);
         $this->assertEquals($amount, $record->amount);
-        // Skip amountirrelevant - column doesn't exist in schema.
+        $this->assertEquals(0, $record->amountirrelevant);
         $this->assertEquals(1, $record->active);
     }
 
