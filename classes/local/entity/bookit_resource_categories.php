@@ -16,105 +16,179 @@
 
 namespace mod_bookit\local\entity;
 
-use dml_exception;
-
 /**
- * Database class for bookit_resource_categories.
+ * Entity class for resource categories.
  *
  * @package     mod_bookit
  * @copyright   2024 Justus Dieckmann, Universität Münster
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class bookit_resource_categories {
-    /** @var ?int id */
-    public ?int $id;
-    /** @var string name */
-    public string $name;
-    /** @var ?string description */
-    public ?string $description;
-    /** @var ?int usermodified */
-    public ?int $usermodified;
-    /** @var ?int timecreated */
-    public ?int $timecreated;
-    /** @var ?int timemodified */
-    public ?int $timemodified;
+    /** @var ?int Database ID */
+    private ?int $id;
+
+    /** @var string Category name */
+    private string $name;
+
+    /** @var ?string Optional description */
+    private ?string $description;
+
+    /** @var int Sort order for drag and drop */
+    private int $sortorder;
+
+    /** @var bool Active/inactive flag */
+    private bool $active;
+
+    /** @var int Unix timestamp of creation */
+    private int $timecreated;
+
+    /** @var int Unix timestamp of last modification */
+    private int $timemodified;
+
+    /** @var int User ID who last modified */
+    private int $usermodified;
 
     /**
-     * Create a new instance of this class.
+     * Constructor.
      *
-     * @param string $name
-     * @param string|null $description
-     * @param int|null $usermodified
-     * @param int|null $timecreated
-     * @param int|null $timemodified
-     * @param int|null $id
+     * @param ?int $id Database ID, null for new objects
+     * @param string $name Category name
+     * @param ?string $description Optional description
+     * @param int $sortorder Sort order
+     * @param bool $active Active flag
+     * @param int $timecreated Creation timestamp
+     * @param int $timemodified Modification timestamp
+     * @param int $usermodified User ID
      */
     public function __construct(
-        string $name,
-        string|null $description,
-        int|null $usermodified = null,
-        int|null $timecreated = null,
-        int|null $timemodified = null,
-        int|null $id = null
+        ?int $id = null,
+        string $name = '',
+        ?string $description = null,
+        int $sortorder = 0,
+        bool $active = true,
+        int $timecreated = 0,
+        int $timemodified = 0,
+        int $usermodified = 0
     ) {
         $this->id = $id;
         $this->name = $name;
         $this->description = $description;
-        $this->usermodified = $usermodified;
+        $this->sortorder = $sortorder;
+        $this->active = $active;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
+        $this->usermodified = $usermodified;
     }
 
     /**
-     * Fetch from database.
+     * Get database ID.
      *
-     * @param int $id id of event to fetch.
-     * @return self
-     * @throws dml_exception
+     * @return ?int
      */
-    public static function from_database(int $id): self {
-        global $DB;
-        $record = $DB->get_record("bookit_resource_categories", ["id" => $id], '*', MUST_EXIST);
-
-        return self::from_record($record);
+    public function get_id(): ?int {
+        return $this->id;
     }
 
     /**
-     * Create object from record.
+     * Get category name.
      *
-     * @param array|object $record
-     * @return self
+     * @return string
      */
-    public static function from_record(array|object $record): self {
-        $record = (object) $record;
-        return new self(
-            $record->name,
-            $record->description,
-            $record->usermodified ?? null,
-            $record->timecreated ?? null,
-            $record->timemodified ?? null,
-            $record->id ?? null
-        );
+    public function get_name(): string {
+        return $this->name;
     }
 
     /**
-     * Save to database.
+     * Get description.
      *
-     * @param int|null $userid
+     * @return ?string
+     */
+    public function get_description(): ?string {
+        return $this->description;
+    }
+
+    /**
+     * Get sort order.
+     *
+     * @return int
+     */
+    public function get_sortorder(): int {
+        return $this->sortorder;
+    }
+
+    /**
+     * Check if category is active.
+     *
+     * @return bool
+     */
+    public function is_active(): bool {
+        return $this->active;
+    }
+
+    /**
+     * Get creation timestamp.
+     *
+     * @return int
+     */
+    public function get_timecreated(): int {
+        return $this->timecreated;
+    }
+
+    /**
+     * Get modification timestamp.
+     *
+     * @return int
+     */
+    public function get_timemodified(): int {
+        return $this->timemodified;
+    }
+
+    /**
+     * Get user who last modified.
+     *
+     * @return int
+     */
+    public function get_usermodified(): int {
+        return $this->usermodified;
+    }
+
+    /**
+     * Set category name.
+     *
+     * @param string $name
      * @return void
-     * @throws dml_exception
      */
-    final public function save(int|null $userid = null): void {
-        global $DB, $USER;
-        $this->usermodified = $userid ?? $USER->id;
-        if (!$this->timecreated) {
-            $this->timecreated = time();
-        }
-        $this->timemodified = time();
-        if ($this->id) {
-            $DB->update_record('bookit_resource_categories', $this);
-        } else {
-            $this->id = $DB->insert_record('bookit_resource_categories', $this);
-        }
+    public function set_name(string $name): void {
+        $this->name = $name;
+    }
+
+    /**
+     * Set description.
+     *
+     * @param ?string $description
+     * @return void
+     */
+    public function set_description(?string $description): void {
+        $this->description = $description;
+    }
+
+    /**
+     * Set sort order.
+     *
+     * @param int $sortorder
+     * @return void
+     */
+    public function set_sortorder(int $sortorder): void {
+        $this->sortorder = $sortorder;
+    }
+
+    /**
+     * Set active flag.
+     *
+     * @param bool $active
+     * @return void
+     */
+    public function set_active(bool $active): void {
+        $this->active = $active;
     }
 }
