@@ -73,6 +73,14 @@ class edit_resource_category_form extends dynamic_form {
         $mform->addElement('hidden', 'sortorder');
         $mform->setType('sortorder', PARAM_INT);
         $mform->setDefault('sortorder', 0);
+
+        // Hidden field: categoryorder (for reordering all categories).
+        $mform->addElement('hidden', 'categoryorder');
+        $mform->setType('categoryorder', PARAM_TEXT);
+
+        // Hidden field: items (for reordering items within category).
+        $mform->addElement('hidden', 'items');
+        $mform->setType('items', PARAM_TEXT);
     }
 
     /**
@@ -125,6 +133,35 @@ class edit_resource_category_form extends dynamic_form {
     public function process_dynamic_submission(): array {
         $formdata = $this->get_data();
 
+        // Handle category reordering if categoryorder provided.
+        if (!empty($formdata->categoryorder)) {
+            // Parse comma-separated IDs.
+            $categoryids = explode(',', $formdata->categoryorder);
+            $sortorder = 1;
+            foreach ($categoryids as $catid) {
+                if ($catid = clean_param($catid, PARAM_INT)) {
+                    resource_manager::update_category_sortorder($catid, $sortorder++);
+                }
+            }
+            return [];
+        }
+
+        // Handle item reordering if items provided.
+        if (!empty($formdata->items)) {
+            // Expecting JSON array.
+            $itemids = json_decode($formdata->items, true);
+            if (is_array($itemids)) {
+                $sortorder = 1;
+                foreach ($itemids as $itemid) {
+                    if ($itemid = clean_param($itemid, PARAM_INT)) {
+                        resource_manager::update_resource_sortorder($itemid, $sortorder++);
+                    }
+                }
+            }
+            return [];
+        }
+
+        // Regular save logic.
         // Create entity from form data.
         $category = new \mod_bookit\local\entity\bookit_resource_categories(
             $formdata->id ?: null,

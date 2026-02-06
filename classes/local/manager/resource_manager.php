@@ -220,15 +220,26 @@ class resource_manager {
     /**
      * Update category sort order.
      *
-     * @param array $categoryids Array of category IDs in desired order (key = sortorder, value = categoryid)
+     * @param array|int $categoryids Array of category IDs in desired order (key = sortorder, value = categoryid)
+     *                               or single category ID
+     * @param int|null $sortorder If $categoryids is int, this is the new sortorder value
      * @return void
      * @throws dml_exception
      */
-    public static function update_category_sortorder(array $categoryids): void {
+    public static function update_category_sortorder($categoryids, ?int $sortorder = null): void {
         global $DB;
 
-        foreach ($categoryids as $sortorder => $categoryid) {
-            $DB->set_field('bookit_resource_categories', 'sortorder', $sortorder, ['id' => $categoryid]);
+        // Handle single ID + sortorder.
+        if (is_int($categoryids) && $sortorder !== null) {
+            $DB->set_field('bookit_resource_categories', 'sortorder', $sortorder, ['id' => $categoryids]);
+            return;
+        }
+
+        // Handle array.
+        if (is_array($categoryids)) {
+            foreach ($categoryids as $sort => $categoryid) {
+                $DB->set_field('bookit_resource_categories', 'sortorder', $sort, ['id' => $categoryid]);
+            }
         }
     }
 
@@ -338,16 +349,27 @@ class resource_manager {
     /**
      * Update resource sort order.
      *
-     * @param array $resourceids Array of resource IDs in desired order (key = sortorder, value = resourceid)
-     * @param int $categoryid Category ID for optional validation
+     * @param array|int $resourceids Array of resource IDs in desired order (key = sortorder, value = resourceid)
+     *                               or single resource ID
+     * @param int $categoryid Category ID for validation (required if array) or sortorder value (if single ID)
+     * @param int|null $sortorder If $resourceids is int, this is the new sortorder value
      * @return void
      * @throws dml_exception
      */
-    public static function update_resource_sortorder(array $resourceids, int $categoryid): void {
+    public static function update_resource_sortorder($resourceids, int $categoryid, ?int $sortorder = null): void {
         global $DB;
 
-        foreach ($resourceids as $sortorder => $resourceid) {
-            $DB->set_field('bookit_resource', 'sortorder', $sortorder, ['id' => $resourceid, 'categoryid' => $categoryid]);
+        // Handle single ID + sortorder.
+        if (is_int($resourceids) && $sortorder !== null) {
+            $DB->set_field('bookit_resource', 'sortorder', $sortorder, ['id' => $resourceids]);
+            return;
+        }
+
+        // Handle array.
+        if (is_array($resourceids)) {
+            foreach ($resourceids as $sort => $resourceid) {
+                $DB->set_field('bookit_resource', 'sortorder', $sort, ['id' => $resourceid, 'categoryid' => $categoryid]);
+            }
         }
     }
 
