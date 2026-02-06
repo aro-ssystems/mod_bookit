@@ -60,6 +60,7 @@ class resource_item_card implements renderable, templatable {
         $data->id = $this->resource->get_id();
         $data->name = format_string($this->resource->get_name());
         $data->description = format_text($this->resource->get_description() ?? '');
+        $data->description_raw = $this->resource->get_description() ?? '';
         $data->categoryid = $this->resource->get_categoryid();
         $data->amount = $this->resource->get_amount();
         $data->amountirrelevant = $this->resource->is_amountirrelevant();
