@@ -110,7 +110,16 @@ export default class extends BaseComponent {
         this.selectors.noCategoriesMsg = '#mod-bookit-no-categories';
         this.selectors.addCategoryBtn = '#add-category-btn';
 
+        // View mode selectors.
+        this.selectors.viewModeTable = '#view-mode-table';
+        this.selectors.viewModeCards = '#view-mode-cards';
+        this.selectors.tableView = '#mod-bookit-resource-table-view';
+        this.selectors.cardView = '#mod-bookit-resource-card-view';
+
         this.categoryComponents = new Map();
+
+        // Default view mode (table).
+        this.currentView = 'table';
     }
 
     /**
@@ -123,6 +132,15 @@ export default class extends BaseComponent {
     stateReady(state) {
         this._initializeExistingComponents(state);
         this._attachEventListeners();
+
+        // Restore saved view preference.
+        if (window.localStorage) {
+            const savedView = window.localStorage.getItem('bookit_resources_view_mode');
+            if (savedView && (savedView === 'table' || savedView === 'cards')) {
+                this._switchView(savedView);
+            }
+        }
+        // Default is already 'table' (set in template).
     }
 
     /**
@@ -247,6 +265,22 @@ export default class extends BaseComponent {
                 this._handleAddCategory();
             });
         }
+
+        // View mode toggle buttons.
+        const tableModeBtn = document.querySelector(this.selectors.viewModeTable);
+        const cardsModeBtn = document.querySelector(this.selectors.viewModeCards);
+
+        if (tableModeBtn) {
+            tableModeBtn.addEventListener('click', () => {
+                this._switchView('table');
+            });
+        }
+
+        if (cardsModeBtn) {
+            cardsModeBtn.addEventListener('click', () => {
+                this._switchView('cards');
+            });
+        }
     }
 
     /**
@@ -287,6 +321,53 @@ export default class extends BaseComponent {
         const msg = document.querySelector(this.selectors.noCategoriesMsg);
         if (msg) {
             msg.classList.add('d-none');
+        }
+    }
+
+    /**
+     * Switch between table and card view.
+     *
+     * @param {string} mode - View mode ('table' or 'cards')
+     */
+    _switchView(mode) {
+        if (this.currentView === mode) {
+            return; // Already in this view.
+        }
+
+        const tableView = document.querySelector(this.selectors.tableView);
+        const cardView = document.querySelector(this.selectors.cardView);
+        const tableModeBtn = document.querySelector(this.selectors.viewModeTable);
+        const cardsModeBtn = document.querySelector(this.selectors.viewModeCards);
+
+        if (!tableView || !cardView || !tableModeBtn || !cardsModeBtn) {
+            return;
+        }
+
+        if (mode === 'table') {
+            // Show table, hide cards.
+            tableView.classList.remove('d-none');
+            cardView.classList.add('d-none');
+
+            // Update button states.
+            tableModeBtn.classList.add('active');
+            cardsModeBtn.classList.remove('active');
+
+            this.currentView = 'table';
+        } else if (mode === 'cards') {
+            // Show cards, hide table.
+            cardView.classList.remove('d-none');
+            tableView.classList.add('d-none');
+
+            // Update button states.
+            cardsModeBtn.classList.add('active');
+            tableModeBtn.classList.remove('active');
+
+            this.currentView = 'cards';
+        }
+
+        // Store preference in local storage.
+        if (window.localStorage) {
+            window.localStorage.setItem('bookit_resources_view_mode', mode);
         }
     }
 }
