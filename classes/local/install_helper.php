@@ -28,6 +28,9 @@ namespace mod_bookit\local;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_category;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
+use mod_bookit\local\entity\bookit_resource_categories;
+use mod_bookit\local\entity\bookit_resource;
+use mod_bookit\local\manager\resource_manager;
 
 /**
  * Installation helper class.
@@ -526,6 +529,146 @@ class install_helper {
         }
 
         return $roomscreated > 0;
+    }
+
+    /**
+     * Create default resource categories and resources during installation.
+     *
+     * @param bool $force Force creation even if data exists
+     * @param bool $verbose Print verbose output
+     * @return bool True if data was created, false otherwise
+     */
+    public static function create_default_resources(bool $force = false, bool $verbose = false): bool {
+        global $DB;
+
+        // Check if resource categories already exist.
+        $existing = $DB->count_records('bookit_resource_categories');
+        if ($existing > 0 && !$force) {
+            if ($verbose) {
+                mtrace('Resource data already exists. Skipping creation.');
+            }
+            return false;
+        }
+
+        if ($verbose) {
+            mtrace('Creating default resource data for BookIt...');
+        }
+
+        // Define category data.
+        $categories = [
+            [
+                'name' => 'Technical Equipment',
+                'description' => 'Technical devices and equipment for events',
+                'sortorder' => 1,
+            ],
+            [
+                'name' => 'Furniture & Setup',
+                'description' => 'Furniture and room setup items',
+                'sortorder' => 2,
+            ],
+            [
+                'name' => 'Catering & Supplies',
+                'description' => 'Food, beverages, and disposable items',
+                'sortorder' => 3,
+            ],
+        ];
+
+        // Define resource data per category.
+        $resources = [
+            'Technical Equipment' => [
+                ['name' => 'Projector', 'amount' => 5, 'amountirrelevant' => false],
+                ['name' => 'Microphone', 'amount' => 10, 'amountirrelevant' => false],
+                ['name' => 'Laptop', 'amount' => 8, 'amountirrelevant' => false],
+                ['name' => 'HDMI Cable', 'amount' => 15, 'amountirrelevant' => false],
+                ['name' => 'Extension Cord', 'amount' => 20, 'amountirrelevant' => false],
+            ],
+            'Furniture & Setup' => [
+                ['name' => 'Tables', 'amount' => 50, 'amountirrelevant' => false],
+                ['name' => 'Chairs', 'amount' => 200, 'amountirrelevant' => false],
+                ['name' => 'Flip Chart', 'amount' => 6, 'amountirrelevant' => false],
+                ['name' => 'Whiteboard', 'amount' => 4, 'amountirrelevant' => false],
+                ['name' => 'Banner Stand', 'amount' => 3, 'amountirrelevant' => false],
+            ],
+            'Catering & Supplies' => [
+                ['name' => 'Coffee Service', 'amount' => 1, 'amountirrelevant' => true],
+                ['name' => 'Water Bottles', 'amount' => 100, 'amountirrelevant' => false],
+                ['name' => 'Cups (disposable)', 'amount' => 200, 'amountirrelevant' => false],
+                ['name' => 'Napkins', 'amount' => 500, 'amountirrelevant' => false],
+                ['name' => 'Catering Setup', 'amount' => 1, 'amountirrelevant' => true],
+            ],
+        ];
+
+        // Create categories.
+        $categoryids = [];
+        $categorymap = []; // Name => ID mapping.
+
+        foreach ($categories as $catdata) {
+            if ($verbose) {
+                mtrace("Creating resource category: {$catdata['name']}");
+            }
+
+            $category = new bookit_resource_categories(
+                null, // ID.
+                $catdata['name'],
+                $catdata['description'],
+                $catdata['sortorder'],
+                true, // Active.
+                time(), // Timecreated.
+                time(), // Timemodified.
+                2 // Usermodified (admin).
+            );
+
+            $categoryid = resource_manager::save_category($category, 2);
+            $categoryids[] = $categoryid;
+            $categorymap[$catdata['name']] = $categoryid;
+
+            if ($verbose) {
+                mtrace("  Category ID: $categoryid");
+            }
+        }
+
+        // Create resources.
+        $resourcescreated = 0;
+
+        foreach ($resources as $categoryname => $items) {
+            $categoryid = $categorymap[$categoryname];
+
+            if ($verbose) {
+                mtrace("Creating resources for category: $categoryname (ID: $categoryid)");
+            }
+
+            $sortorder = 1;
+            foreach ($items as $itemdata) {
+                $resource = new bookit_resource(
+                    null, // ID.
+                    $itemdata['name'],
+                    null, // No description for dummy data.
+                    $categoryid,
+                    $itemdata['amount'],
+                    $itemdata['amountirrelevant'],
+                    $sortorder,
+                    true, // Active.
+                    time(), // Timecreated.
+                    time(), // Timemodified.
+                    2 // Usermodified (admin).
+                );
+
+                $resourceid = resource_manager::save_resource($resource, 2);
+                $resourcescreated++;
+
+                if ($verbose) {
+                    mtrace("  Resource: {$itemdata['name']} (ID: $resourceid, Amount: {$itemdata['amount']})");
+                }
+
+                $sortorder++;
+            }
+        }
+
+        if ($verbose) {
+            mtrace("Successfully created " . count($categoryids) . " categories and $resourcescreated resources!");
+        }
+
+        return true;
     }
 
     /**
