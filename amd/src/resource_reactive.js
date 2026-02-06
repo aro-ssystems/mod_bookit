@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {Reactive} from 'core/reactive';
+import {Reactive, stateMap} from 'core/reactive';
 
 const EVENTNAME = 'mod_bookit:resource_catalog_state_event';
 
@@ -45,37 +45,44 @@ export const initResourceReactive = (initialState) => {
             mutations: {
                 // Category Mutations.
                 createCategory: (state, category) => {
-                    state.categories.push({
+                    const newCategory = stateMap({
                         id: category.id,
                         name: category.name,
                         description: category.description || '',
-                        sortorder: category.sortorder || state.categories.length,
+                        sortorder: category.sortorder || state.categories.size,
                     });
+                    state.categories.set(category.id, newCategory);
                 },
 
                 updateCategory: (state, category) => {
-                    const index = state.categories.findIndex(c => c.id === category.id);
-                    if (index !== -1) {
-                        state.categories[index] = {
+                    if (state.categories.has(category.id)) {
+                        const updatedCategory = stateMap({
                             id: category.id,
                             name: category.name,
                             description: category.description || '',
                             sortorder: category.sortorder,
-                        };
+                        });
+                        state.categories.set(category.id, updatedCategory);
                     }
                 },
 
                 deleteCategory: (state, categoryId) => {
                     // Delete all items in this category first.
-                    state.items = state.items.filter(item => item.categoryid !== categoryId);
+                    const itemsToDelete = [];
+                    state.items.forEach((item, id) => {
+                        if (item.categoryid === categoryId) {
+                            itemsToDelete.push(id);
+                        }
+                    });
+                    itemsToDelete.forEach(id => state.items.delete(id));
 
                     // Delete the category.
-                    state.categories = state.categories.filter(c => c.id !== categoryId);
+                    state.categories.delete(categoryId);
                 },
 
                 // Item Mutations.
                 createItem: (state, item) => {
-                    state.items.push({
+                    const newItem = stateMap({
                         id: item.id,
                         name: item.name,
                         description: item.description || '',
@@ -84,12 +91,12 @@ export const initResourceReactive = (initialState) => {
                         amountirrelevant: item.amountirrelevant || false,
                         sortorder: item.sortorder || 0,
                     });
+                    state.items.set(item.id, newItem);
                 },
 
                 updateItem: (state, item) => {
-                    const index = state.items.findIndex(i => i.id === item.id);
-                    if (index !== -1) {
-                        state.items[index] = {
+                    if (state.items.has(item.id)) {
+                        const updatedItem = stateMap({
                             id: item.id,
                             name: item.name,
                             description: item.description || '',
@@ -97,20 +104,28 @@ export const initResourceReactive = (initialState) => {
                             amount: item.amount || 1,
                             amountirrelevant: item.amountirrelevant || false,
                             sortorder: item.sortorder,
-                        };
+                        });
+                        state.items.set(item.id, updatedItem);
                     }
                 },
 
                 deleteItem: (state, itemId) => {
-                    state.items = state.items.filter(i => i.id !== itemId);
+                    state.items.delete(itemId);
                 },
             },
         });
 
-        // Set initial state.
+        // Set initial state - convert arrays to Maps for collections.
+        const categoriesMap = new Map(
+            initialState.categories.map(cat => [cat.id, stateMap(cat)])
+        );
+        const itemsMap = new Map(
+            initialState.items.map(item => [item.id, stateMap(item)])
+        );
+
         resourceReactiveInstance.setInitialState({
-            categories: initialState.categories,
-            items: initialState.items,
+            categories: categoriesMap,
+            items: itemsMap,
         });
     }
 
