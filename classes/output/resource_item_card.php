@@ -25,7 +25,7 @@
 
 namespace mod_bookit\output;
 
-use mod_bookit\local\entity\resource;
+use mod_bookit\local\entity\bookit_resource;
 use renderer_base;
 use renderable;
 use templatable;
@@ -37,15 +37,15 @@ use stdClass;
  * Prepares data for a single resource item card
  */
 class resource_item_card implements renderable, templatable {
-    /** @var resource */
+    /** @var bookit_resource */
     private $resource;
 
     /**
      * Constructor
      *
-     * @param resource $resource
+     * @param bookit_resource $resource
      */
-    public function __construct(resource $resource) {
+    public function __construct(bookit_resource $resource) {
         $this->resource = $resource;
     }
 
