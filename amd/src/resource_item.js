@@ -26,6 +26,7 @@ import {BaseComponent} from 'core/reactive';
 import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
+import Notification from 'core/notification';
 
 /**
  * Resource item component.
@@ -136,11 +137,16 @@ export default class ResourceItem extends BaseComponent {
      */
     async _handleDelete() {
         const confirmMsg = await getString('resources:confirm_delete_resource', 'mod_bookit', this.itemData.name);
-        const confirmed = window.confirm(confirmMsg);
 
-        if (confirmed) {
-            this.reactive.dispatch('deleteItem', this.itemData.id);
-        }
+        Notification.confirm(
+            await getString('confirm', 'core'),
+            confirmMsg,
+            await getString('yes', 'core'),
+            await getString('no', 'core'),
+            () => {
+                this.reactive.dispatch('deleteItem', this.itemData.id);
+            }
+        );
     }
 
     /**
