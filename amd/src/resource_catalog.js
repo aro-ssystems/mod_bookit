@@ -36,40 +36,46 @@ export default class extends BaseComponent {
      * Static init method.
      *
      * @param {string} target - CSS selector for container element
-     * @param {Object} selectors - Additional configuration
-     * @param {number} selectors.contextId - System context ID
-     * @param {string} selectors.categoriesJson - JSON string with categories data
      * @return {ResourceCatalog} Component instance
      */
-    static init(target, selectors) {
-        // Parse categories and initialize state.
-        const categories = JSON.parse(selectors.categoriesJson);
+    static init(target) {
+        // Get container element.
+        const element = document.querySelector(target);
+        if (!element) {
+            return null;
+        }
 
-        // Prepare state data as arrays.
+        // Read contextId from DOM.
+        const contextId = parseInt(element.dataset.contextid);
+
+        // Read categories and resources from DOM.
         const categoriesArray = [];
         const itemsArray = [];
 
-        categories.forEach(category => {
-            categoriesArray.push({
-                id: category.id,
-                name: category.name,
-                description: category.description,
-                sortorder: category.sortorder,
-            });
+        const categoryElements = element.querySelectorAll('[data-region="resource-category"]');
+        categoryElements.forEach(categoryEl => {
+            const categoryData = {
+                id: parseInt(categoryEl.dataset.categoryid),
+                name: categoryEl.dataset.categoryName,
+                description: categoryEl.dataset.categoryDescription || '',
+                sortorder: parseInt(categoryEl.dataset.categorySortorder) || 0,
+            };
+            categoriesArray.push(categoryData);
 
-            if (category.resources && Array.isArray(category.resources)) {
-                category.resources.forEach(resource => {
-                    itemsArray.push({
-                        id: resource.id,
-                        name: resource.name,
-                        description: resource.description,
-                        categoryid: category.id,
-                        amount: resource.amount,
-                        amountirrelevant: resource.amountirrelevant,
-                        sortorder: resource.sortorder,
-                    });
-                });
-            }
+            // Read resources for this category.
+            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item"]');
+            itemElements.forEach(itemEl => {
+                const itemData = {
+                    id: parseInt(itemEl.dataset.itemid),
+                    name: itemEl.dataset.itemName,
+                    description: itemEl.dataset.itemDescription || '',
+                    categoryid: parseInt(itemEl.dataset.itemCategoryid),
+                    amount: parseInt(itemEl.dataset.itemAmount) || 0,
+                    amountirrelevant: itemEl.dataset.itemAmountirrelevant === 'true',
+                    sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
+                };
+                itemsArray.push(itemData);
+            });
         });
 
         // Initialize reactive store.
@@ -79,9 +85,9 @@ export default class extends BaseComponent {
         });
 
         return new this({
-            element: document.querySelector(target),
+            element: element,
             reactive: resourceReactiveInstance,
-            selectors,
+            selectors: {contextId},
         });
     }
 
@@ -101,8 +107,6 @@ export default class extends BaseComponent {
      */
     create() {
         this.selectors.categoriesContainer = '#mod-bookit-resource-categories';
-        this.selectors.spinner = '#mod-bookit-resource-spinner';
-        this.selectors.content = '#mod-bookit-resource-content';
         this.selectors.noCategoriesMsg = '#mod-bookit-no-categories';
         this.selectors.addCategoryBtn = '#add-category-btn';
 
@@ -117,10 +121,30 @@ export default class extends BaseComponent {
      * @param {Object} state - Reactive state
      */
     stateReady(state) {
-        this._renderCategories(state);
+        this._initializeExistingComponents(state);
         this._attachEventListeners();
-        this._hideSpinner();
-        this._showContent();
+    }
+
+    /**
+     * Initialize components for existing DOM elements.
+     *
+     * @param {Object} state - Reactive state
+     */
+    _initializeExistingComponents(state) {
+        const categories = Array.from(state.categories.values());
+
+        categories.forEach(categoryData => {
+            const categoryEl = document.getElementById(`resource-category-${categoryData.id}`);
+            if (categoryEl) {
+                const categoryComponent = new ResourceCategory({
+                    element: categoryEl.parentElement,
+                    reactive: this.reactive,
+                    categoryData: categoryData,
+                    existingElement: categoryEl,
+                });
+                this.categoryComponents.set(categoryData.id, categoryComponent);
+            }
+        });
     }
 
     /**
@@ -137,7 +161,15 @@ export default class extends BaseComponent {
     }
 
     /**
-     * Render all categories.
+     * Handle category created.
+     */
+    _handleCategoryCreated() {
+        const state = this.reactive.state;
+        this._renderCategories(state);
+    }
+
+    /**
+     * Render all categories (for dynamic updates).
      *
      * @param {Object} state - Reactive state
      */
@@ -170,14 +202,6 @@ export default class extends BaseComponent {
             });
             this.categoryComponents.set(categoryData.id, categoryComponent);
         });
-    }
-
-    /**
-     * Handle category created.
-     */
-    _handleCategoryCreated() {
-        const state = this.reactive.state;
-        this._renderCategories(state);
     }
 
     /**
@@ -244,27 +268,6 @@ export default class extends BaseComponent {
         });
 
         modalForm.show();
-    }
-
-    /**
-     * Hide spinner.
-     */
-    _hideSpinner() {
-        const spinner = document.querySelector(this.selectors.spinner);
-        if (spinner) {
-            spinner.classList.add('d-none');
-        }
-    }
-
-    /**
-     * Show content.
-     */
-    _showContent() {
-        const content = document.querySelector(this.selectors.content);
-        if (content) {
-            content.classList.remove('d-none');
-            content.classList.add('d-block');
-        }
     }
 
     /**
