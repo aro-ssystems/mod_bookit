@@ -37,7 +37,11 @@
      id="resource-item-{{id}}"
      data-region="resource-item"
      data-itemid="{{id}}"
+     data-item-name="{{name}}"
+     data-item-description="{{description_raw}}"
      data-item-categoryid="{{categoryid}}"
+     data-item-amount="{{amount}}"
+     data-item-amountirrelevant="{{amountirrelevant}}"
      data-item-sortorder="{{sortorder}}"
      data-item-active="{{active}}"
      draggable="true">
@@ -50,7 +54,7 @@
         <div class="flex-grow-1">
             <strong>{{name}}</strong>
             {{#description}}
-                <br><small class="text-muted">{{description}}</small>
+                <br><small class="text-muted">{{{description}}}</small>
             {{/description}}
         </div>
 

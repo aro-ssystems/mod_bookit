@@ -35,6 +35,8 @@
      id="resource-category-{{id}}"
      data-region="resource-category"
      data-categoryid="{{id}}"
+     data-category-name="{{name}}"
+     data-category-description="{{description_raw}}"
      data-category-sortorder="{{sortorder}}"
      data-category-active="{{active}}"
      draggable="true">
@@ -72,7 +74,7 @@
     <div class="collapse show" id="category-resources-{{id}}">
         <div class="card-body">
             {{#description}}
-                <p class="text-muted">{{description}}</p>
+                <div class="text-muted">{{{description}}}</div>
             {{/description}}
 
             <div class="resource-items" data-region="items-container">
