@@ -34,7 +34,7 @@
 <div class="card mb-3 resource-category-card {{^active}}opacity-50{{/active}}"
      id="resource-category-{{id}}"
      data-region="resource-category"
-     data-category-id="{{id}}"
+     data-categoryid="{{id}}"
      data-category-sortorder="{{sortorder}}"
      data-category-active="{{active}}"
      draggable="true">
@@ -79,10 +79,11 @@
                 {{#resources}}
                     {{> mod_bookit/resource_item_card }}
                 {{/resources}}
-                {{^resources}}
-                    <p class="text-muted">{{#str}}resources:no_items, mod_bookit{{/str}}</p>
-                {{/resources}}
             </div>
+
+            <p class="text-muted d-none" data-region="no-items">
+                {{#str}}resources:no_items, mod_bookit{{/str}}
+            </p>
 
             <button class="btn btn-sm btn-outline-primary mt-3"
                     data-action="add-item"
