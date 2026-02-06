@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {Reactive, stateMap} from 'core/reactive';
+import {Reactive} from 'core/reactive';
 
 const EVENTNAME = 'mod_bookit:resource_catalog_state_event';
 
@@ -45,24 +45,22 @@ export const initResourceReactive = (initialState) => {
             mutations: {
                 // Category Mutations.
                 createCategory: (state, category) => {
-                    const newCategory = stateMap({
+                    state.categories.set(category.id, {
                         id: category.id,
                         name: category.name,
                         description: category.description || '',
                         sortorder: category.sortorder || state.categories.size,
                     });
-                    state.categories.set(category.id, newCategory);
                 },
 
                 updateCategory: (state, category) => {
                     if (state.categories.has(category.id)) {
-                        const updatedCategory = stateMap({
+                        state.categories.set(category.id, {
                             id: category.id,
                             name: category.name,
                             description: category.description || '',
                             sortorder: category.sortorder,
                         });
-                        state.categories.set(category.id, updatedCategory);
                     }
                 },
 
@@ -82,7 +80,7 @@ export const initResourceReactive = (initialState) => {
 
                 // Item Mutations.
                 createItem: (state, item) => {
-                    const newItem = stateMap({
+                    state.items.set(item.id, {
                         id: item.id,
                         name: item.name,
                         description: item.description || '',
@@ -91,12 +89,11 @@ export const initResourceReactive = (initialState) => {
                         amountirrelevant: item.amountirrelevant || false,
                         sortorder: item.sortorder || 0,
                     });
-                    state.items.set(item.id, newItem);
                 },
 
                 updateItem: (state, item) => {
                     if (state.items.has(item.id)) {
-                        const updatedItem = stateMap({
+                        state.items.set(item.id, {
                             id: item.id,
                             name: item.name,
                             description: item.description || '',
@@ -105,7 +102,6 @@ export const initResourceReactive = (initialState) => {
                             amountirrelevant: item.amountirrelevant || false,
                             sortorder: item.sortorder,
                         });
-                        state.items.set(item.id, updatedItem);
                     }
                 },
 
@@ -115,17 +111,10 @@ export const initResourceReactive = (initialState) => {
             },
         });
 
-        // Set initial state - convert arrays to Maps for collections.
-        const categoriesMap = new Map(
-            initialState.categories.map(cat => [cat.id, stateMap(cat)])
-        );
-        const itemsMap = new Map(
-            initialState.items.map(item => [item.id, stateMap(item)])
-        );
-
+        // Set initial state - Moodle automatically converts arrays to Maps.
         resourceReactiveInstance.setInitialState({
-            categories: categoriesMap,
-            items: itemsMap,
+            categories: initialState.categories,
+            items: initialState.items,
         });
     }
 
