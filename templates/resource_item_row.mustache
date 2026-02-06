@@ -1,0 +1,102 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/resource_item_row
+    Resource item row for table view
+
+    Context variables:
+    * id - Resource ID
+    * name - Resource name
+    * description - Resource description (optional)
+    * categoryid - Category ID
+    * amount - Amount/quantity
+    * amountirrelevant - Whether amount is irrelevant
+    * sortorder - Sort order
+    * active - Active status
+
+    Example context (json):
+    {
+        "id": 1,
+        "name": "Projector",
+        "description": "Full HD Beamer",
+        "categoryid": 1,
+        "amount": 5,
+        "amountirrelevant": false,
+        "sortorder": 0,
+        "active": true
+    }
+}}
+<tr class="resource-item-row {{^active}}opacity-50{{/active}}"
+    id="resource-item-row-{{id}}"
+    data-region="resource-item-row"
+    data-itemid="{{id}}"
+    data-item-categoryid="{{categoryid}}"
+    data-item-sortorder="{{sortorder}}"
+    data-item-active="{{active}}"
+    draggable="true">
+
+    <td class="align-middle py-3 pl-5">
+        <div class="d-flex align-items-center">
+            <div class="drag-handle mr-2" data-action="drag-handle">
+                <i class="fa fa-grip-vertical text-muted"></i>
+            </div>
+            <div>
+                <strong>{{name}}</strong>
+                {{#description}}
+                    <br><small class="text-muted">{{{description}}}</small>
+                {{/description}}
+            </div>
+        </div>
+    </td>
+
+    <td class="align-middle py-3">
+        {{#amountirrelevant}}
+            <span class="badge badge-secondary">{{#str}}resources:amount_unlimited, mod_bookit{{/str}}</span>
+        {{/amountirrelevant}}
+        {{^amountirrelevant}}
+            <span class="badge badge-info">{{amount}}x</span>
+        {{/amountirrelevant}}
+    </td>
+
+    <td class="align-middle py-3">
+        {{#active}}
+            <span class="badge badge-success">{{#str}}active, core{{/str}}</span>
+        {{/active}}
+        {{^active}}
+            <span class="badge badge-secondary">{{#str}}inactive, core{{/str}}</span>
+        {{/active}}
+    </td>
+
+    <td class="align-middle py-3 text-center">
+        <button class="btn btn-sm btn-primary"
+                data-action="edit-item"
+                data-item-id="{{id}}">
+            {{#pix}}i/edit, core{{/pix}}
+        </button>
+        <button class="btn btn-sm btn-danger ml-1"
+                data-action="delete-item"
+                data-item-id="{{id}}">
+            {{#pix}}t/delete, core{{/pix}}
+        </button>
+    </td>
+
+    <td class="align-middle py-3 text-center">
+        <div class="drag-handle" data-action="drag-handle">
+            <i class="fa fa-grip-vertical text-muted"></i>
+        </div>
+    </td>
+</tr>

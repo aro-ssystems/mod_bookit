@@ -12,7 +12,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/\>.
 }}
 {{!
     @template mod_bookit/resource_catalog
@@ -43,22 +43,74 @@
      data-contextid="{{contextid}}"
      data-reactive="catalog">
 
-    {{! Add Category Button }}
-    <div class="mb-4">
+    {{! Add Category Button + View Toggle }}
+    <div class="mb-4 d-flex justify-content-between align-items-center">
         <button class="btn btn-primary"
                 data-action="add-category"
                 id="add-category-btn">
             {{#str}}resources:add_category, mod_bookit{{/str}}
         </button>
+
+        {{! View Mode Toggle }}
+        <div class="btn-group" role="group" aria-label="{{#str}}resources:view_mode, mod_bookit{{/str}}">
+            <button type="button"
+                    class="btn btn-outline-primary active"
+                    id="view-mode-table"
+                    data-view="table">
+                <i class="fa fa-table"></i> {{#str}}resources:view_table, mod_bookit{{/str}}
+            </button>
+            <button type="button"
+                    class="btn btn-outline-primary"
+                    id="view-mode-cards"
+                    data-view="cards">
+                <i class="fa fa-th-large"></i> {{#str}}resources:view_cards, mod_bookit{{/str}}
+            </button>
+        </div>
     </div>
 
-    {{! Categories Container }}
-    <div id="mod-bookit-resource-categories">
-        {{#categories}}
-            {{> mod_bookit/resource_category_card }}
-        {{/categories}}
-        {{^categories}}
-            <p class="text-muted" id="mod-bookit-no-categories">{{#str}}resources:no_categories, mod_bookit{{/str}}</p>
-        {{/categories}}
+    {{! Table View (Default) }}
+    <div id="mod-bookit-resource-table-view" class="resource-view">
+        <table class="table table-borderless table-hover bg-white rounded"
+               id="mod-bookit-resource-table">
+            <thead class="bg-primary text-light border-bottom" style="opacity: 0.8;">
+                <tr>
+                    <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
+                    <th scope="col" class="py-3 font-weight-bold">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                    <th scope="col" class="py-3 font-weight-bold">{{#str}}status, core{{/str}}</th>
+                    <th scope="col" class="py-3 font-weight-bold text-center">{{#str}}actions, core{{/str}}</th>
+                    <th scope="col" class="py-3 font-weight-bold text-center">{{#str}}move, core{{/str}}</th>
+                </tr>
+            </thead>
+            {{#categories}}
+                <tbody data-region="resource-category-table" data-categoryid="{{id}}">
+                    {{> mod_bookit/resource_category_row }}
+                    {{#resources}}
+                        {{> mod_bookit/resource_item_row }}
+                    {{/resources}}
+                </tbody>
+            {{/categories}}
+            {{^categories}}
+                <tbody>
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">
+                            {{#str}}resources:no_categories, mod_bookit{{/str}}
+                        </td>
+                    </tr>
+                </tbody>
+            {{/categories}}
+        </table>
+    </div>
+
+    {{! Card View }}
+    <div id="mod-bookit-resource-card-view" class="resource-view d-none">
+        {{! Categories Container }}
+        <div id="mod-bookit-resource-categories">
+            {{#categories}}
+                {{> mod_bookit/resource_category_card }}
+            {{/categories}}
+            {{^categories}}
+                <p class="text-muted" id="mod-bookit-no-categories">{{#str}}resources:no_categories, mod_bookit{{/str}}</p>
+            {{/categories}}
+        </div>
     </div>
 </div>
