@@ -48,7 +48,12 @@ print_tabs([$tabrow], $id);
 $catalog = new \mod_bookit\output\resource_catalog();
 $catalogdata = $catalog->export_for_template($OUTPUT);
 
-// Init Reactive JS with data.
+// Render template (only container with spinner) FIRST.
+echo $OUTPUT->render_from_template('mod_bookit/resource_catalog_container', [
+    'contextid' => $catalogdata->contextid,
+]);
+
+// Init Reactive JS with data AFTER DOM is rendered.
 $PAGE->requires->js_call_amd(
     'mod_bookit/resource_catalog',
     'init',
@@ -57,10 +62,5 @@ $PAGE->requires->js_call_amd(
         json_encode($catalogdata->categories), // JSON String for AMD.
     ]
 );
-
-// Render template (only container with spinner).
-echo $OUTPUT->render_from_template('mod_bookit/resource_catalog_container', [
-    'contextid' => $catalogdata->contextid,
-]);
 
 echo $OUTPUT->footer();
