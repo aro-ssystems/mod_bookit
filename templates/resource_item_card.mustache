@@ -35,14 +35,15 @@
 }}
 <div class="card mb-2 resource-item-card {{^active}}opacity-50{{/active}}"
      id="resource-item-{{id}}"
+     data-region="resource-item"
      data-item-id="{{id}}"
      data-item-categoryid="{{categoryid}}"
      data-item-sortorder="{{sortorder}}"
      data-item-active="{{active}}"
-     data-reactive="item">
+     draggable="true">
 
     <div class="card-body p-3 d-flex align-items-center">
-        <div class="drag-handle mr-3" data-reactive="drag-handle">
+        <div class="drag-handle mr-3" data-action="drag-handle">
             <i class="fa fa-grip-vertical text-muted"></i>
         </div>
 
@@ -55,7 +56,7 @@
 
         <div class="mr-3">
             {{#amountirrelevant}}
-                <span class="badge badge-secondary">{{#str}}resources:amount_irrelevant, mod_bookit{{/str}}</span>
+                <span class="badge badge-secondary">{{#str}}resources:amount_unlimited, mod_bookit{{/str}}</span>
             {{/amountirrelevant}}
             {{^amountirrelevant}}
                 <span class="badge badge-info">{{amount}}x</span>
@@ -64,13 +65,13 @@
 
         <div class="btn-group">
             <button class="btn btn-sm btn-primary"
-                    data-reactive="edit-resource"
+                    data-action="edit-item"
                     data-item-id="{{id}}">
                 {{#str}}edit{{/str}}
             </button>
 
             <button class="btn btn-sm btn-danger"
-                    data-reactive="delete-resource"
+                    data-action="delete-item"
                     data-item-id="{{id}}">
                 {{#str}}delete{{/str}}
             </button>

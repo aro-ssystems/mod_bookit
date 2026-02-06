@@ -33,13 +33,15 @@
 }}
 <div class="card mb-3 resource-category-card {{^active}}opacity-50{{/active}}"
      id="resource-category-{{id}}"
+     data-region="resource-category"
      data-category-id="{{id}}"
      data-category-sortorder="{{sortorder}}"
      data-category-active="{{active}}"
-     data-reactive="category">
+     draggable="true">
 
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div class="drag-handle mr-2" data-reactive="drag-handle">
+    <div class="card-header d-flex justify-content-between align-items-center"
+         data-region="category-header">
+        <div class="drag-handle mr-2" data-action="drag-handle">
             <i class="fa fa-grip-vertical text-muted"></i>
         </div>
 
@@ -47,20 +49,20 @@
 
         <div class="btn-group">
             <button class="btn btn-sm btn-secondary"
-                    data-reactive="toggle-collapse"
+                    data-action="toggle-collapse"
                     data-toggle="collapse"
                     data-target="#category-resources-{{id}}">
                 <i class="fa fa-chevron-down"></i>
             </button>
 
             <button class="btn btn-sm btn-primary"
-                    data-reactive="edit-category"
+                    data-action="edit-category"
                     data-category-id="{{id}}">
                 {{#str}}edit{{/str}}
             </button>
 
             <button class="btn btn-sm btn-danger"
-                    data-reactive="delete-category"
+                    data-action="delete-category"
                     data-category-id="{{id}}">
                 {{#str}}delete{{/str}}
             </button>
@@ -73,21 +75,20 @@
                 <p class="text-muted">{{description}}</p>
             {{/description}}
 
-            <div class="resource-items">
+            <div class="resource-items" data-region="items-container">
                 {{#resources}}
                     {{> mod_bookit/resource_item_card }}
                 {{/resources}}
                 {{^resources}}
-                    <p class="text-muted">{{#str}}resources:no_resources, mod_bookit{{/str}}</p>
+                    <p class="text-muted">{{#str}}resources:no_items, mod_bookit{{/str}}</p>
                 {{/resources}}
             </div>
 
             <button class="btn btn-sm btn-outline-primary mt-3"
-                    data-reactive="add-resource"
+                    data-action="add-item"
                     data-category-id="{{id}}">
                 {{#str}}resources:add_resource, mod_bookit{{/str}}
             </button>
         </div>
     </div>
 </div>
-
