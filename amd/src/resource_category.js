@@ -26,6 +26,7 @@ import {BaseComponent} from 'core/reactive';
 import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
+import Notification from 'core/notification';
 import ResourceItem from './resource_item';
 
 /**
@@ -283,11 +284,16 @@ export default class ResourceCategory extends BaseComponent {
      */
     async _handleDelete() {
         const confirmMsg = await getString('resources:confirm_delete_category', 'mod_bookit', this.categoryData.name);
-        const confirmed = window.confirm(confirmMsg);
 
-        if (confirmed) {
-            this.reactive.dispatch('deleteCategory', this.categoryData.id);
-        }
+        Notification.confirm(
+            await getString('confirm', 'core'),
+            confirmMsg,
+            await getString('yes', 'core'),
+            await getString('no', 'core'),
+            () => {
+                this.reactive.dispatch('deleteCategory', this.categoryData.id);
+            }
+        );
     }
 
     /**
