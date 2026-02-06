@@ -263,6 +263,7 @@ export default class extends BaseComponent {
         const content = document.querySelector(this.selectors.content);
         if (content) {
             content.classList.remove('d-none');
+            content.classList.add('d-block');
         }
     }
 
