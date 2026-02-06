@@ -31,9 +31,9 @@ let resourceReactiveInstance = null;
 /**
  * Initialize resource reactive store.
  *
- * @param {Object} initialState - Initial state with categories and items Maps
- * @param {Map} initialState.categories - Map of category data
- * @param {Map} initialState.items - Map of item data
+ * @param {Object} initialState - Initial state with categories and items
+ * @param {Array} initialState.categories - Array of category data
+ * @param {Array} initialState.items - Array of item data
  * @return {Reactive} Reactive instance
  */
 export const initResourceReactive = (initialState) => {
@@ -45,44 +45,37 @@ export const initResourceReactive = (initialState) => {
             mutations: {
                 // Category Mutations.
                 createCategory: (state, category) => {
-                    state.categories.set(category.id, {
+                    state.categories.push({
                         id: category.id,
                         name: category.name,
                         description: category.description || '',
-                        sortorder: category.sortorder || state.categories.size,
+                        sortorder: category.sortorder || state.categories.length,
                     });
                 },
 
                 updateCategory: (state, category) => {
-                    if (state.categories.has(category.id)) {
-                        state.categories.set(category.id, {
+                    const index = state.categories.findIndex(c => c.id === category.id);
+                    if (index !== -1) {
+                        state.categories[index] = {
                             id: category.id,
                             name: category.name,
                             description: category.description || '',
                             sortorder: category.sortorder,
-                        });
+                        };
                     }
                 },
 
                 deleteCategory: (state, categoryId) => {
                     // Delete all items in this category first.
-                    const itemsToDelete = [];
-                    state.items.forEach((item) => {
-                        if (item.categoryid === categoryId) {
-                            itemsToDelete.push(item.id);
-                        }
-                    });
-                    itemsToDelete.forEach((itemId) => {
-                        state.items.delete(itemId);
-                    });
+                    state.items = state.items.filter(item => item.categoryid !== categoryId);
 
                     // Delete the category.
-                    state.categories.delete(categoryId);
+                    state.categories = state.categories.filter(c => c.id !== categoryId);
                 },
 
                 // Item Mutations.
                 createItem: (state, item) => {
-                    state.items.set(item.id, {
+                    state.items.push({
                         id: item.id,
                         name: item.name,
                         description: item.description || '',
@@ -94,8 +87,9 @@ export const initResourceReactive = (initialState) => {
                 },
 
                 updateItem: (state, item) => {
-                    if (state.items.has(item.id)) {
-                        state.items.set(item.id, {
+                    const index = state.items.findIndex(i => i.id === item.id);
+                    if (index !== -1) {
+                        state.items[index] = {
                             id: item.id,
                             name: item.name,
                             description: item.description || '',
@@ -103,12 +97,12 @@ export const initResourceReactive = (initialState) => {
                             amount: item.amount || 1,
                             amountirrelevant: item.amountirrelevant || false,
                             sortorder: item.sortorder,
-                        });
+                        };
                     }
                 },
 
                 deleteItem: (state, itemId) => {
-                    state.items.delete(itemId);
+                    state.items = state.items.filter(i => i.id !== itemId);
                 },
             },
         });

@@ -29,64 +29,55 @@ import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 
 /**
- * Initialize resource catalog.
- *
- * @param {number} contextId - System context ID
- * @param {string} categoriesJson - JSON string with categories data
- */
-export const init = (contextId, categoriesJson) => {
-    const categories = JSON.parse(categoriesJson);
-
-    // Prepare state data.
-    const categoriesMap = new Map();
-    const itemsMap = new Map();
-
-    categories.forEach(category => {
-        categoriesMap.set(category.id, {
-            id: category.id,
-            name: category.name,
-            description: category.description,
-            sortorder: category.sortorder,
-        });
-
-        if (category.resources && Array.isArray(category.resources)) {
-            category.resources.forEach(resource => {
-                itemsMap.set(resource.id, {
-                    id: resource.id,
-                    name: resource.name,
-                    description: resource.description,
-                    categoryid: category.id,
-                    amount: resource.amount,
-                    amountirrelevant: resource.amountirrelevant,
-                    sortorder: resource.sortorder,
-                });
-            });
-        }
-    });
-
-    // Initialize reactive store.
-    initResourceReactive({
-        categories: categoriesMap,
-        items: itemsMap,
-    });
-
-    // Initialize catalog component.
-    ResourceCatalog.init('#mod-bookit-resource-catalog', {contextId});
-};
-
-/**
  * Resource catalog component.
  */
-class ResourceCatalog extends BaseComponent {
+export default class extends BaseComponent {
     /**
      * Static init method.
      *
      * @param {string} target - CSS selector for container element
      * @param {Object} selectors - Additional configuration
      * @param {number} selectors.contextId - System context ID
+     * @param {string} selectors.categoriesJson - JSON string with categories data
      * @return {ResourceCatalog} Component instance
      */
     static init(target, selectors) {
+        // Parse categories and initialize state.
+        const categories = JSON.parse(selectors.categoriesJson);
+
+        // Prepare state data as arrays.
+        const categoriesArray = [];
+        const itemsArray = [];
+
+        categories.forEach(category => {
+            categoriesArray.push({
+                id: category.id,
+                name: category.name,
+                description: category.description,
+                sortorder: category.sortorder,
+            });
+
+            if (category.resources && Array.isArray(category.resources)) {
+                category.resources.forEach(resource => {
+                    itemsArray.push({
+                        id: resource.id,
+                        name: resource.name,
+                        description: resource.description,
+                        categoryid: category.id,
+                        amount: resource.amount,
+                        amountirrelevant: resource.amountirrelevant,
+                        sortorder: resource.sortorder,
+                    });
+                });
+            }
+        });
+
+        // Initialize reactive store.
+        initResourceReactive({
+            categories: categoriesArray,
+            items: itemsArray,
+        });
+
         return new this({
             element: document.querySelector(target),
             reactive: resourceReactiveInstance,
@@ -295,5 +286,3 @@ class ResourceCatalog extends BaseComponent {
         }
     }
 }
-
-export default ResourceCatalog;

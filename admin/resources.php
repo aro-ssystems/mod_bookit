@@ -58,8 +58,11 @@ $PAGE->requires->js_call_amd(
     'mod_bookit/resource_catalog',
     'init',
     [
-        $catalogdata->contextid,
-        json_encode($catalogdata->categories), // JSON String for AMD.
+        '#mod-bookit-resource-catalog',
+        [
+            'contextId' => $catalogdata->contextid,
+            'categoriesJson' => json_encode($catalogdata->categories),
+        ],
     ]
 );
 
