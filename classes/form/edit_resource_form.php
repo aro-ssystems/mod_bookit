@@ -208,7 +208,8 @@ class edit_resource_form extends dynamic_form {
         );
 
         // Save via manager.
-        resource_manager::save_resource($resource);
+        global $USER;
+        resource_manager::save_resource($resource, $USER->id);
 
         return [];
     }

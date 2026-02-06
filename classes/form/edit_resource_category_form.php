@@ -174,7 +174,8 @@ class edit_resource_category_form extends dynamic_form {
         );
 
         // Save via manager.
-        resource_manager::save_category($category);
+        global $USER;
+        resource_manager::save_category($category, $USER->id);
 
         return [];
     }
