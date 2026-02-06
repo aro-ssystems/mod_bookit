@@ -115,7 +115,7 @@ export default class ResourceItem extends BaseComponent {
      */
     async _handleEdit() {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\resource_form',
+            formClass: 'mod_bookit\\form\\edit_resource_form',
             args: {
                 id: this.itemData.id,
             },

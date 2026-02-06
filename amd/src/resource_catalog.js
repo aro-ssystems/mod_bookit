@@ -230,7 +230,7 @@ export default class extends BaseComponent {
      */
     async _handleAddCategory() {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\resource_category_form',
+            formClass: 'mod_bookit\\form\\edit_resource_category_form',
             args: {
                 contextid: this.selectors.contextId,
             },

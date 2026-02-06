@@ -241,7 +241,7 @@ export default class ResourceCategory extends BaseComponent {
      */
     async _handleAddItem() {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\resource_form',
+            formClass: 'mod_bookit\\form\\edit_resource_form',
             args: {
                 categoryid: this.categoryData.id,
             },
@@ -262,7 +262,7 @@ export default class ResourceCategory extends BaseComponent {
      */
     async _handleEdit() {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\resource_category_form',
+            formClass: 'mod_bookit\\form\\edit_resource_category_form',
             args: {
                 id: this.categoryData.id,
             },
