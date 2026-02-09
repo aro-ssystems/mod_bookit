@@ -50,13 +50,13 @@
     draggable="true">
 
     <td class="align-middle py-3 pl-4">
-        <span class="font-weight-medium">{{name}}</span>
+        <span class="font-weight-medium" data-bookit-resource-tabledata-name-id="{{id}}">{{name}}</span>
         {{#description}}
-            <br><small class="text-muted">{{{description}}}</small>
+            <br><small class="text-muted" data-bookit-resource-tabledata-description-id="{{id}}">{{{description}}}</small>
         {{/description}}
     </td>
 
-    <td class="align-middle py-3">
+    <td class="align-middle py-3" data-bookit-resource-tabledata-amount-id="{{id}}">
         {{#amountirrelevant}}
             <span class="badge badge-secondary">{{#str}}resources:amount_unlimited, mod_bookit{{/str}}</span>
         {{/amountirrelevant}}
@@ -65,7 +65,7 @@
         {{/amountirrelevant}}
     </td>
 
-    <td class="align-middle py-3">
+    <td class="align-middle py-3" data-bookit-resource-tabledata-active-id="{{id}}">
         {{#active}}
             <span class="badge badge-success">{{#str}}active, core{{/str}}</span>
         {{/active}}
@@ -80,12 +80,6 @@
                 data-action="edit-item"
                 data-item-id="{{id}}">
             {{#pix}}i/edit, core{{/pix}}
-        </button>
-        <button type="button"
-                class="btn btn-sm btn-light rounded-pill pl-3 text-dark ml-1"
-                data-action="delete-item"
-                data-item-id="{{id}}">
-            {{#pix}}t/delete, core{{/pix}}
         </button>
     </td>
 

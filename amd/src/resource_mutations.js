@@ -31,12 +31,33 @@ export default class {
     }
 
     /**
-     * Handle category deletion.
+     * Handle category updated (called by processUpdates for action: 'put').
      *
      * @param {Object} stateManager - The reactive state manager
-     * @param {number} categoryId - The ID of the category to delete
+     * @param {Object} data - Data with fields object
      */
-    deleteCategory(stateManager, categoryId) {
+    categoriesUpdated(stateManager, data) {
+        const state = stateManager.state;
+
+        stateManager.setReadOnly(false);
+
+        state.categories.set(data.fields.id, {
+            id: data.fields.id,
+            name: data.fields.name,
+            description: data.fields.description,
+            sortorder: data.fields.sortorder,
+        });
+
+        stateManager.setReadOnly(true);
+    }
+
+    /**
+     * Handle category deletion (called by processUpdates for action: 'delete').
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object containing id
+     */
+    categoriesDeleted(stateManager, data) {
         const state = stateManager.state;
 
         stateManager.setReadOnly(false);
@@ -44,30 +65,55 @@ export default class {
         // Delete all items in this category first
         const itemsToDelete = [];
         state.items.forEach((item, id) => {
-            if (item.categoryid === categoryId) {
+            if (item.categoryid === data.fields.id) {
                 itemsToDelete.push(id);
             }
         });
         itemsToDelete.forEach(id => state.items.delete(id));
 
         // Delete the category
-        state.categories.delete(categoryId);
+        state.categories.delete(data.fields.id);
 
         stateManager.setReadOnly(true);
     }
 
     /**
-     * Handle item deletion.
+     * Handle item updated (called by processUpdates for action: 'put').
      *
      * @param {Object} stateManager - The reactive state manager
-     * @param {number} itemId - The ID of the item to delete
+     * @param {Object} data - Data with fields object
      */
-    deleteItem(stateManager, itemId) {
+    itemsUpdated(stateManager, data) {
         const state = stateManager.state;
 
         stateManager.setReadOnly(false);
 
-        state.items.delete(itemId);
+        state.items.set(data.fields.id, {
+            id: data.fields.id,
+            name: data.fields.name,
+            description: data.fields.description,
+            categoryid: data.fields.categoryid,
+            amount: data.fields.amount,
+            amountirrelevant: data.fields.amountirrelevant,
+            sortorder: data.fields.sortorder,
+            active: data.fields.active,
+        });
+
+        stateManager.setReadOnly(true);
+    }
+
+    /**
+     * Handle item deletion (called by processUpdates for action: 'delete').
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object containing id
+     */
+    itemsDeleted(stateManager, data) {
+        const state = stateManager.state;
+
+        stateManager.setReadOnly(false);
+
+        state.items.delete(data.fields.id);
 
         stateManager.setReadOnly(true);
     }
