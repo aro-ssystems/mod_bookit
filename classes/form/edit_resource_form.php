@@ -99,8 +99,8 @@ class edit_resource_form extends dynamic_form {
         // Hide amount field if amountirrelevant is checked.
         $mform->hideIf('amount', 'amountirrelevant', 'checked');
 
-        // Validation rule: amount required if not amountirrelevant.
-        $mform->addRule('amount', null, 'required', null, 'client');
+        // Note: Required validation is handled server-side in validation() method.
+        // Client-side validation would conflict with hideIf/disabledIf.
         $mform->disabledIf('amount', 'amountirrelevant', 'checked');
 
         // Field: active.
