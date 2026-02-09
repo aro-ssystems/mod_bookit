@@ -394,6 +394,24 @@ export default class extends BaseComponent {
             deleteButton.on('click', async(e) => {
                 e.preventDefault();
 
+                // Check if category has resources.
+                const state = this.reactive.state;
+                const resourceCount = Array.from(state.items.values())
+                    .filter(item => item.categoryid === categoryId).length;
+
+                if (resourceCount > 0) {
+                    // Category has resources - show informative message.
+                    const errorTitle = await getString('error', 'core');
+                    const errorMessage = await getString('resources:category_has_resources', 'mod_bookit');
+
+                    Notification.alert(
+                        errorTitle,
+                        errorMessage
+                    );
+                    return;
+                }
+
+                // No resources - proceed with delete confirmation.
                 const confirmTitle = await getString('confirm', 'core');
                 const confirmMessage = await getString('areyousure', 'core');
                 const deleteText = await getString('delete', 'core');
