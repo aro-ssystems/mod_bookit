@@ -24,10 +24,10 @@
 
 import {BaseComponent} from 'core/reactive';
 import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
-import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import ResourceCategory from './resource_category';
 
 /**
  * Resource catalog component.
@@ -110,6 +110,7 @@ export default class extends BaseComponent {
     create() {
         this.selectors.addCategoryBtn = '#add-category-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
+        this.categoryComponents = new Map();
     }
 
     /**
@@ -118,6 +119,7 @@ export default class extends BaseComponent {
      * Called when reactive state is ready.
      */
     stateReady() {
+        this._initializeCategoryComponents();
         this._attachEventListeners();
     }
 
@@ -143,9 +145,12 @@ export default class extends BaseComponent {
 
     /**
      * Handle category created.
+     *
+     * @param {Object} args - Event args
+     * @param {Object} args.element - New category data
      */
-    _handleCategoryCreated() {
-        // Table view updates automatically via DOM - no action needed.
+    _handleCategoryCreated({element}) {
+        this._renderCategory(element);
     }
 
     /**
@@ -155,42 +160,33 @@ export default class extends BaseComponent {
      * @param {Object} args.element - Updated category data
      */
     _handleCategoryUpdated({element}) {
-        if (this.currentView === 'table') {
-            // Table view: Re-render the table row
-            const targetElement = document.getElementById(`resource-category-row-${element.id}`);
-            if (targetElement) {
-                Templates.renderForPromise('mod_bookit/resource_category_row', {
-                    id: element.id,
-                    name: element.name,
-                    description: element.description || '',
-                    sortorder: element.sortorder,
-                    active: element.active,
-                })
-                .then(({html, js}) => {
-                    return Templates.replaceNode(targetElement, html, js);
-                })
-                .catch(error => {
-                    window.console.error('Error rendering resource category row:', error);
-                });
-            }
+        const component = this.categoryComponents.get(element.id);
+        if (component) {
+            component.update(element);
         }
     }
 
     /**
      * Handle category deleted.
      *
+     * @param {Object} args - Event args
+     * @param {Object} args.element - Deleted category data
      */
-    _handleCategoryDeleted() {
-        // Table view updates automatically via DOM - no action needed.
+    _handleCategoryDeleted({element}) {
+        const component = this.categoryComponents.get(element.id);
+        if (component) {
+            component.remove();
+            this.categoryComponents.delete(element.id);
+        }
     }
 
     /**
      * Handle item created.
+     *
+     * Item creation is handled by the category component.
      */
     _handleItemCreated() {
-        // Re-render categories to show the new item
-        const state = this.reactive.state;
-        this._renderCategories(state);
+        // Category component handles this via its watchers.
     }
 
     /**
@@ -447,5 +443,54 @@ export default class extends BaseComponent {
         if (msg) {
             msg.classList.add('d-none');
         }
+    }
+
+    /**
+     * Initialize category components from existing DOM.
+     */
+    _initializeCategoryComponents() {
+        const categoryElements = this.element.querySelectorAll('[data-region="resource-category"]');
+        const state = this.reactive.state;
+
+        categoryElements.forEach(categoryEl => {
+            const categoryId = parseInt(categoryEl.dataset.categoryid);
+            const category = state.categories.get(categoryId);
+            if (category) {
+                // Component will manage this existing DOM element.
+                const component = new ResourceCategory({
+                    element: this.element.querySelector('#mod-bookit-resource-table'),
+                    reactive: this.reactive,
+                    categoryData: category,
+                });
+                // Override the rendered element with existing one.
+                if (component.categoryElement) {
+                    component.categoryElement.remove();
+                }
+                component.categoryElement = categoryEl;
+                component._attachEventListeners();
+
+                this.categoryComponents.set(categoryId, component);
+            }
+        });
+    }
+
+    /**
+     * Render a new category component.
+     *
+     * @param {Object} categoryData - Category data
+     */
+    _renderCategory(categoryData) {
+        const tableEl = this.element.querySelector('#mod-bookit-resource-table');
+        if (!tableEl) {
+            return;
+        }
+
+        const component = new ResourceCategory({
+            element: tableEl,
+            reactive: this.reactive,
+            categoryData: categoryData,
+        });
+
+        this.categoryComponents.set(categoryData.id, component);
     }
 }

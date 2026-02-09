@@ -73,20 +73,22 @@ export default class ResourceCategory extends BaseComponent {
     }
 
     /**
-     * Render category.
+     * Render category (table view: tbody with category row).
      */
     async _render() {
-        const context = {
-            ...this.categoryData,
-            resources: [], // JS renders items.
-        };
+        // Render category row.
+        const categoryRowHtml = await Templates.render('mod_bookit/resource_category_row', this.categoryData);
 
-        const html = await Templates.render('mod_bookit/resource_category_card', context);
+        // Create tbody element for this category.
+        const tbody = document.createElement('tbody');
+        tbody.dataset.region = 'resource-category';
+        tbody.dataset.categoryid = this.categoryData.id;
+        tbody.dataset.categoryName = this.categoryData.name;
+        tbody.dataset.categoryDescription = this.categoryData.description || '';
+        tbody.dataset.categorySortorder = this.categoryData.sortorder || 0;
+        tbody.innerHTML = categoryRowHtml.trim();
 
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = html.trim();
-        this.categoryElement = wrapper.firstChild;
-
+        this.categoryElement = tbody;
         this.parentElement.appendChild(this.categoryElement);
 
         this._renderItems();
@@ -94,20 +96,19 @@ export default class ResourceCategory extends BaseComponent {
     }
 
     /**
-     * Render items in this category.
+     * Render items in this category (table view: append rows to tbody).
      */
     _renderItems() {
         if (!this.categoryElement) {
             return;
         }
 
-        const itemsContainer = this.categoryElement.querySelector('[data-region="items-container"]');
-        if (!itemsContainer) {
-            return;
+        // Clear existing item rows (keep category row).
+        const categoryRow = this.categoryElement.querySelector('[data-region="resource-category-row"]');
+        this.categoryElement.innerHTML = '';
+        if (categoryRow) {
+            this.categoryElement.appendChild(categoryRow);
         }
-
-        // Clear existing.
-        itemsContainer.innerHTML = '';
         this.itemComponents.clear();
 
         // Get items from state.
@@ -116,34 +117,15 @@ export default class ResourceCategory extends BaseComponent {
             .filter(item => item.categoryid === this.categoryData.id)
             .sort((a, b) => a.sortorder - b.sortorder);
 
-        // Render each item.
+        // Render each item as a table row.
         items.forEach(itemData => {
             const itemComponent = new ResourceItem({
-                element: itemsContainer,
+                element: this.categoryElement,
                 reactive: this.reactive,
                 itemData: itemData,
             });
             this.itemComponents.set(itemData.id, itemComponent);
         });
-
-        // Show/hide no items message.
-        this._updateNoItemsMessage(items.length === 0);
-    }
-
-    /**
-     * Update no items message visibility.
-     *
-     * @param {boolean} show - Whether to show
-     */
-    _updateNoItemsMessage(show) {
-        const msg = this.categoryElement.querySelector('[data-region="no-items"]');
-        if (msg) {
-            if (show) {
-                msg.classList.remove('d-none');
-            } else {
-                msg.classList.add('d-none');
-            }
-        }
     }
 
     /**
@@ -192,12 +174,6 @@ export default class ResourceCategory extends BaseComponent {
         if (component) {
             component.remove();
             this.itemComponents.delete(element.id);
-
-            // Update no items message.
-            const state = this.reactive.state;
-            const remainingItems = Array.from(state.items.values())
-                .filter(item => item.categoryid === this.categoryData.id);
-            this._updateNoItemsMessage(remainingItems.length === 0);
         }
     }
 
@@ -312,20 +288,27 @@ export default class ResourceCategory extends BaseComponent {
     }
 
     /**
-     * Update with new data.
+     * Update with new data (re-render category row).
      *
      * @param {Object} newData - Updated category data
      */
     update(newData) {
         this.categoryData = newData;
-        // Update header text if needed.
-        const header = this.categoryElement.querySelector('h5');
-        if (header) {
-            header.textContent = newData.name;
-        }
-        const desc = this.categoryElement.querySelector('.text-muted');
-        if (desc) {
-            desc.textContent = newData.description || '';
+        // Re-render the category row.
+        const categoryRow = this.categoryElement.querySelector('[data-region="resource-category-row"]');
+        if (categoryRow) {
+            Templates.render('mod_bookit/resource_category_row', newData)
+                .then(html => {
+                    const wrapper = document.createElement('tbody');
+                    wrapper.innerHTML = html.trim();
+                    const newRow = wrapper.firstChild;
+                    categoryRow.parentNode.replaceChild(newRow, categoryRow);
+                    this._attachEventListeners();
+                    return true;
+                })
+                .catch(error => {
+                    window.console.error('Error updating category row:', error);
+                });
         }
     }
 
