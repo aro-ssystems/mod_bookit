@@ -277,6 +277,7 @@ $string['resources:amount_unlimited'] = 'Unlimited';
 $string['resources:amountirrelevant'] = 'Amount irrelevant';
 $string['resources:amountirrelevant_help'] = 'Check this if the resource does not have a specific quantity (e.g., WiFi, whiteboard).';
 $string['resources:category'] = 'Category';
+$string['resources:category_has_resources'] = 'To delete this category, no resources must be assigned to it. Please reassign the resources to other categories or delete them first.';
 $string['resources:category_help'] = 'Select the category for this resource.';
 $string['resources:confirm_delete_category'] = 'Are you sure you want to delete category "{$a}"? This will also delete all resources in this category.';
 $string['resources:confirm_delete_resource'] = 'Are you sure you want to delete resource "{$a}"?';

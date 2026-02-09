@@ -268,6 +268,7 @@ $string['resources:amount_unlimited'] = 'Unbegrenzt';
 $string['resources:amountirrelevant'] = 'Anzahl irrelevant';
 $string['resources:amountirrelevant_help'] = 'Aktivieren Sie dies, wenn die Ressource keine spezifische Menge hat (z.B. WLAN, Whiteboard).';
 $string['resources:category'] = 'Kategorie';
+$string['resources:category_has_resources'] = 'Zum Löschen darf keine Ressource der Kategorie zugeordnet sein. Ordnen Sie die entsprechenden Ressourcen anderen Kategorien zu oder löschen Sie zuvor die Ressourcen in dieser Kategorie.';
 $string['resources:category_help'] = 'Wählen Sie die Kategorie für diese Ressource aus.';
 $string['resources:confirm_delete_category'] = 'Möchten Sie die Kategorie "{$a}" wirklich löschen? Dadurch werden auch alle Ressourcen in dieser Kategorie gelöscht.';
 $string['resources:confirm_delete_resource'] = 'Möchten Sie die Ressource "{$a}" wirklich löschen?';
