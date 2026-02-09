@@ -70,12 +70,12 @@ export default class ResourceItem extends BaseComponent {
     }
 
     /**
-     * Render item.
+     * Render item (table row).
      */
     async _render() {
-        const html = await Templates.render('mod_bookit/resource_item_card', this.itemData);
+        const html = await Templates.render('mod_bookit/resource_item_row', this.itemData);
 
-        const wrapper = document.createElement('div');
+        const wrapper = document.createElement('tbody');
         wrapper.innerHTML = html.trim();
         this.itemElement = wrapper.firstChild;
 
@@ -147,21 +147,28 @@ export default class ResourceItem extends BaseComponent {
     }
 
     /**
-     * Update with new data.
+     * Update with new data (re-render table row).
      *
      * @param {Object} newData - Updated item data
      */
     update(newData) {
         this.itemData = newData;
-        // Update text if needed.
-        const nameEl = this.itemElement.querySelector('h6');
-        if (nameEl) {
-            nameEl.textContent = newData.name;
-        }
-        const descEl = this.itemElement.querySelector('.text-muted');
-        if (descEl) {
-            descEl.textContent = newData.description || '';
-        }
+        // Re-render the entire row.
+        Templates.render('mod_bookit/resource_item_row', newData)
+            .then(html => {
+                const wrapper = document.createElement('tbody');
+                wrapper.innerHTML = html.trim();
+                const newRow = wrapper.firstChild;
+                if (this.itemElement && this.itemElement.parentNode) {
+                    this.itemElement.parentNode.replaceChild(newRow, this.itemElement);
+                    this.itemElement = newRow;
+                    this._attachEventListeners();
+                }
+                return true;
+            })
+            .catch(error => {
+                window.console.error('Error updating resource item:', error);
+            });
     }
 
     /**

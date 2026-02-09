@@ -24,11 +24,10 @@
 
 import {BaseComponent} from 'core/reactive';
 import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
-import ResourceCategory from './resource_category';
-import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import ResourceCategory from './resource_category';
 
 /**
  * Resource catalog component.
@@ -56,20 +55,21 @@ export default class extends BaseComponent {
 
         const categoryElements = element.querySelectorAll('[data-region="resource-category"]');
         categoryElements.forEach(categoryEl => {
+            const categoryRow = categoryEl.querySelector('[data-region="resource-category-row"]');
             const categoryData = {
                 id: parseInt(categoryEl.dataset.categoryid),
-                name: categoryEl.dataset.categoryName,
+                name: categoryEl.dataset.categoryName || categoryRow?.textContent.trim(),
                 description: categoryEl.dataset.categoryDescription || '',
                 sortorder: parseInt(categoryEl.dataset.categorySortorder) || 0,
             };
             categoriesArray.push(categoryData);
 
             // Read resources for this category.
-            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item"]');
+            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item-row"]');
             itemElements.forEach(itemEl => {
                 const itemData = {
                     id: parseInt(itemEl.dataset.itemid),
-                    name: itemEl.dataset.itemName,
+                    name: itemEl.dataset.itemName || '',
                     description: itemEl.dataset.itemDescription || '',
                     categoryid: parseInt(itemEl.dataset.itemCategoryid),
                     amount: parseInt(itemEl.dataset.itemAmount) || 0,
@@ -108,11 +108,8 @@ export default class extends BaseComponent {
      * Called by BaseComponent constructor.
      */
     create() {
-        this.selectors.categoriesContainer = '#mod-bookit-resource-categories';
-        this.selectors.noCategoriesMsg = '#mod-bookit-no-categories';
         this.selectors.addCategoryBtn = '#add-category-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
-
         this.categoryComponents = new Map();
     }
 
@@ -120,34 +117,10 @@ export default class extends BaseComponent {
      * Initial state ready.
      *
      * Called when reactive state is ready.
-     *
-     * @param {Object} state - Reactive state
      */
-    stateReady(state) {
-        this._initializeExistingComponents(state);
+    stateReady() {
+        this._initializeCategoryComponents();
         this._attachEventListeners();
-    }
-
-    /**
-     * Initialize components for existing DOM elements.
-     *
-     * @param {Object} state - Reactive state
-     */
-    _initializeExistingComponents(state) {
-        const categories = Array.from(state.categories.values());
-
-        categories.forEach(categoryData => {
-            const categoryEl = document.getElementById(`resource-category-${categoryData.id}`);
-            if (categoryEl) {
-                const categoryComponent = new ResourceCategory({
-                    element: categoryEl.parentElement,
-                    reactive: this.reactive,
-                    categoryData: categoryData,
-                    existingElement: categoryEl,
-                });
-                this.categoryComponents.set(categoryData.id, categoryComponent);
-            }
-        });
     }
 
     /**
@@ -172,46 +145,12 @@ export default class extends BaseComponent {
 
     /**
      * Handle category created.
-     */
-    _handleCategoryCreated() {
-        const state = this.reactive.state;
-        this._renderCategories(state);
-    }
-
-    /**
-     * Render all categories (for dynamic updates).
      *
-     * @param {Object} state - Reactive state
+     * @param {Object} args - Event args
+     * @param {Object} args.element - New category data
      */
-    _renderCategories(state) {
-        const container = document.querySelector(this.selectors.categoriesContainer);
-        if (!container) {
-            return;
-        }
-
-        const categories = Array.from(state.categories.values())
-            .sort((a, b) => a.sortorder - b.sortorder);
-
-        // Clear existing.
-        container.innerHTML = '';
-        this.categoryComponents.clear();
-
-        if (categories.length === 0) {
-            this._showNoCategoriesMessage();
-            return;
-        }
-
-        this._hideNoCategoriesMessage();
-
-        // Render each category.
-        categories.forEach(categoryData => {
-            const categoryComponent = new ResourceCategory({
-                element: container,
-                reactive: this.reactive,
-                categoryData: categoryData,
-            });
-            this.categoryComponents.set(categoryData.id, categoryComponent);
-        });
+    _handleCategoryCreated({element}) {
+        this._renderCategory(element);
     }
 
     /**
@@ -221,24 +160,9 @@ export default class extends BaseComponent {
      * @param {Object} args.element - Updated category data
      */
     _handleCategoryUpdated({element}) {
-        if (this.currentView === 'table') {
-            // Table view: Re-render the table row
-            const targetElement = document.getElementById(`resource-category-row-${element.id}`);
-            if (targetElement) {
-                Templates.renderForPromise('mod_bookit/resource_category_row', {
-                    id: element.id,
-                    name: element.name,
-                    description: element.description || '',
-                    sortorder: element.sortorder,
-                    active: element.active,
-                })
-                .then(({html, js}) => {
-                    return Templates.replaceNode(targetElement, html, js);
-                })
-                .catch(error => {
-                    window.console.error('Error rendering resource category row:', error);
-                });
-            }
+        const component = this.categoryComponents.get(element.id);
+        if (component) {
+            component.update(element);
         }
     }
 
@@ -254,20 +178,15 @@ export default class extends BaseComponent {
             component.remove();
             this.categoryComponents.delete(element.id);
         }
-
-        const state = this.reactive.state;
-        if (state.categories.size === 0) {
-            this._showNoCategoriesMessage();
-        }
     }
 
     /**
      * Handle item created.
+     *
+     * Item creation is handled by the category component.
      */
     _handleItemCreated() {
-        // Re-render categories to show the new item
-        const state = this.reactive.state;
-        this._renderCategories(state);
+        // Category component handles this via its watchers.
     }
 
     /**
@@ -394,6 +313,24 @@ export default class extends BaseComponent {
             deleteButton.on('click', async(e) => {
                 e.preventDefault();
 
+                // Check if category has resources.
+                const state = this.reactive.state;
+                const resourceCount = Array.from(state.items.values())
+                    .filter(item => item.categoryid === categoryId).length;
+
+                if (resourceCount > 0) {
+                    // Category has resources - show informative message.
+                    const errorTitle = await getString('error', 'core');
+                    const errorMessage = await getString('resources:category_has_resources', 'mod_bookit');
+
+                    Notification.alert(
+                        errorTitle,
+                        errorMessage
+                    );
+                    return;
+                }
+
+                // No resources - proceed with delete confirmation.
                 const confirmTitle = await getString('confirm', 'core');
                 const confirmMessage = await getString('areyousure', 'core');
                 const deleteText = await getString('delete', 'core');
@@ -506,5 +443,54 @@ export default class extends BaseComponent {
         if (msg) {
             msg.classList.add('d-none');
         }
+    }
+
+    /**
+     * Initialize category components from existing DOM.
+     */
+    _initializeCategoryComponents() {
+        const categoryElements = this.element.querySelectorAll('[data-region="resource-category"]');
+        const state = this.reactive.state;
+
+        categoryElements.forEach(categoryEl => {
+            const categoryId = parseInt(categoryEl.dataset.categoryid);
+            const category = state.categories.get(categoryId);
+            if (category) {
+                // Component will manage this existing DOM element.
+                const component = new ResourceCategory({
+                    element: this.element.querySelector('#mod-bookit-resource-table'),
+                    reactive: this.reactive,
+                    categoryData: category,
+                });
+                // Override the rendered element with existing one.
+                if (component.categoryElement) {
+                    component.categoryElement.remove();
+                }
+                component.categoryElement = categoryEl;
+                component._attachEventListeners();
+
+                this.categoryComponents.set(categoryId, component);
+            }
+        });
+    }
+
+    /**
+     * Render a new category component.
+     *
+     * @param {Object} categoryData - Category data
+     */
+    _renderCategory(categoryData) {
+        const tableEl = this.element.querySelector('#mod-bookit-resource-table');
+        if (!tableEl) {
+            return;
+        }
+
+        const component = new ResourceCategory({
+            element: tableEl,
+            reactive: this.reactive,
+            categoryData: categoryData,
+        });
+
+        this.categoryComponents.set(categoryData.id, component);
     }
 }
