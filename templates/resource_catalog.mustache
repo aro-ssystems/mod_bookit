@@ -39,10 +39,11 @@
     }
 }}
 <div class="d-flex justify-content-center">
-    <div class="mod-bookit-resource-catalog mt-4 pr-5 mr-5"
-         id="mod-bookit-resource-catalog"
-         data-contextid="{{contextid}}"
-         data-reactive="catalog">
+    <div class="justify-content-center d-flex">
+        <div class="mod-bookit-resource-catalog mt-4 pr-5 mr-5" style="min-width: 784px;"
+             id="mod-bookit-resource-catalog"
+             data-contextid="{{contextid}}"
+             data-reactive="catalog">
 
         {{! Add Category Button }}
         <div class="mb-4">
@@ -55,7 +56,7 @@
 
         {{! Table View (Default) }}
         <div id="mod-bookit-resource-table-view" class="resource-view">
-            <table class="table table-borderless table-hover bg-white rounded"
+            <table class="table table-borderless table-hover bg-white rounded w-100"
                    id="mod-bookit-resource-table">
                 <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
                     <tr>
@@ -88,6 +89,7 @@
                     </tbody>
                 {{/categories}}
             </table>
+        </div>
         </div>
     </div>
 </div>
