@@ -43,29 +43,13 @@
      data-contextid="{{contextid}}"
      data-reactive="catalog">
 
-    {{! Add Category Button + View Toggle }}
-    <div class="mb-4 d-flex justify-content-between align-items-center">
+    {{! Add Category Button }}
+    <div class="mb-4">
         <button class="btn btn-primary"
                 data-action="add-category"
                 id="add-category-btn">
             {{#str}}resources:add_category, mod_bookit{{/str}}
         </button>
-
-        {{! View Mode Toggle }}
-        <div class="btn-group" role="group" aria-label="{{#str}}resources:view_mode, mod_bookit{{/str}}">
-            <button type="button"
-                    class="btn btn-outline-primary active"
-                    id="view-mode-table"
-                    data-view="table">
-                <i class="fa fa-table"></i> {{#str}}resources:view_table, mod_bookit{{/str}}
-            </button>
-            <button type="button"
-                    class="btn btn-outline-primary"
-                    id="view-mode-cards"
-                    data-view="cards">
-                <i class="fa fa-th-large"></i> {{#str}}resources:view_cards, mod_bookit{{/str}}
-            </button>
-        </div>
     </div>
 
     {{! Table View (Default) }}
@@ -99,18 +83,5 @@
                 </tbody>
             {{/categories}}
         </table>
-    </div>
-
-    {{! Card View }}
-    <div id="mod-bookit-resource-card-view" class="resource-view d-none">
-        {{! Categories Container }}
-        <div id="mod-bookit-resource-categories">
-            {{#categories}}
-                {{> mod_bookit/resource_category_card }}
-            {{/categories}}
-            {{^categories}}
-                <p class="text-muted" id="mod-bookit-no-categories">{{#str}}resources:no_categories, mod_bookit{{/str}}</p>
-            {{/categories}}
-        </div>
     </div>
 </div>
