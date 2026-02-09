@@ -43,12 +43,7 @@
     draggable="true">
 
     <td class="font-weight-bold text-dark py-3">
-        <div class="d-flex align-items-center">
-            <div class="drag-handle mr-2" data-action="drag-handle">
-                <i class="fa fa-grip-vertical text-muted"></i>
-            </div>
-            <span>{{{name}}}</span>
-        </div>
+        <span>{{{name}}}</span>
     </td>
 
     <td class="text-muted"></td>
@@ -69,9 +64,12 @@
         </button>
     </td>
 
-    <td class="py-3 text-center">
-        <div class="drag-handle" data-action="drag-handle">
-            <i class="fa fa-grip-vertical text-muted"></i>
-        </div>
+    <td class="align-middle text-center py-3">
+        <button type="button"
+                class="btn btn-sm btn-light rounded-pill pl-3 text-dark"
+                data-action="drag-handle"
+                style="cursor: grab;">
+            {{#pix}}t/sort, core{{/pix}}
+        </button>
     </td>
 </tr>
