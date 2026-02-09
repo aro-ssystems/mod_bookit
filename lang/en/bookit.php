@@ -141,6 +141,7 @@ $string['end_before_start'] = 'The end date has to be after the start date!';
 $string['end_before_start_in_timeperiod_x'] = 'The end time was before the start time in time period "{$a}".';
 $string['end_of_period'] = 'End of period';
 $string['error_amount_required'] = 'Amount is required when not marked as amount irrelevant.';
+$string['error_category_name_exists'] = 'A category with this name already exists. Please choose a different name.';
 $string['error_category_not_found'] = 'The selected category does not exist.';
 $string['event_bookingstatus'] = 'Booking status';
 $string['event_bookingstatus_help'] = 'Explanation of the booking status options.';

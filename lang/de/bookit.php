@@ -135,6 +135,7 @@ $string['end'] = 'Ende';
 $string['end_before_start'] = 'Der Endzeitpunkt muss nach dem Anfangszeitpunkt liegen!';
 $string['end_of_period'] = 'Ende des Zeitraums';
 $string['error_amount_required'] = 'Anzahl ist erforderlich, wenn nicht als mengenneutral markiert.';
+$string['error_category_name_exists'] = 'Eine Kategorie mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen.';
 $string['error_category_not_found'] = 'Die ausgewählte Kategorie existiert nicht.';
 $string['event_bookingstatus'] = 'Buchungsstatus';
 $string['event_bookingstatus_help'] = 'Erklärung der Buchungsstatus-Optionen.';

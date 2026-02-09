@@ -433,6 +433,21 @@ class resource_manager {
         if ($category->get_sortorder() < 0) {
             throw new \moodle_exception('sortorder_must_be_positive', 'mod_bookit');
         }
+
+        // Check for duplicate category name.
+        global $DB;
+        $params = ['name' => $category->get_name()];
+        if ($category->get_id() !== null) {
+            // Exclude current category when editing.
+            $sql = "SELECT id FROM {bookit_resource_categories} WHERE name = :name AND id != :id";
+            $params['id'] = $category->get_id();
+        } else {
+            $sql = "SELECT id FROM {bookit_resource_categories} WHERE name = :name";
+        }
+
+        if ($DB->record_exists_sql($sql, $params)) {
+            throw new \moodle_exception('error_category_name_exists', 'mod_bookit');
+        }
     }
 
     /**

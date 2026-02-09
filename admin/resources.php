@@ -23,26 +23,30 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_bookit\local\tabs;
+
 require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-use mod_bookit\local\tabs;
+$context = context_system::instance();
 
 require_login();
-$context = context_system::instance();
 require_capability('mod/bookit:managebasics', $context);
 
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/mod/bookit/admin/resources.php', ['id' => 'resources']));
+$PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('resources:overview', 'mod_bookit'));
 $PAGE->set_heading(get_string('resources:overview', 'mod_bookit'));
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading(get_string('resources:overview', 'mod_bookit'));
 
-// Render tab navigation.
+// Show tabs.
+$renderer = $PAGE->get_renderer('mod_bookit');
 $tabrow = tabs::get_tabrow($context);
 $id = optional_param('id', 'resources', PARAM_TEXT);
-print_tabs([$tabrow], $id);
+echo $renderer->tabs($tabrow, $id);
 
 // Render via Output Class - renders full content with data-* attributes.
 $catalog = new \mod_bookit\output\resource_catalog();
