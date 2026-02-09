@@ -418,8 +418,8 @@ export default class extends BaseComponent {
             },
         });
 
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.dispatch('createCategory', e.detail);
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
         });
 
         modalForm.show();
