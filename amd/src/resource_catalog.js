@@ -25,6 +25,7 @@
 import {BaseComponent} from 'core/reactive';
 import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
 import ResourceCategory from './resource_category';
+import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
@@ -174,8 +175,12 @@ export default class extends BaseComponent {
     getWatchers() {
         return [
             {watch: `categories:created`, handler: this._handleCategoryCreated},
-            {watch: `categories:updated`, handler: this._handleCategoryUpdated},
+            {watch: `categories.name:updated`, handler: this._handleCategoryUpdated},
+            {watch: `categories.description:updated`, handler: this._handleCategoryUpdated},
             {watch: `categories:deleted`, handler: this._handleCategoryDeleted},
+            {watch: `items:created`, handler: this._handleItemCreated},
+            {watch: `items.name:updated`, handler: this._handleItemUpdated},
+            {watch: `items.amount:updated`, handler: this._handleItemUpdated},
         ];
     }
 
@@ -230,9 +235,30 @@ export default class extends BaseComponent {
      * @param {Object} args.element - Updated category data
      */
     _handleCategoryUpdated({element}) {
-        const component = this.categoryComponents.get(element.id);
-        if (component) {
-            component.update(element);
+        if (this.currentView === 'table') {
+            // Table view: Re-render the table row
+            const targetElement = document.getElementById(`resource-category-row-${element.id}`);
+            if (targetElement) {
+                Templates.renderForPromise('mod_bookit/resource_category_row', {
+                    id: element.id,
+                    name: element.name,
+                    description: element.description || '',
+                    sortorder: element.sortorder,
+                    active: element.active,
+                })
+                .then(({html, js}) => {
+                    return Templates.replaceNode(targetElement, html, js);
+                })
+                .catch(error => {
+                    window.console.error('Error rendering resource category row:', error);
+                });
+            }
+        } else {
+            // Card view: Update component
+            const component = this.categoryComponents.get(element.id);
+            if (component) {
+                component.update(element);
+            }
         }
     }
 
@@ -252,6 +278,59 @@ export default class extends BaseComponent {
         const state = this.reactive.state;
         if (state.categories.size === 0) {
             this._showNoCategoriesMessage();
+        }
+    }
+
+    /**
+     * Handle item created.
+     */
+    _handleItemCreated() {
+        // Re-render categories to show the new item
+        const state = this.reactive.state;
+        this._renderCategories(state);
+    }
+
+    /**
+     * Handle item updated.
+     *
+     * @param {Object} args - Event args
+     * @param {Object} args.element - Updated item data
+     */
+    _handleItemUpdated({element}) {
+        if (this.currentView === 'table') {
+            // Table view: Re-render the item row
+            const targetElement = document.getElementById(`resource-item-row-${element.id}`);
+            if (targetElement) {
+                const state = this.reactive.state;
+                const category = state.categories.get(element.categoryid);
+                Templates.renderForPromise('mod_bookit/resource_item_row', {
+                    id: element.id,
+                    name: element.name,
+                    description: element.description || '',
+                    amount: element.amount,
+                    amountirrelevant: element.amountirrelevant || false,
+                    sortorder: element.sortorder,
+                    active: element.active,
+                    categoryid: element.categoryid,
+                    categoryname: category ? category.name : '',
+                })
+                .then(({html, js}) => {
+                    return Templates.replaceNode(targetElement, html, js);
+                })
+                .catch(error => {
+                    window.console.error('Error rendering resource item row:', error);
+                });
+            }
+        } else {
+            // Card view: Re-render category containing this item
+            const categoryId = element.categoryid;
+            const component = this.categoryComponents.get(categoryId);
+            if (component) {
+                const state = this.reactive.state;
+                const items = Array.from(state.items.values())
+                    .filter(item => item.categoryid === categoryId);
+                component.renderItems(items);
+            }
         }
     }
 
@@ -347,8 +426,8 @@ export default class extends BaseComponent {
             },
         });
 
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.stateManager.processUpdates(e.detail);
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
         });
 
         modalForm.show();
@@ -405,8 +484,8 @@ export default class extends BaseComponent {
             },
         });
 
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.stateManager.processUpdates(e.detail);
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
         });
 
         modalForm.show();
