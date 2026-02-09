@@ -42,17 +42,17 @@
     data-category-active="{{active}}"
     draggable="true">
 
-    <td class="font-weight-bold text-dark py-3" colspan="3">
+    <td class="font-weight-bold text-dark py-3">
         <div class="d-flex align-items-center">
             <div class="drag-handle mr-2" data-action="drag-handle">
                 <i class="fa fa-grip-vertical text-muted"></i>
             </div>
-            <span>{{name}}</span>
-            {{#description}}
-                <small class="text-muted ml-2">({{{description}}})</small>
-            {{/description}}
+            <span>{{{name}}}</span>
         </div>
     </td>
+
+    <td class="text-muted"></td>
+    <td class="text-muted"></td>
 
     <td class="py-3 text-center">
         <button type="button"
