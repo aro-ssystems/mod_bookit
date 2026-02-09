@@ -49,11 +49,16 @@ class edit_resource_category_form extends dynamic_form {
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
+        // Hidden field: action (put or delete).
+        $mform->addElement('hidden', 'action');
+        $mform->setType('action', PARAM_TEXT);
+        $mform->setDefault('action', 'put');
+
         // Field: name.
         $mform->addElement('text', 'name', get_string('resources:name', 'mod_bookit'), ['size' => 64]);
         $mform->setType('name', PARAM_TEXT);
-        $mform->addRule('name', null, 'required', null, 'client');
-        $mform->addRule('name', null, 'maxlength', 255, 'client');
+        $mform->addRule('name', null, 'required', null, 'server');
+        $mform->addRule('name', null, 'maxlength', 255, 'server');
         $mform->addHelpButton('name', 'resources:name', 'mod_bookit');
 
         // Field: description.
@@ -133,6 +138,11 @@ class edit_resource_category_form extends dynamic_form {
     public function process_dynamic_submission(): array {
         $formdata = $this->get_data();
 
+        // Check for delete action.
+        if (!empty($formdata->action) && $formdata->action === 'delete') {
+            return $this->process_delete_request($formdata->id);
+        }
+
         // Handle category reordering if categoryorder provided.
         if (!empty($formdata->categoryorder)) {
             // Parse comma-separated IDs.
@@ -175,9 +185,21 @@ class edit_resource_category_form extends dynamic_form {
 
         // Save via manager.
         global $USER;
-        resource_manager::save_category($category, $USER->id);
+        $savedid = resource_manager::save_category($category, $USER->id);
 
-        return [];
+        // Return reactive state update format.
+        return [
+            [
+                'name' => 'categories',
+                'action' => 'put',
+                'fields' => [
+                    'id' => $savedid,
+                    'name' => $formdata->name,
+                    'description' => $formdata->description ?? '',
+                    'sortorder' => $formdata->sortorder ?? 0,
+                ],
+            ],
+        ];
     }
 
     /**
@@ -196,5 +218,26 @@ class edit_resource_category_form extends dynamic_form {
      */
     protected function get_page_url_for_dynamic_submission(): moodle_url {
         return new moodle_url('/mod/bookit/admin/resources.php');
+    }
+
+    /**
+     * Process DELETE requests for removing resource categories.
+     *
+     * @param int $id The ID of the resource category to delete
+     * @return array Result of the delete operation
+     */
+    private function process_delete_request(int $id): array {
+        $category = resource_manager::get_category($id);
+        resource_manager::delete_category($id);
+
+        return [
+            [
+                'name' => 'categories',
+                'action' => 'delete',
+                'fields' => [
+                    'id' => $id,
+                ],
+            ],
+        ];
     }
 }

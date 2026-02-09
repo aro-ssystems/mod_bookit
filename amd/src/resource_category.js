@@ -226,15 +226,6 @@ export default class ResourceCategory extends BaseComponent {
                 this._handleEdit();
             });
         }
-
-        // Delete Category.
-        const deleteBtn = this.categoryElement.querySelector('[data-action="delete-category"]');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this._handleDelete();
-            });
-        }
     }
 
     /**
@@ -264,6 +255,7 @@ export default class ResourceCategory extends BaseComponent {
     async _handleEdit() {
         const modalForm = new ModalForm({
             formClass: 'mod_bookit\\form\\edit_resource_category_form',
+            moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 id: this.categoryData.id,
             },
@@ -273,27 +265,32 @@ export default class ResourceCategory extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.dispatch('updateCategory', e.detail);
+            this.reactive.stateManager.processUpdates(e.detail);
+        });
+
+        modalForm.addEventListener(modalForm.events.LOADED, () => {
+            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
+
+            deleteButton.on('click', async(e) => {
+                e.preventDefault();
+
+                const confirmTitle = await getString('confirm', 'core');
+                const confirmMessage = await getString('areyousure', 'core');
+                const deleteText = await getString('delete', 'core');
+
+                Notification.deleteCancel(
+                    confirmTitle,
+                    confirmMessage,
+                    deleteText,
+                    () => {
+                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
+                        modalForm.submitFormAjax();
+                    }
+                );
+            });
         });
 
         modalForm.show();
-    }
-
-    /**
-     * Handle delete category.
-     */
-    async _handleDelete() {
-        const confirmMsg = await getString('resources:confirm_delete_category', 'mod_bookit', this.categoryData.name);
-
-        Notification.confirm(
-            await getString('confirm', 'core'),
-            confirmMsg,
-            await getString('yes', 'core'),
-            await getString('no', 'core'),
-            () => {
-                this.reactive.dispatch('deleteCategory', this.categoryData.id);
-            }
-        );
     }
 
     /**

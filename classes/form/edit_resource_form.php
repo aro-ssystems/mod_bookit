@@ -49,11 +49,16 @@ class edit_resource_form extends dynamic_form {
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
+        // Hidden field: action (put or delete).
+        $mform->addElement('hidden', 'action');
+        $mform->setType('action', PARAM_TEXT);
+        $mform->setDefault('action', 'put');
+
         // Field: name.
         $mform->addElement('text', 'name', get_string('resources:name', 'mod_bookit'), ['size' => 64]);
         $mform->setType('name', PARAM_TEXT);
-        $mform->addRule('name', null, 'required', null, 'client');
-        $mform->addRule('name', null, 'maxlength', 255, 'client');
+        $mform->addRule('name', null, 'required', null, 'server');
+        $mform->addRule('name', null, 'maxlength', 255, 'server');
         $mform->addHelpButton('name', 'resources:name', 'mod_bookit');
 
         // Field: categoryid (select).
@@ -147,7 +152,7 @@ class edit_resource_form extends dynamic_form {
 
         if (!empty($id)) {
             // Edit mode: Load existing resource.
-            $resource = resource_manager::get_resource($id);
+            $resource = resource_manager::get_resource_by_id($id);
             $data = (object) [
                 'id' => $resource->get_id(),
                 'name' => $resource->get_name(),
@@ -190,6 +195,11 @@ class edit_resource_form extends dynamic_form {
     public function process_dynamic_submission(): array {
         $formdata = $this->get_data();
 
+        // Check for delete action.
+        if (!empty($formdata->action) && $formdata->action === 'delete') {
+            return $this->process_delete_request($formdata->id);
+        }
+
         // If amountirrelevant is checked, set amount to 0.
         $amount = $formdata->amountirrelevant ? 0 : ($formdata->amount ?? 1);
 
@@ -197,8 +207,8 @@ class edit_resource_form extends dynamic_form {
         $resource = new \mod_bookit\local\entity\bookit_resource(
             $formdata->id ?: null,
             $formdata->name,
-            $formdata->categoryid,
             $formdata->description ?? '',
+            (int) $formdata->categoryid,
             $amount,
             (bool) $formdata->amountirrelevant,
             $formdata->sortorder ?? 0,
@@ -209,9 +219,25 @@ class edit_resource_form extends dynamic_form {
 
         // Save via manager.
         global $USER;
-        resource_manager::save_resource($resource, $USER->id);
+        $savedid = resource_manager::save_resource($resource, $USER->id);
 
-        return [];
+        // Return reactive state update format.
+        return [
+            [
+                'name' => 'items',
+                'action' => 'put',
+                'fields' => [
+                    'id' => $savedid,
+                    'name' => $formdata->name,
+                    'description' => $formdata->description ?? '',
+                    'categoryid' => (int) $formdata->categoryid,
+                    'amount' => $amount,
+                    'amountirrelevant' => (bool) $formdata->amountirrelevant,
+                    'sortorder' => $formdata->sortorder ?? 0,
+                    'active' => (bool) $formdata->active,
+                ],
+            ],
+        ];
     }
 
     /**
@@ -230,5 +256,26 @@ class edit_resource_form extends dynamic_form {
      */
     protected function get_page_url_for_dynamic_submission(): moodle_url {
         return new moodle_url('/mod/bookit/admin/resources.php');
+    }
+
+    /**
+     * Process DELETE requests for removing resources.
+     *
+     * @param int $id The ID of the resource to delete
+     * @return array Result of the delete operation
+     */
+    private function process_delete_request(int $id): array {
+        $resource = resource_manager::get_resource_by_id($id);
+        resource_manager::delete_resource($id);
+
+        return [
+            [
+                'name' => 'items',
+                'action' => 'delete',
+                'fields' => [
+                    'id' => $id,
+                ],
+            ],
+        ];
     }
 }

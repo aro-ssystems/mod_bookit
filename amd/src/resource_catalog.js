@@ -25,8 +25,10 @@
 import {BaseComponent} from 'core/reactive';
 import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
 import ResourceCategory from './resource_category';
+import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
+import Notification from 'core/notification';
 
 /**
  * Resource catalog component.
@@ -173,8 +175,15 @@ export default class extends BaseComponent {
     getWatchers() {
         return [
             {watch: `categories:created`, handler: this._handleCategoryCreated},
-            {watch: `categories:updated`, handler: this._handleCategoryUpdated},
+            {watch: `categories.name:updated`, handler: this._handleCategoryUpdated},
+            {watch: `categories.description:updated`, handler: this._handleCategoryUpdated},
             {watch: `categories:deleted`, handler: this._handleCategoryDeleted},
+            {watch: `items:created`, handler: this._handleItemCreated},
+            {watch: `items.name:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.description:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.amount:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.amountirrelevant:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.active:updated`, handler: this._replaceRenderedItem},
         ];
     }
 
@@ -229,9 +238,30 @@ export default class extends BaseComponent {
      * @param {Object} args.element - Updated category data
      */
     _handleCategoryUpdated({element}) {
-        const component = this.categoryComponents.get(element.id);
-        if (component) {
-            component.update(element);
+        if (this.currentView === 'table') {
+            // Table view: Re-render the table row
+            const targetElement = document.getElementById(`resource-category-row-${element.id}`);
+            if (targetElement) {
+                Templates.renderForPromise('mod_bookit/resource_category_row', {
+                    id: element.id,
+                    name: element.name,
+                    description: element.description || '',
+                    sortorder: element.sortorder,
+                    active: element.active,
+                })
+                .then(({html, js}) => {
+                    return Templates.replaceNode(targetElement, html, js);
+                })
+                .catch(error => {
+                    window.console.error('Error rendering resource category row:', error);
+                });
+            }
+        } else {
+            // Card view: Update component
+            const component = this.categoryComponents.get(element.id);
+            if (component) {
+                component.update(element);
+            }
         }
     }
 
@@ -251,6 +281,58 @@ export default class extends BaseComponent {
         const state = this.reactive.state;
         if (state.categories.size === 0) {
             this._showNoCategoriesMessage();
+        }
+    }
+
+    /**
+     * Handle item created.
+     */
+    _handleItemCreated() {
+        // Re-render categories to show the new item
+        const state = this.reactive.state;
+        this._renderCategories(state);
+    }
+
+    /**
+     * Replace rendered item field (follows checklist pattern).
+     *
+     * @param {Object} event - Event object
+     */
+    _replaceRenderedItem(event) {
+        const actionParts = event.action.split('.');
+        const fieldPart = actionParts[1].split(':')[0];
+
+        if (fieldPart === 'amount' || fieldPart === 'amountirrelevant') {
+            // Amount field requires template re-render due to conditional logic
+            const targetElement = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${event.element.id}"]`);
+            if (targetElement) {
+                const state = this.reactive.state;
+                const item = state.items.get(event.element.id);
+                if (item.amountirrelevant) {
+                    targetElement.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
+                } else {
+                    targetElement.innerHTML = `<span class="badge badge-info">${item.amount}x</span>`;
+                }
+            }
+        } else if (fieldPart === 'active') {
+            // Active field requires conditional badge rendering
+            const targetElement = document.querySelector(`td[data-bookit-resource-tabledata-active-id="${event.element.id}"]`);
+            if (targetElement) {
+                const state = this.reactive.state;
+                const item = state.items.get(event.element.id);
+                if (item.active) {
+                    targetElement.innerHTML = '<span class="badge badge-success">Active</span>';
+                } else {
+                    targetElement.innerHTML = '<span class="badge badge-secondary">Inactive</span>';
+                }
+            }
+        } else {
+            // Simple fields: directly update innerHTML
+            const elementSelector = `span[data-bookit-resource-tabledata-${fieldPart}-id="${event.element.id}"]`;
+            const targetElement = document.querySelector(elementSelector);
+            if (targetElement) {
+                targetElement.innerHTML = event.element[fieldPart];
+            }
         }
     }
 
@@ -281,6 +363,147 @@ export default class extends BaseComponent {
                 this._switchView('cards');
             });
         }
+
+        // Table view button event delegation.
+        this._attachTableViewEventListeners();
+    }
+
+    /**
+     * Attach event listeners for table view buttons (event delegation).
+     */
+    _attachTableViewEventListeners() {
+        const tableView = document.querySelector(this.selectors.tableView);
+        if (!tableView) {
+            return;
+        }
+
+        // Event delegation for all buttons in table view.
+        tableView.addEventListener('click', async(e) => {
+            const target = e.target.closest('button[data-action]');
+            if (!target) {
+                return;
+            }
+
+            const action = target.dataset.action;
+            e.preventDefault();
+
+            switch (action) {
+                case 'edit-category':
+                    await this._handleEditCategoryFromTable(target);
+                    break;
+                case 'edit-item':
+                    await this._handleEditItemFromTable(target);
+                    break;
+            }
+        });
+    }
+
+    /**
+     * Handle edit category from table view.
+     *
+     * @param {HTMLElement} button - Button element
+     */
+    async _handleEditCategoryFromTable(button) {
+        const categoryId = parseInt(button.dataset.categoryId);
+        const state = this.reactive.state;
+        const category = state.categories.get(categoryId);
+
+        if (!category) {
+            return;
+        }
+
+        const modalForm = new ModalForm({
+            formClass: 'mod_bookit\\form\\edit_resource_category_form',
+            moduleName: 'mod_bookit/modal_delete_save_cancel',
+            args: {
+                id: categoryId,
+            },
+            modalConfig: {
+                title: await getString('resources:edit_category', 'mod_bookit'),
+            },
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
+        });
+
+        modalForm.addEventListener(modalForm.events.LOADED, () => {
+            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
+
+            deleteButton.on('click', async(e) => {
+                e.preventDefault();
+
+                const confirmTitle = await getString('confirm', 'core');
+                const confirmMessage = await getString('areyousure', 'core');
+                const deleteText = await getString('delete', 'core');
+
+                Notification.deleteCancel(
+                    confirmTitle,
+                    confirmMessage,
+                    deleteText,
+                    () => {
+                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
+                        modalForm.submitFormAjax();
+                    }
+                );
+            });
+        });
+
+        modalForm.show();
+    }
+
+    /**
+     * Handle edit item from table view.
+     *
+     * @param {HTMLElement} button - Button element
+     */
+    async _handleEditItemFromTable(button) {
+        const itemId = parseInt(button.dataset.itemId);
+        const state = this.reactive.state;
+        const item = state.items.get(itemId);
+
+        if (!item) {
+            return;
+        }
+
+        const modalForm = new ModalForm({
+            formClass: 'mod_bookit\\form\\edit_resource_form',
+            moduleName: 'mod_bookit/modal_delete_save_cancel',
+            args: {
+                id: itemId,
+            },
+            modalConfig: {
+                title: await getString('resources:edit_resource', 'mod_bookit'),
+            },
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
+        });
+
+        modalForm.addEventListener(modalForm.events.LOADED, () => {
+            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
+
+            deleteButton.on('click', async(e) => {
+                e.preventDefault();
+
+                const confirmTitle = await getString('confirm', 'core');
+                const confirmMessage = await getString('areyousure', 'core');
+                const deleteText = await getString('delete', 'core');
+
+                Notification.deleteCancel(
+                    confirmTitle,
+                    confirmMessage,
+                    deleteText,
+                    () => {
+                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
+                        modalForm.submitFormAjax();
+                    }
+                );
+            });
+        });
+
+        modalForm.show();
     }
 
     /**

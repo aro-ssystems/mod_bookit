@@ -23,6 +23,7 @@
  */
 
 import {Reactive} from 'core/reactive';
+import Mutations from 'mod_bookit/resource_mutations';
 
 const EVENTNAME = 'mod_bookit:resource_catalog_state_event';
 
@@ -42,73 +43,7 @@ export const initResourceReactive = (initialState) => {
             name: 'Moodle Bookit Resource Catalog',
             eventName: EVENTNAME,
             eventDispatch: dispatchResourceStateEvent,
-            mutations: {
-                // Category Mutations.
-                createCategory: (state, category) => {
-                    state.categories.set(category.id, {
-                        id: category.id,
-                        name: category.name,
-                        description: category.description || '',
-                        sortorder: category.sortorder || state.categories.size,
-                    });
-                },
-
-                updateCategory: (state, category) => {
-                    if (state.categories.has(category.id)) {
-                        state.categories.set(category.id, {
-                            id: category.id,
-                            name: category.name,
-                            description: category.description || '',
-                            sortorder: category.sortorder,
-                        });
-                    }
-                },
-
-                deleteCategory: (state, categoryId) => {
-                    // Delete all items in this category first.
-                    const itemsToDelete = [];
-                    state.items.forEach((item, id) => {
-                        if (item.categoryid === categoryId) {
-                            itemsToDelete.push(id);
-                        }
-                    });
-                    itemsToDelete.forEach(id => state.items.delete(id));
-
-                    // Delete the category.
-                    state.categories.delete(categoryId);
-                },
-
-                // Item Mutations.
-                createItem: (state, item) => {
-                    state.items.set(item.id, {
-                        id: item.id,
-                        name: item.name,
-                        description: item.description || '',
-                        categoryid: item.categoryid,
-                        amount: item.amount || 1,
-                        amountirrelevant: item.amountirrelevant || false,
-                        sortorder: item.sortorder || 0,
-                    });
-                },
-
-                updateItem: (state, item) => {
-                    if (state.items.has(item.id)) {
-                        state.items.set(item.id, {
-                            id: item.id,
-                            name: item.name,
-                            description: item.description || '',
-                            categoryid: item.categoryid,
-                            amount: item.amount || 1,
-                            amountirrelevant: item.amountirrelevant || false,
-                            sortorder: item.sortorder,
-                        });
-                    }
-                },
-
-                deleteItem: (state, itemId) => {
-                    state.items.delete(itemId);
-                },
-            },
+            mutations: new Mutations(),
         });
 
         // Set initial state - Moodle automatically converts arrays to Maps.
