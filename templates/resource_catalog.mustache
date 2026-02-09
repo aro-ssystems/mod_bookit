@@ -38,54 +38,56 @@
         ]
     }
 }}
-<div class="mod-bookit-resource-catalog"
-     id="mod-bookit-resource-catalog"
-     data-contextid="{{contextid}}"
-     data-reactive="catalog">
+<div class="d-flex justify-content-center">
+    <div class="mod-bookit-resource-catalog mt-4"
+         id="mod-bookit-resource-catalog"
+         data-contextid="{{contextid}}"
+         data-reactive="catalog">
 
-    {{! Add Category Button }}
-    <div class="mb-4">
-        <button class="btn btn-primary"
-                data-action="add-category"
-                id="add-category-btn">
-            {{#str}}resources:add_category, mod_bookit{{/str}}
-        </button>
-    </div>
+        {{! Add Category Button }}
+        <div class="mb-4">
+            <button class="btn btn-primary"
+                    data-action="add-category"
+                    id="add-category-btn">
+                {{#str}}resources:add_category, mod_bookit{{/str}}
+            </button>
+        </div>
 
-    {{! Table View (Default) }}
-    <div id="mod-bookit-resource-table-view" class="resource-view">
-        <table class="table table-borderless table-hover bg-white rounded"
-               id="mod-bookit-resource-table">
-            <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
-                <tr>
-                    <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
-                    <th scope="col" class="py-3 font-weight-bold">{{#str}}resources:amount, mod_bookit{{/str}}</th>
-                    <th scope="col" class="py-3 font-weight-bold">{{#str}}status, core{{/str}}</th>
-                    <th scope="col" class="py-3 font-weight-bold text-center">{{#str}}actions, core{{/str}}</th>
-                    <th scope="col" class="py-3 font-weight-bold text-center">{{#str}}move, core{{/str}}</th>
-                </tr>
-            </thead>
-            {{#categories}}
-                <tbody data-region="resource-category"
-                       data-categoryid="{{id}}"
-                       data-category-name="{{name}}"
-                       data-category-description="{{description}}"
-                       data-category-sortorder="{{sortorder}}">
-                    {{> mod_bookit/resource_category_row }}
-                    {{#resources}}
-                        {{> mod_bookit/resource_item_row }}
-                    {{/resources}}
-                </tbody>
-            {{/categories}}
-            {{^categories}}
-                <tbody>
+        {{! Table View (Default) }}
+        <div id="mod-bookit-resource-table-view" class="resource-view">
+            <table class="table table-borderless table-hover bg-white rounded"
+                   id="mod-bookit-resource-table">
+                <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-5">
-                            {{#str}}resources:no_categories, mod_bookit{{/str}}
-                        </td>
+                        <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold">{{#str}}status, core{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold text-center">{{#str}}actions, core{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold text-center">{{#str}}move, core{{/str}}</th>
                     </tr>
-                </tbody>
-            {{/categories}}
-        </table>
+                </thead>
+                {{#categories}}
+                    <tbody data-region="resource-category"
+                           data-categoryid="{{id}}"
+                           data-category-name="{{name}}"
+                           data-category-description="{{description}}"
+                           data-category-sortorder="{{sortorder}}">
+                        {{> mod_bookit/resource_category_row }}
+                        {{#resources}}
+                            {{> mod_bookit/resource_item_row }}
+                        {{/resources}}
+                    </tbody>
+                {{/categories}}
+                {{^categories}}
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                {{#str}}resources:no_categories, mod_bookit{{/str}}
+                            </td>
+                        </tr>
+                    </tbody>
+                {{/categories}}
+            </table>
+        </div>
     </div>
 </div>
