@@ -348,7 +348,7 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.dispatch('updateCategory', e.detail);
+            this.reactive.stateManager.processUpdates(e.detail);
         });
 
         modalForm.show();
@@ -406,7 +406,7 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.dispatch('updateItem', e.detail);
+            this.reactive.stateManager.processUpdates(e.detail);
         });
 
         modalForm.show();

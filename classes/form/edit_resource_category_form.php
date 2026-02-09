@@ -175,9 +175,21 @@ class edit_resource_category_form extends dynamic_form {
 
         // Save via manager.
         global $USER;
-        resource_manager::save_category($category, $USER->id);
+        $savedid = resource_manager::save_category($category, $USER->id);
 
-        return [];
+        // Return reactive state update format.
+        return [
+            [
+                'name' => 'categories',
+                'action' => 'put',
+                'fields' => [
+                    'id' => $savedid,
+                    'name' => $formdata->name,
+                    'description' => $formdata->description ?? '',
+                    'sortorder' => $formdata->sortorder ?? 0,
+                ],
+            ],
+        ];
     }
 
     /**

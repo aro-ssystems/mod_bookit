@@ -209,9 +209,24 @@ class edit_resource_form extends dynamic_form {
 
         // Save via manager.
         global $USER;
-        resource_manager::save_resource($resource, $USER->id);
+        $savedid = resource_manager::save_resource($resource, $USER->id);
 
-        return [];
+        // Return reactive state update format.
+        return [
+            [
+                'name' => 'items',
+                'action' => 'put',
+                'fields' => [
+                    'id' => $savedid,
+                    'name' => $formdata->name,
+                    'description' => $formdata->description ?? '',
+                    'categoryid' => $formdata->categoryid,
+                    'amount' => $amount,
+                    'amountirrelevant' => (bool) $formdata->amountirrelevant,
+                    'sortorder' => $formdata->sortorder ?? 0,
+                ],
+            ],
+        ];
     }
 
     /**
