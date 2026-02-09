@@ -24,7 +24,6 @@
 
 import {BaseComponent} from 'core/reactive';
 import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
-import ResourceCategory from './resource_category';
 import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
@@ -56,20 +55,21 @@ export default class extends BaseComponent {
 
         const categoryElements = element.querySelectorAll('[data-region="resource-category"]');
         categoryElements.forEach(categoryEl => {
+            const categoryRow = categoryEl.querySelector('[data-region="resource-category-row"]');
             const categoryData = {
                 id: parseInt(categoryEl.dataset.categoryid),
-                name: categoryEl.dataset.categoryName,
+                name: categoryEl.dataset.categoryName || categoryRow?.textContent.trim(),
                 description: categoryEl.dataset.categoryDescription || '',
                 sortorder: parseInt(categoryEl.dataset.categorySortorder) || 0,
             };
             categoriesArray.push(categoryData);
 
             // Read resources for this category.
-            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item"]');
+            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item-row"]');
             itemElements.forEach(itemEl => {
                 const itemData = {
                     id: parseInt(itemEl.dataset.itemid),
-                    name: itemEl.dataset.itemName,
+                    name: itemEl.dataset.itemName || '',
                     description: itemEl.dataset.itemDescription || '',
                     categoryid: parseInt(itemEl.dataset.itemCategoryid),
                     amount: parseInt(itemEl.dataset.itemAmount) || 0,
@@ -108,46 +108,17 @@ export default class extends BaseComponent {
      * Called by BaseComponent constructor.
      */
     create() {
-        this.selectors.categoriesContainer = '#mod-bookit-resource-categories';
-        this.selectors.noCategoriesMsg = '#mod-bookit-no-categories';
         this.selectors.addCategoryBtn = '#add-category-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
-
-        this.categoryComponents = new Map();
     }
 
     /**
      * Initial state ready.
      *
      * Called when reactive state is ready.
-     *
-     * @param {Object} state - Reactive state
      */
-    stateReady(state) {
-        this._initializeExistingComponents(state);
+    stateReady() {
         this._attachEventListeners();
-    }
-
-    /**
-     * Initialize components for existing DOM elements.
-     *
-     * @param {Object} state - Reactive state
-     */
-    _initializeExistingComponents(state) {
-        const categories = Array.from(state.categories.values());
-
-        categories.forEach(categoryData => {
-            const categoryEl = document.getElementById(`resource-category-${categoryData.id}`);
-            if (categoryEl) {
-                const categoryComponent = new ResourceCategory({
-                    element: categoryEl.parentElement,
-                    reactive: this.reactive,
-                    categoryData: categoryData,
-                    existingElement: categoryEl,
-                });
-                this.categoryComponents.set(categoryData.id, categoryComponent);
-            }
-        });
     }
 
     /**
@@ -174,44 +145,7 @@ export default class extends BaseComponent {
      * Handle category created.
      */
     _handleCategoryCreated() {
-        const state = this.reactive.state;
-        this._renderCategories(state);
-    }
-
-    /**
-     * Render all categories (for dynamic updates).
-     *
-     * @param {Object} state - Reactive state
-     */
-    _renderCategories(state) {
-        const container = document.querySelector(this.selectors.categoriesContainer);
-        if (!container) {
-            return;
-        }
-
-        const categories = Array.from(state.categories.values())
-            .sort((a, b) => a.sortorder - b.sortorder);
-
-        // Clear existing.
-        container.innerHTML = '';
-        this.categoryComponents.clear();
-
-        if (categories.length === 0) {
-            this._showNoCategoriesMessage();
-            return;
-        }
-
-        this._hideNoCategoriesMessage();
-
-        // Render each category.
-        categories.forEach(categoryData => {
-            const categoryComponent = new ResourceCategory({
-                element: container,
-                reactive: this.reactive,
-                categoryData: categoryData,
-            });
-            this.categoryComponents.set(categoryData.id, categoryComponent);
-        });
+        // Table view updates automatically via DOM - no action needed.
     }
 
     /**
@@ -245,20 +179,9 @@ export default class extends BaseComponent {
     /**
      * Handle category deleted.
      *
-     * @param {Object} args - Event args
-     * @param {Object} args.element - Deleted category data
      */
-    _handleCategoryDeleted({element}) {
-        const component = this.categoryComponents.get(element.id);
-        if (component) {
-            component.remove();
-            this.categoryComponents.delete(element.id);
-        }
-
-        const state = this.reactive.state;
-        if (state.categories.size === 0) {
-            this._showNoCategoriesMessage();
-        }
+    _handleCategoryDeleted() {
+        // Table view updates automatically via DOM - no action needed.
     }
 
     /**
