@@ -147,7 +147,7 @@ class edit_resource_form extends dynamic_form {
 
         if (!empty($id)) {
             // Edit mode: Load existing resource.
-            $resource = resource_manager::get_resource($id);
+            $resource = resource_manager::get_resource_by_id($id);
             $data = (object) [
                 'id' => $resource->get_id(),
                 'name' => $resource->get_name(),

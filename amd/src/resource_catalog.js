@@ -27,6 +27,7 @@ import {resourceReactiveInstance, initResourceReactive} from './resource_reactiv
 import ResourceCategory from './resource_category';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
+import Notification from 'core/notification';
 
 /**
  * Resource catalog component.
@@ -281,6 +282,161 @@ export default class extends BaseComponent {
                 this._switchView('cards');
             });
         }
+
+        // Table view button event delegation.
+        this._attachTableViewEventListeners();
+    }
+
+    /**
+     * Attach event listeners for table view buttons (event delegation).
+     */
+    _attachTableViewEventListeners() {
+        const tableView = document.querySelector(this.selectors.tableView);
+        if (!tableView) {
+            return;
+        }
+
+        // Event delegation for all buttons in table view.
+        tableView.addEventListener('click', async(e) => {
+            const target = e.target.closest('button[data-action]');
+            if (!target) {
+                return;
+            }
+
+            const action = target.dataset.action;
+            e.preventDefault();
+
+            switch (action) {
+                case 'edit-category':
+                    await this._handleEditCategoryFromTable(target);
+                    break;
+                case 'delete-category':
+                    await this._handleDeleteCategoryFromTable(target);
+                    break;
+                case 'edit-item':
+                    await this._handleEditItemFromTable(target);
+                    break;
+                case 'delete-item':
+                    await this._handleDeleteItemFromTable(target);
+                    break;
+            }
+        });
+    }
+
+    /**
+     * Handle edit category from table view.
+     *
+     * @param {HTMLElement} button - Button element
+     */
+    async _handleEditCategoryFromTable(button) {
+        const categoryId = parseInt(button.dataset.categoryId);
+        const state = this.reactive.state;
+        const category = state.categories.get(categoryId);
+
+        if (!category) {
+            return;
+        }
+
+        const modalForm = new ModalForm({
+            formClass: 'mod_bookit\\form\\edit_resource_category_form',
+            args: {
+                id: categoryId,
+            },
+            modalConfig: {
+                title: await getString('resources:edit_category', 'mod_bookit'),
+            },
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
+            this.reactive.dispatch('updateCategory', e.detail);
+        });
+
+        modalForm.show();
+    }
+
+    /**
+     * Handle delete category from table view.
+     *
+     * @param {HTMLElement} button - Button element
+     */
+    async _handleDeleteCategoryFromTable(button) {
+        const categoryId = parseInt(button.dataset.categoryId);
+        const state = this.reactive.state;
+        const category = state.categories.get(categoryId);
+
+        if (!category) {
+            return;
+        }
+
+        const confirmMsg = await getString('resources:confirm_delete_category', 'mod_bookit', category.name);
+
+        Notification.confirm(
+            await getString('confirm', 'core'),
+            confirmMsg,
+            await getString('yes', 'core'),
+            await getString('no', 'core'),
+            () => {
+                this.reactive.dispatch('deleteCategory', categoryId);
+            }
+        );
+    }
+
+    /**
+     * Handle edit item from table view.
+     *
+     * @param {HTMLElement} button - Button element
+     */
+    async _handleEditItemFromTable(button) {
+        const itemId = parseInt(button.dataset.itemId);
+        const state = this.reactive.state;
+        const item = state.items.get(itemId);
+
+        if (!item) {
+            return;
+        }
+
+        const modalForm = new ModalForm({
+            formClass: 'mod_bookit\\form\\edit_resource_form',
+            args: {
+                id: itemId,
+            },
+            modalConfig: {
+                title: await getString('resources:edit_resource', 'mod_bookit'),
+            },
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
+            this.reactive.dispatch('updateItem', e.detail);
+        });
+
+        modalForm.show();
+    }
+
+    /**
+     * Handle delete item from table view.
+     *
+     * @param {HTMLElement} button - Button element
+     */
+    async _handleDeleteItemFromTable(button) {
+        const itemId = parseInt(button.dataset.itemId);
+        const state = this.reactive.state;
+        const item = state.items.get(itemId);
+
+        if (!item) {
+            return;
+        }
+
+        const confirmMsg = await getString('resources:confirm_delete_resource', 'mod_bookit', item.name);
+
+        Notification.confirm(
+            await getString('confirm', 'core'),
+            confirmMsg,
+            await getString('yes', 'core'),
+            await getString('no', 'core'),
+            () => {
+                this.reactive.dispatch('deleteItem', itemId);
+            }
+        );
     }
 
     /**
