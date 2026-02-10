@@ -34,7 +34,8 @@ export default class {
         const itemObject = state.checklistitems.get(itemId);
 
         // State always contains exactly one master checklist (architectural guarantee)
-        const masterChecklist = state.masterchecklists.values().next().value;
+        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
+        const masterChecklist = state.masterchecklists.get(state.activechecklist.id);
 
         const formDataObj = {
             itemid: itemObject.id,
@@ -145,7 +146,8 @@ export default class {
         }
 
         // State always contains exactly one master checklist (architectural guarantee)
-        const masterChecklist = stateManager.state.masterchecklists.values().next().value;
+        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
+        const masterChecklist = stateManager.state.masterchecklists.get(stateManager.state.activechecklist.id);
 
         // Persist state changes.
         categoriesToUpdate.forEach(categoryId => {

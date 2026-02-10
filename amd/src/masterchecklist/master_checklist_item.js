@@ -164,7 +164,8 @@ export default class extends BaseComponent {
 
     async _handleEditChecklistItemButtonClick(event) {
         // State always contains exactly one master checklist (architectural guarantee)
-        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
+        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
+        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_item_form",
