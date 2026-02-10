@@ -213,15 +213,29 @@ export default class extends BaseComponent {
                 }
             }
         } else if (fieldPart === 'active') {
-            // Active field requires conditional badge rendering
-            const targetElement = document.querySelector(`td[data-bookit-resource-tabledata-active-id="${event.element.id}"]`);
-            if (targetElement) {
-                const state = this.reactive.state;
-                const item = state.items.get(event.element.id);
+            // Update toggle switch and row appearance
+            const state = this.reactive.state;
+            const item = state.items.get(event.element.id);
+
+            // Update checkbox state
+            const checkbox = document.querySelector(`#resource-active-${event.element.id}`);
+            if (checkbox) {
+                checkbox.checked = item.active;
+            }
+
+            // Update label text
+            const label = document.querySelector(`label[for="resource-active-${event.element.id}"]`);
+            if (label) {
+                label.textContent = item.active ? 'Active' : 'Inactive';
+            }
+
+            // Update row opacity
+            const row = document.querySelector(`#resource-item-row-${event.element.id}`);
+            if (row) {
                 if (item.active) {
-                    targetElement.innerHTML = '<span class="badge badge-success">Active</span>';
+                    row.classList.remove('opacity-50');
                 } else {
-                    targetElement.innerHTML = '<span class="badge badge-secondary">Inactive</span>';
+                    row.classList.add('opacity-50');
                 }
             }
         } else {
