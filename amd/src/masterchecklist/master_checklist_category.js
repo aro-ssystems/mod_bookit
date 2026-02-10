@@ -71,12 +71,15 @@ export default class extends BaseComponent {
     }
 
     async _handleEditChecklistCategoryButtonClick() {
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+
         const modalForm = new ModalForm({
             formClass: 'mod_bookit\\local\\form\\masterchecklist\\edit_checklist_category_form',
             moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 id: this.element.dataset.bookitCategoryId,
-                masterid: 1,
+                masterid: masterId,
                 checklistitems: JSON.stringify(
                     this.reactive.state.checklistcategories.get(this.element.dataset.bookitCategoryId).items
                 ),

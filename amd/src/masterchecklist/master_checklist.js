@@ -112,10 +112,13 @@ export default class extends BaseComponent {
     }
 
     async _handleAddChecklistItemButtonClick() {
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_item_form",
             args: {
-                masterid: 1,
+                masterid: masterId,
                 itemid: null,
                 categories: Array.from(this.reactive.state.checklistcategories.values()),
             },
@@ -134,10 +137,13 @@ export default class extends BaseComponent {
 
 
     async _handleAddChecklistCategoryButtonClick() {
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_category_form",
             args: {
-                masterid: 1
+                masterid: masterId
             },
             modalConfig: {
                 title: await getString('checklistcategory', 'mod_bookit'),
@@ -153,8 +159,9 @@ export default class extends BaseComponent {
     }
 
     async _handleExportChecklistButtonClick() {
-        // Get masterid from reactive state instead of dataset to avoid timing issues
-        const masterid = this.reactive.state.masterchecklists?.get(1)?.id || 1;
+        // Get masterid from DOM data attribute
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterid = parseInt(tableElement.dataset.masterChecklistId);
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\export_checklist_form",
@@ -180,8 +187,9 @@ export default class extends BaseComponent {
     }
 
     async _handleImportChecklistButtonClick() {
-        // Get masterid from reactive state instead of dataset to avoid timing issues
-        const masterid = this.reactive.state.masterchecklists?.get(1)?.id || 1;
+        // Get masterid from DOM data attribute
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterid = parseInt(tableElement.dataset.masterChecklistId);
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\import_checklist_form",
@@ -218,12 +226,15 @@ export default class extends BaseComponent {
             }
         }
 
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+
         Templates.renderForPromise('mod_bookit/masterchecklist/bookit_checklist_category',
             {
                 id: event.element.id,
                 name: event.element.name,
                 order: event.element.order,
-                masterid: 1, // XXX TODO get from state
+                masterid: masterId,
                 type: 'category',
             })
             .then(({html, js}) => {

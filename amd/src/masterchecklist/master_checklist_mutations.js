@@ -33,9 +33,12 @@ export default class {
         const state = stateManager.state;
         const itemObject = state.checklistitems.get(itemId);
 
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+
         const formDataObj = {
             itemid: itemObject.id,
-            masterid: 1,
+            masterid: masterId,
             title: itemObject.title,
             categoryid: itemObject.categoryid,
             roomid: itemObject.roomid,
@@ -142,11 +145,14 @@ export default class {
         }
 
         // Persist state changes.
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+
         categoriesToUpdate.forEach(categoryId => {
             const category = stateManager.state.checklistcategories.get(categoryId);
             const formDataObj = {
                 id: category.id,
-                masterid: 1,
+                masterid: masterId,
                 name: category.name,
                 checklistitems: category.items,
                 action: 'put',
