@@ -75,6 +75,7 @@ export default class extends BaseComponent {
                     categoryid: parseInt(itemEl.dataset.itemCategoryid),
                     amount: parseInt(itemEl.dataset.itemAmount) || 0,
                     amountirrelevant: itemEl.dataset.itemAmountirrelevant === 'true',
+                    active: itemEl.dataset.itemActive === 'true',
                     sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
                 };
                 itemsArray.push(itemData);
@@ -137,7 +138,11 @@ export default class extends BaseComponent {
             {watch: `categories.description:updated`, handler: this._handleCategoryUpdated},
             {watch: `categories:deleted`, handler: this._handleCategoryDeleted},
             {watch: `items:created`, handler: this._handleItemCreated},
-            {watch: `items:updated`, handler: this._handleItemUpdated},
+            {watch: `items.active:updated`, handler: this._handleActiveToggle},
+            {watch: `items.name:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.description:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.amount:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.amountirrelevant:updated`, handler: this._replaceRenderedItem},
         ];
     }
 
@@ -188,111 +193,45 @@ export default class extends BaseComponent {
     }
 
     /**
-     * Handle item updated.
+     * Handle active state toggle.
      *
      * @param {Object} args - Event args
      * @param {Object} args.element - Updated item data
      */
-    _handleItemUpdated({element}) {
-        // Update checkbox state.
+    _handleActiveToggle({element}) {
         const checkbox = document.querySelector(`#resource-active-${element.id}`);
-        if (checkbox) {
-            checkbox.checked = element.active;
-        }
+        checkbox.checked = element.active;
 
-        // Update label text.
         const label = document.querySelector(`label[for="resource-active-${element.id}"]`);
-        if (label) {
-            label.textContent = element.active ? 'Active' : 'Inactive';
-        }
+        label.textContent = element.active ? 'Active' : 'Inactive';
 
-        // Update row opacity.
         const row = document.querySelector(`#resource-item-row-${element.id}`);
-        if (row) {
-            if (element.active) {
-                row.classList.remove('opacity-50');
-            } else {
-                row.classList.add('opacity-50');
-            }
-        }
-
-        // Update amount display if changed.
-        const amountCell = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${element.id}"]`);
-        if (amountCell) {
-            if (element.amountirrelevant) {
-                amountCell.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
-            } else {
-                amountCell.innerHTML = `<span class="badge badge-info">${element.amount}x</span>`;
-            }
-        }
-
-        // Update name if changed.
-        const nameSpan = document.querySelector(`span[data-bookit-resource-tabledata-name-id="${element.id}"]`);
-        if (nameSpan) {
-            nameSpan.textContent = element.name;
-        }
-
-        // Update description if changed.
-        const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${element.id}"]`);
-        if (descSpan) {
-            descSpan.innerHTML = element.description || '';
-        }
+        row.classList.toggle('opacity-50', !element.active);
     }
 
     /**
-     * Replace rendered item field (follows checklist pattern).
+     * Replace rendered item field (follows masterchecklist pattern).
      *
      * @param {Object} event - Event object
      */
     _replaceRenderedItem(event) {
         const actionParts = event.action.split('.');
         const fieldPart = actionParts[1].split(':')[0];
+        const item = this.reactive.state.items.get(event.element.id);
 
         if (fieldPart === 'amount' || fieldPart === 'amountirrelevant') {
-            // Amount field requires template re-render due to conditional logic
-            const targetElement = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${event.element.id}"]`);
-            if (targetElement) {
-                const state = this.reactive.state;
-                const item = state.items.get(event.element.id);
-                if (item.amountirrelevant) {
-                    targetElement.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
-                } else {
-                    targetElement.innerHTML = `<span class="badge badge-info">${item.amount}x</span>`;
-                }
+            const amountCell = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${item.id}"]`);
+            if (item.amountirrelevant) {
+                amountCell.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
+            } else {
+                amountCell.innerHTML = `<span class="badge badge-info">${item.amount}x</span>`;
             }
-        } else if (fieldPart === 'active') {
-            // Update toggle switch and row appearance
-            const state = this.reactive.state;
-            const item = state.items.get(event.element.id);
-
-            // Update checkbox state
-            const checkbox = document.querySelector(`#resource-active-${event.element.id}`);
-            if (checkbox) {
-                checkbox.checked = item.active;
-            }
-
-            // Update label text
-            const label = document.querySelector(`label[for="resource-active-${event.element.id}"]`);
-            if (label) {
-                label.textContent = item.active ? 'Active' : 'Inactive';
-            }
-
-            // Update row opacity
-            const row = document.querySelector(`#resource-item-row-${event.element.id}`);
-            if (row) {
-                if (item.active) {
-                    row.classList.remove('opacity-50');
-                } else {
-                    row.classList.add('opacity-50');
-                }
-            }
-        } else {
-            // Simple fields: directly update innerHTML
-            const elementSelector = `span[data-bookit-resource-tabledata-${fieldPart}-id="${event.element.id}"]`;
-            const targetElement = document.querySelector(elementSelector);
-            if (targetElement) {
-                targetElement.innerHTML = event.element[fieldPart];
-            }
+        } else if (fieldPart === 'name') {
+            const nameSpan = document.querySelector(`span[data-bookit-resource-tabledata-name-id="${item.id}"]`);
+            nameSpan.textContent = item.name;
+        } else if (fieldPart === 'description') {
+            const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${item.id}"]`);
+            descSpan.innerHTML = item.description || '';
         }
     }
 
