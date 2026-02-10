@@ -480,7 +480,7 @@ export default class extends BaseComponent {
         const newActiveState = checkbox.checked;
 
         // Build form data object.
-        const formDataObj = {
+        const formData = {
             id: itemId,
             name: item.name,
             description: item.description || '',
@@ -491,25 +491,22 @@ export default class extends BaseComponent {
             active: newActiveState ? 1 : 0,
             roomids: item.roomids || [],
             action: 'put',
-            /* eslint-disable-next-line camelcase */
-            _qf__mod_bookit_form_edit_resource_form: 1
+            [`_qf__mod_bookit_form_edit_resource_form`]: 1
         };
 
         // Convert to URL-encoded string.
-        const formData = new URLSearchParams(formDataObj).toString();
+        const formDataString = new URLSearchParams(formData).toString();
 
         // Submit via Ajax.
         Ajax.call([{
             methodname: 'core_form_dynamic_form',
             args: {
-                formdata: formData,
+                formdata: formDataString,
                 form: 'mod_bookit\\form\\edit_resource_form'
             }
         }])[0]
         .then((response) => {
-            // Parse response data if it's a string, otherwise use directly.
-            const updates = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-            this.reactive.stateManager.processUpdates(updates);
+            this.reactive.stateManager.processUpdates(JSON.parse(response.data));
             return;
         })
         .catch((error) => {
