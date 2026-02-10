@@ -63,7 +63,7 @@ class resource_category_card implements renderable, templatable {
         $data->description = format_text($this->category->get_description() ?? '');
         $data->description_raw = $this->category->get_description() ?? '';
         $data->sortorder = $this->category->get_sortorder();
-        $data->active = $this->category->is_active() ? 'true' : 'false';
+        $data->active = $this->category->is_active();
         $data->resources = [];
 
         $resources = resource_manager::get_all_resources($this->category->get_id());
