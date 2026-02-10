@@ -48,6 +48,9 @@ class bookit_resource {
     /** @var bool Active/inactive flag */
     private bool $active;
 
+    /** @var ?array Room IDs assigned to this resource */
+    private ?array $roomids;
+
     /** @var int Unix timestamp of creation */
     private int $timecreated;
 
@@ -68,6 +71,7 @@ class bookit_resource {
      * @param bool $amountirrelevant Amount irrelevant flag
      * @param int $sortorder Sort order
      * @param bool $active Active flag
+     * @param ?array $roomids Room IDs or null if available in all rooms
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
      * @param int $usermodified User ID
@@ -81,6 +85,7 @@ class bookit_resource {
         bool $amountirrelevant = false,
         int $sortorder = 0,
         bool $active = true,
+        ?array $roomids = null,
         int $timecreated = 0,
         int $timemodified = 0,
         int $usermodified = 0
@@ -93,6 +98,7 @@ class bookit_resource {
         $this->amountirrelevant = $amountirrelevant;
         $this->sortorder = $sortorder;
         $this->active = $active;
+        $this->roomids = $roomids;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->usermodified = $usermodified;
@@ -168,6 +174,15 @@ class bookit_resource {
      */
     public function is_active(): bool {
         return $this->active;
+    }
+
+    /**
+     * Get room IDs.
+     *
+     * @return ?array
+     */
+    public function get_roomids(): ?array {
+        return $this->roomids;
     }
 
     /**
@@ -265,5 +280,15 @@ class bookit_resource {
      */
     public function set_active(bool $active): void {
         $this->active = $active;
+    }
+
+    /**
+     * Set room IDs.
+     *
+     * @param ?array $roomids
+     * @return void
+     */
+    public function set_roomids(?array $roomids): void {
+        $this->roomids = $roomids;
     }
 }

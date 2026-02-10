@@ -108,6 +108,13 @@ class edit_resource_form extends dynamic_form {
         $mform->setDefault('active', 1);
         $mform->addHelpButton('active', 'resources:active', 'mod_bookit');
 
+        // Field: roomids (multi-select).
+        $rooms = $this->get_rooms_for_select();
+        $select = $mform->addElement('select', 'roomids', get_string('resources:rooms', 'mod_bookit'), $rooms);
+        $select->setMultiple(true);
+        $select->setSize(8);
+        $mform->addHelpButton('roomids', 'resources:rooms', 'mod_bookit');
+
         // Hidden field: sortorder.
         $mform->addElement('hidden', 'sortorder');
         $mform->setType('sortorder', PARAM_INT);
@@ -144,6 +151,54 @@ class edit_resource_form extends dynamic_form {
     }
 
     /**
+     * Get rooms for select dropdown.
+     *
+     * @return array Array of room id => name
+     */
+    private function get_rooms_for_select(): array {
+        global $DB;
+        $rooms = $DB->get_records('bookit_room', ['active' => 1], 'name ASC', 'id, name');
+        $roomoptions = [];
+        foreach ($rooms as $room) {
+            $roomoptions[$room->id] = format_string($room->name);
+        }
+        return $roomoptions;
+    }
+
+    /**
+     * Get room names with colors for display.
+     *
+     * @param array|null $roomids Array of room IDs
+     * @return array Array of room data with colors
+     */
+    private function get_room_names(?array $roomids): array {
+        global $DB;
+
+        if (empty($roomids)) {
+            return [];
+        }
+
+        $roomnames = [];
+        foreach ($roomids as $roomid) {
+            $room = $DB->get_record('bookit_room', ['id' => $roomid]);
+            if ($room) {
+                $eventcolor = $room->eventcolor ?? '';
+                $textcolor = \mod_bookit\local\manager\color_manager::get_textcolor_for_background($eventcolor);
+                $textclass = $textcolor === '#000' ? 'text-dark' : 'text-light';
+
+                $roomnames[] = [
+                    'roomid' => $room->id,
+                    'roomname' => format_string($room->name),
+                    'eventcolor' => $eventcolor,
+                    'textclass' => $textclass,
+                ];
+            }
+        }
+
+        return $roomnames;
+    }
+
+    /**
      * Load in existing data as form defaults.
      */
     public function set_data_for_dynamic_submission(): void {
@@ -162,6 +217,7 @@ class edit_resource_form extends dynamic_form {
                 'amountirrelevant' => $resource->is_amountirrelevant() ? 1 : 0,
                 'active' => $resource->is_active() ? 1 : 0,
                 'sortorder' => $resource->get_sortorder(),
+                'roomids' => $resource->get_roomids() ?? [],
             ];
         } else {
             // Create mode: Set defaults.
@@ -172,6 +228,7 @@ class edit_resource_form extends dynamic_form {
                 'amountirrelevant' => 0,
                 'active' => 1,
                 'sortorder' => 0,
+                'roomids' => [],
             ];
         }
 
@@ -203,6 +260,9 @@ class edit_resource_form extends dynamic_form {
         // If amountirrelevant is checked, set amount to 0.
         $amount = $formdata->amountirrelevant ? 0 : ($formdata->amount ?? 1);
 
+        // Handle roomids - convert empty to null, otherwise keep as array.
+        $roomids = !empty($formdata->roomids) ? $formdata->roomids : null;
+
         // Create entity from form data.
         $resource = new \mod_bookit\local\entity\bookit_resource(
             $formdata->id ?: null,
@@ -213,6 +273,7 @@ class edit_resource_form extends dynamic_form {
             (bool) $formdata->amountirrelevant,
             $formdata->sortorder ?? 0,
             (bool) $formdata->active,
+            $roomids,
             time(), // Timecreated.
             time()   // Timemodified.
         );
@@ -220,6 +281,12 @@ class edit_resource_form extends dynamic_form {
         // Save via manager.
         global $USER;
         $savedid = resource_manager::save_resource($resource, $USER->id);
+
+        // Reload resource to get full data including roomnames for display.
+        $savedresource = resource_manager::get_resource_by_id($savedid);
+
+        // Get room names for display.
+        $roomnames = $this->get_room_names($savedresource->get_roomids());
 
         // Return reactive state update format.
         return [
@@ -235,6 +302,8 @@ class edit_resource_form extends dynamic_form {
                     'amountirrelevant' => (bool) $formdata->amountirrelevant,
                     'sortorder' => $formdata->sortorder ?? 0,
                     'active' => (bool) $formdata->active,
+                    'roomids' => $savedresource->get_roomids(),
+                    'roomnames' => $roomnames,
                 ],
             ],
         ];

@@ -161,7 +161,7 @@ final class resource_manager_test extends advanced_testcase {
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource in category.
-        $resource = new bookit_resource(null, 'Test Resource', null, $categoryid, 5, false, 0, true, 0, 0, 2);
+        $resource = new bookit_resource(null, 'Test Resource', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
         $resourceid = resource_manager::save_resource($resource, 2);
 
         // Try to delete category - should throw exception.
@@ -220,6 +220,7 @@ final class resource_manager_test extends advanced_testcase {
             false, // Amountirrelevant.
             $sortorder,
             $active,
+            null, // Roomids.
             0,
             0,
             2
@@ -271,14 +272,14 @@ final class resource_manager_test extends advanced_testcase {
         $cat2id = resource_manager::save_category($cat2, 2);
 
         // Create resources in cat1.
-        $res1 = new bookit_resource(null, 'Resource 1', null, $cat1id, 5, false, 0, true, 0, 0, 2);
+        $res1 = new bookit_resource(null, 'Resource 1', null, $cat1id, 5, false, 0, true, null, 0, 0, 2);
         resource_manager::save_resource($res1, 2);
 
-        $res2 = new bookit_resource(null, 'Resource 2', null, $cat1id, 3, false, 1, true, 0, 0, 2);
+        $res2 = new bookit_resource(null, 'Resource 2', null, $cat1id, 3, false, 1, true, null, 0, 0, 2);
         resource_manager::save_resource($res2, 2);
 
         // Create resource in cat2.
-        $res3 = new bookit_resource(null, 'Resource 3', null, $cat2id, 7, false, 0, true, 0, 0, 2);
+        $res3 = new bookit_resource(null, 'Resource 3', null, $cat2id, 7, false, 0, true, null, 0, 0, 2);
         resource_manager::save_resource($res3, 2);
 
         // Get all resources (no filter).
@@ -306,11 +307,11 @@ final class resource_manager_test extends advanced_testcase {
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create active resource.
-        $activeres = new bookit_resource(null, 'Active', null, $categoryid, 5, false, 0, true, 0, 0, 2);
+        $activeres = new bookit_resource(null, 'Active', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
         resource_manager::save_resource($activeres, 2);
 
         // Create inactive resource.
-        $inactiveres = new bookit_resource(null, 'Inactive', null, $categoryid, 3, false, 1, false, 0, 0, 2);
+        $inactiveres = new bookit_resource(null, 'Inactive', null, $categoryid, 3, false, 1, false, null, 0, 0, 2);
         resource_manager::save_resource($inactiveres, 2);
 
         // Get all resources (including inactive).
@@ -337,7 +338,7 @@ final class resource_manager_test extends advanced_testcase {
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource.
-        $resource = new bookit_resource(null, 'Test Resource', null, $categoryid, 5, false, 0, true, 0, 0, 2);
+        $resource = new bookit_resource(null, 'Test Resource', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
         $resourceid = resource_manager::save_resource($resource, 2);
 
         // Delete resource.
@@ -415,7 +416,7 @@ final class resource_manager_test extends advanced_testcase {
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource with empty name.
-        $resource = new bookit_resource(null, '', null, $categoryid, 5, false, 0, true, 0, 0, 2);
+        $resource = new bookit_resource(null, '', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
 
         // Expect exception when saving.
         $this->expectException(\moodle_exception::class);
@@ -431,7 +432,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create resource with non-existent category.
-        $resource = new bookit_resource(null, 'Test Resource', null, 99999, 5, false, 0, true, 0, 0, 2);
+        $resource = new bookit_resource(null, 'Test Resource', null, 99999, 5, false, 0, true, null, 0, 0, 2);
 
         // Expect exception when saving.
         $this->expectException(\moodle_exception::class);

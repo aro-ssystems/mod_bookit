@@ -676,6 +676,7 @@ class install_helper {
                     $itemdata['amountirrelevant'],
                     $sortorder,
                     true, // Active.
+                    null, // Roomids.
                     time(), // Timecreated.
                     time(), // Timemodified.
                     2 // Usermodified (admin).
