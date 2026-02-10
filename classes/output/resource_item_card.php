@@ -67,7 +67,7 @@ class resource_item_card implements renderable, templatable {
         $data->amountirrelevant = $this->resource->is_amountirrelevant();
         $data->sortorder = $this->resource->get_sortorder();
         $data->active = $this->resource->is_active();
-        $data->roomids = $this->resource->get_roomids();
+        $data->roomids = json_encode($this->resource->get_roomids() ?? []);
         $data->roomnames = $this->get_room_names();
 
         return $data;
