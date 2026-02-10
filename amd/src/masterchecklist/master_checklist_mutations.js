@@ -33,12 +33,12 @@ export default class {
         const state = stateManager.state;
         const itemObject = state.checklistitems.get(itemId);
 
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = state.masterchecklists.values().next().value;
 
         const formDataObj = {
             itemid: itemObject.id,
-            masterid: masterId,
+            masterid: masterChecklist.id,
             title: itemObject.title,
             categoryid: itemObject.categoryid,
             roomid: itemObject.roomid,
@@ -144,15 +144,15 @@ export default class {
             categoriesToUpdate.push(data.parentId);
         }
 
-        // Persist state changes.
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = stateManager.state.masterchecklists.values().next().value;
 
+        // Persist state changes.
         categoriesToUpdate.forEach(categoryId => {
             const category = stateManager.state.checklistcategories.get(categoryId);
             const formDataObj = {
                 id: category.id,
-                masterid: masterId,
+                masterid: masterChecklist.id,
                 name: category.name,
                 checklistitems: category.items,
                 action: 'put',

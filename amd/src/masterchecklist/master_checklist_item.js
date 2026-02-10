@@ -163,14 +163,14 @@ export default class extends BaseComponent {
 
 
     async _handleEditChecklistItemButtonClick(event) {
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_item_form",
             moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
-                masterid: masterId,
+                masterid: masterChecklist.id,
                 itemid: event.currentTarget.value,
                 categories: Array.from(this.reactive.state.checklistcategories.values()),
             },

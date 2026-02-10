@@ -43,10 +43,9 @@ export default class extends BaseComponent {
 
     stateReady(state) {
 
-        // Get master checklist ID from DOM instead of hardcoding
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
-        const name = state.masterchecklists.get(masterId).name;
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = state.masterchecklists.values().next().value;
+        const name = masterChecklist.name;
 
         const titleElement = this.getElement(this.selectors.MASTER_CHECKLIST_TITLE);
 
@@ -112,13 +111,13 @@ export default class extends BaseComponent {
     }
 
     async _handleAddChecklistItemButtonClick() {
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_item_form",
             args: {
-                masterid: masterId,
+                masterid: masterChecklist.id,
                 itemid: null,
                 categories: Array.from(this.reactive.state.checklistcategories.values()),
             },
@@ -137,13 +136,13 @@ export default class extends BaseComponent {
 
 
     async _handleAddChecklistCategoryButtonClick() {
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_category_form",
             args: {
-                masterid: masterId
+                masterid: masterChecklist.id
             },
             modalConfig: {
                 title: await getString('checklistcategory', 'mod_bookit'),
@@ -159,14 +158,13 @@ export default class extends BaseComponent {
     }
 
     async _handleExportChecklistButtonClick() {
-        // Get masterid from DOM data attribute
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterid = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\export_checklist_form",
             args: {
-                masterid: masterid
+                masterid: masterChecklist.id
             },
             modalConfig: {
                 title: await getString('export', 'mod_bookit'),
@@ -187,14 +185,13 @@ export default class extends BaseComponent {
     }
 
     async _handleImportChecklistButtonClick() {
-        // Get masterid from DOM data attribute
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterid = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
 
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\import_checklist_form",
             args: {
-                masterid: masterid
+                masterid: masterChecklist.id
             },
             modalConfig: {
                 title: await getString('import', 'mod_bookit'),
@@ -226,15 +223,15 @@ export default class extends BaseComponent {
             }
         }
 
-        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
-        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        // State always contains exactly one master checklist (architectural guarantee)
+        const masterChecklist = this.reactive.state.masterchecklists.values().next().value;
 
         Templates.renderForPromise('mod_bookit/masterchecklist/bookit_checklist_category',
             {
                 id: event.element.id,
                 name: event.element.name,
                 order: event.element.order,
-                masterid: masterId,
+                masterid: masterChecklist.id,
                 type: 'category',
             })
             .then(({html, js}) => {
