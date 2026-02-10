@@ -26,6 +26,7 @@
 namespace mod_bookit\output;
 
 use mod_bookit\local\entity\bookit_resource;
+use mod_bookit\local\manager\color_manager;
 use renderer_base;
 use renderable;
 use templatable;
@@ -66,7 +67,42 @@ class resource_item_card implements renderable, templatable {
         $data->amountirrelevant = $this->resource->is_amountirrelevant();
         $data->sortorder = $this->resource->get_sortorder();
         $data->active = $this->resource->is_active();
+        $data->roomids = $this->resource->get_roomids();
+        $data->roomnames = $this->get_room_names();
 
         return $data;
+    }
+
+    /**
+     * Get room names with colors for display
+     *
+     * @return array
+     */
+    private function get_room_names(): array {
+        global $DB;
+
+        $roomids = $this->resource->get_roomids();
+        if (empty($roomids)) {
+            return [];
+        }
+
+        $roomnames = [];
+        foreach ($roomids as $roomid) {
+            $room = $DB->get_record('bookit_room', ['id' => $roomid]);
+            if ($room) {
+                $eventcolor = $room->eventcolor ?? '';
+                $textcolor = color_manager::get_textcolor_for_background($eventcolor);
+                $textclass = $textcolor === '#000' ? 'text-dark' : 'text-light';
+
+                $roomnames[] = [
+                    'roomid' => $room->id,
+                    'roomname' => format_string($room->name),
+                    'eventcolor' => $eventcolor,
+                    'textclass' => $textclass,
+                ];
+            }
+        }
+
+        return $roomnames;
     }
 }
