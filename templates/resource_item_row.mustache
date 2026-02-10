@@ -51,6 +51,7 @@
     data-item-amountirrelevant="{{amountirrelevant}}"
     data-item-sortorder="{{sortorder}}"
     data-item-active="{{active}}"
+    data-item-roomids="{{roomids}}"
     draggable="true">
 
     <td class="align-middle py-3 pl-4">
@@ -67,6 +68,23 @@
         {{^amountirrelevant}}
             <span class="badge badge-info">{{amount}}x</span>
         {{/amountirrelevant}}
+    </td>
+
+    <td class="align-middle py-3" data-bookit-resource-tabledata-roomids-id="{{id}}">
+        {{#roomnames}}
+            <div>
+                <span class="badge {{textclass}}"
+                    style="opacity: 0.8;background-color: {{eventcolor}};"
+                    data-bookit-resource-tabledata-room-color="{{eventcolor}}"
+                    data-bookit-resource-tabledata-room-textclass="{{textclass}}"
+                    data-bookit-resource-tabledata-room-id="{{roomid}}"
+                    data-bookit-resource-roomname="{{roomname}}"
+                    data-bookit-resource-tabledata-is-room-element>{{roomname}}</span>
+            </div>
+        {{/roomnames}}
+        {{^roomnames}}
+            <span class="text-muted">{{#str}}resources:all_rooms, mod_bookit{{/str}}</span>
+        {{/roomnames}}
     </td>
 
     <td class="align-middle py-3" data-bookit-resource-tabledata-active-id="{{id}}">
