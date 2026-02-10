@@ -96,7 +96,7 @@ export default class {
             amount: data.fields.amount,
             amountirrelevant: data.fields.amountirrelevant,
             sortorder: data.fields.sortorder,
-            active: data.fields.active,
+            active: Boolean(data.fields.active),
         });
 
         stateManager.setReadOnly(true);

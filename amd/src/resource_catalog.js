@@ -75,7 +75,7 @@ export default class extends BaseComponent {
                     categoryid: parseInt(itemEl.dataset.itemCategoryid),
                     amount: parseInt(itemEl.dataset.itemAmount) || 0,
                     amountirrelevant: itemEl.dataset.itemAmountirrelevant === 'true',
-                    active: itemEl.dataset.itemActive === 'true',
+                    active: itemEl.dataset.itemActive === 'true' || itemEl.dataset.itemActive === '1',
                     sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
                 };
                 itemsArray.push(itemData);
@@ -200,13 +200,21 @@ export default class extends BaseComponent {
      */
     _handleActiveToggle({element}) {
         const checkbox = document.querySelector(`#resource-active-${element.id}`);
+        if (!checkbox) {
+            window.console.warn(`Toggle checkbox not found for item ${element.id}`);
+            return;
+        }
         checkbox.checked = element.active;
 
         const label = document.querySelector(`label[for="resource-active-${element.id}"]`);
-        label.textContent = element.active ? 'Active' : 'Inactive';
+        if (label) {
+            label.textContent = element.active ? 'Active' : 'Inactive';
+        }
 
         const row = document.querySelector(`#resource-item-row-${element.id}`);
-        row.classList.toggle('opacity-50', !element.active);
+        if (row) {
+            row.classList.toggle('opacity-50', !element.active);
+        }
     }
 
     /**
