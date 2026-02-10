@@ -46,9 +46,12 @@ class install_helper {
     public static function create_default_checklists(bool $force = false, bool $verbose = false): bool {
         global $DB;
 
-        // Check if a master checklist already exists.
-        $existing = $DB->count_records('bookit_checklist_master');
-        if ($existing > 0 && !$force) {
+        // Check if complete checklist data already exists (master + categories + items).
+        $existingmaster = $DB->count_records('bookit_checklist_master');
+        $existingcategories = $DB->count_records('bookit_checklist_category');
+        $existingitems = $DB->count_records('bookit_checklist_item');
+
+        if ($existingmaster > 0 && $existingcategories > 0 && $existingitems > 0 && !$force) {
             if ($verbose) {
                 mtrace('Checklist data already exists. Skipping creation.');
             }
@@ -61,6 +64,39 @@ class install_helper {
 
         // First, ensure we have some default rooms available.
         self::create_default_rooms($force, $verbose);
+
+        // Get or create master checklist.
+        $masterid = null;
+        $master = null;
+
+        // Try to find existing master checklist first.
+        $existingmasters = $DB->get_records('bookit_checklist_master', ['isdefault' => 1]);
+        if (!empty($existingmasters)) {
+            $master = reset($existingmasters);
+            $masterid = $master->id;
+            if ($verbose) {
+                mtrace("Using existing master checklist with ID: $masterid");
+            }
+        } else {
+            // Create new master checklist.
+            if ($verbose) {
+                mtrace('Creating master checklist...');
+            }
+
+            $master = new bookit_checklist_master(
+                null,
+                'University Examination Administration Checklist',
+                'A comprehensive checklist for planning, executing, and concluding university examinations',
+                1, // Make it the default.
+                []
+            );
+
+            $masterid = $master->save();
+
+            if ($verbose) {
+                mtrace("Created master checklist with ID: $masterid");
+            }
+        }
 
         // Collection of exam-related task items for our test data.
         $taskitems = [
@@ -86,31 +122,6 @@ class install_helper {
             'Grade all exams within the deadline',
             'Record all results in the academic system',
         ];
-
-        // Create the master checklist.
-        if ($verbose) {
-            mtrace('Creating master checklist...');
-        }
-
-        $master = new bookit_checklist_master(
-            null,
-            'University Examination Administration Checklist',
-            'A comprehensive checklist for planning, executing, and concluding university examinations',
-            1, // Make it the default.
-            []
-        );
-
-        $masterid = $master->save();
-
-        // Update the ID to 1 for testing purposes.
-        if ($masterid != 1) {
-            $DB->execute("UPDATE {bookit_checklist_master} SET id = 1 WHERE id = ?", [$masterid]);
-            $masterid = 1;
-        }
-
-        if ($verbose) {
-            mtrace("Created master checklist with ID: $masterid");
-        }
 
         // Define category data.
         $categories = [
@@ -541,9 +552,9 @@ class install_helper {
     public static function create_default_resources(bool $force = false, bool $verbose = false): bool {
         global $DB;
 
-        // Check if resource categories already exist.
-        $existing = $DB->count_records('bookit_resource_categories');
-        if ($existing > 0 && !$force) {
+        // Check if resources already exist (not just categories).
+        $existingresources = $DB->count_records('bookit_resource');
+        if ($existingresources > 0 && !$force) {
             if ($verbose) {
                 mtrace('Resource data already exists. Skipping creation.');
             }
@@ -598,32 +609,49 @@ class install_helper {
             ],
         ];
 
-        // Create categories.
+        // Create or get existing categories.
         $categoryids = [];
         $categorymap = []; // Name => ID mapping.
 
+        // Get all existing categories.
+        $existingcats = $DB->get_records('bookit_resource_categories');
+        $existingcatsbyname = [];
+        foreach ($existingcats as $cat) {
+            $existingcatsbyname[$cat->name] = $cat;
+        }
+
         foreach ($categories as $catdata) {
-            if ($verbose) {
-                mtrace("Creating resource category: {$catdata['name']}");
-            }
+            // Check if category already exists.
+            if (isset($existingcatsbyname[$catdata['name']])) {
+                $existingcat = $existingcatsbyname[$catdata['name']];
+                if ($verbose) {
+                    mtrace("Using existing resource category: {$catdata['name']} (ID: {$existingcat->id})");
+                }
+                $categoryids[] = $existingcat->id;
+                $categorymap[$catdata['name']] = $existingcat->id;
+            } else {
+                if ($verbose) {
+                    mtrace("Creating resource category: {$catdata['name']}");
+                }
 
-            $category = new bookit_resource_categories(
-                null, // ID.
-                $catdata['name'],
-                $catdata['description'],
-                $catdata['sortorder'],
-                true, // Active.
-                time(), // Timecreated.
-                time(), // Timemodified.
-                2 // Usermodified (admin).
-            );
+                $category = new bookit_resource_categories(
+                    null, // ID.
+                    $catdata['name'],
+                    $catdata['description'],
+                    $catdata['sortorder'],
+                    true, // Active.
+                    time(), // Timecreated.
+                    time(), // Timemodified.
+                    2 // Usermodified (admin).
+                );
 
-            $categoryid = resource_manager::save_category($category, 2);
-            $categoryids[] = $categoryid;
-            $categorymap[$catdata['name']] = $categoryid;
+                $categoryid = resource_manager::save_category($category, 2);
+                $categoryids[] = $categoryid;
+                $categorymap[$catdata['name']] = $categoryid;
 
-            if ($verbose) {
-                mtrace("  Category ID: $categoryid");
+                if ($verbose) {
+                    mtrace("  Category ID: $categoryid");
+                }
             }
         }
 
