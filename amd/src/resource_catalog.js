@@ -491,6 +491,7 @@ export default class extends BaseComponent {
             active: newActiveState ? 1 : 0,
             roomids: item.roomids || [],
             action: 'put',
+            /* eslint-disable-next-line camelcase */
             _qf__mod_bookit_form_edit_resource_form: 1
         };
 
@@ -506,7 +507,9 @@ export default class extends BaseComponent {
             }
         }])[0]
         .then((response) => {
-            this.reactive.stateManager.processUpdates(JSON.parse(response.data));
+            // Parse response data if it's a string, otherwise use directly.
+            const updates = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+            this.reactive.stateManager.processUpdates(updates);
             return;
         })
         .catch((error) => {
