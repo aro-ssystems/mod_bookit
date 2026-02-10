@@ -27,6 +27,7 @@ import {resourceReactiveInstance, initResourceReactive} from './resource_reactiv
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import Ajax from 'core/ajax';
 import ResourceCategory from './resource_category';
 
 /**
@@ -478,41 +479,41 @@ export default class extends BaseComponent {
         // Get the new active state from the checkbox.
         const newActiveState = checkbox.checked;
 
-        // Create modal form with current resource data and toggled active state.
-        const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\edit_resource_form',
+        // Build form data object.
+        const formDataObj = {
+            id: itemId,
+            name: item.name,
+            description: item.description || '',
+            categoryid: item.categoryid,
+            amount: item.amount,
+            amountirrelevant: item.amountirrelevant ? 1 : 0,
+            sortorder: item.sortorder,
+            active: newActiveState ? 1 : 0,
+            roomids: item.roomids || [],
+            action: 'put',
+            _qf__mod_bookit_form_edit_resource_form: 1
+        };
+
+        // Convert to URL-encoded string.
+        const formData = new URLSearchParams(formDataObj).toString();
+
+        // Submit via Ajax.
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
             args: {
-                id: itemId,
-                name: item.name,
-                description: item.description || '',
-                categoryid: item.categoryid,
-                amount: item.amount,
-                amountirrelevant: item.amountirrelevant,
-                sortorder: item.sortorder,
-                active: newActiveState,
-                roomids: item.roomids || [],
-            },
-            modalConfig: {
-                title: await getString('resources:edit_resource', 'mod_bookit'),
-            },
-        });
-
-        // Handle form submission.
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
-            this.reactive.stateManager.processUpdates(response.detail);
-        });
-
-        // Auto-submit when form is loaded.
-        modalForm.addEventListener(modalForm.events.LOADED, () => {
-            // Submit the form programmatically.
-            const formElement = modalForm.modal.getRoot().find('form')[0];
-            if (formElement) {
-                formElement.submit();
+                formdata: formData,
+                form: 'mod_bookit\\form\\edit_resource_form'
             }
+        }])[0]
+        .then((response) => {
+            this.reactive.stateManager.processUpdates(JSON.parse(response.data));
+            return;
+        })
+        .catch((error) => {
+            // Revert checkbox on error.
+            checkbox.checked = !newActiveState;
+            window.console.error('Toggle active error:', error);
         });
-
-        // Show modal (will be hidden automatically after submission).
-        modalForm.show();
     }
 
     /**

@@ -85,15 +85,14 @@
     </td>
 
     <td class="align-middle py-3" data-bookit-resource-tabledata-active-id="{{id}}">
-        <div class="form-check form-switch">
+        <div class="custom-control custom-switch">
             <input type="checkbox"
-                   class="form-check-input"
+                   class="custom-control-input"
                    data-action="toggle-active"
                    data-item-id="{{id}}"
                    {{#active}}checked{{/active}}
-                   role="switch"
                    id="resource-active-{{id}}">
-            <label class="form-check-label" for="resource-active-{{id}}">
+            <label class="custom-control-label" for="resource-active-{{id}}">
                 {{#active}}
                     {{#str}}active, core{{/str}}
                 {{/active}}
