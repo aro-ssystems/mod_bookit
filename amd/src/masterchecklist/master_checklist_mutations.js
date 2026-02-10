@@ -164,7 +164,10 @@ export default class {
     reOrderCategories(stateManager, data) {
         const state = stateManager.state;
 
-        const masterChecklist = state.masterchecklists.get(1);
+        // Get master checklist ID from DOM instead of hardcoding
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        const masterChecklist = state.masterchecklists.get(masterId);
         if (!masterChecklist) {
             window.console.error('Master checklist not found');
             stateManager.setReadOnly(true);

@@ -43,7 +43,10 @@ export default class extends BaseComponent {
 
     stateReady(state) {
 
-        const name = state.masterchecklists.get(1).name;
+        // Get master checklist ID from DOM instead of hardcoding
+        const tableElement = document.querySelector('#mod-bookit-master-checklist-table');
+        const masterId = parseInt(tableElement.dataset.masterChecklistId);
+        const name = state.masterchecklists.get(masterId).name;
 
         const titleElement = this.getElement(this.selectors.MASTER_CHECKLIST_TITLE);
 
