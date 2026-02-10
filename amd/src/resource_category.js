@@ -55,8 +55,8 @@ export default class ResourceCategory extends BaseComponent {
         this.itemComponents = new Map();
         this.parentElement = element;
 
-        // Render immediately.
-        this._render();
+        // Note: _render() must be called explicitly when creating new categories.
+        // When initializing from existing DOM, categoryElement is set externally.
     }
 
     /**
@@ -67,7 +67,7 @@ export default class ResourceCategory extends BaseComponent {
     getWatchers() {
         return [
             {watch: `items:created`, handler: this._handleItemCreated},
-            {watch: `items:updated`, handler: this._handleItemUpdated},
+            {watch: `items.categoryid:updated`, handler: this._handleItemCategoryChanged},
             {watch: `items:deleted`, handler: this._handleItemDeleted},
         ];
     }
@@ -97,8 +97,9 @@ export default class ResourceCategory extends BaseComponent {
 
     /**
      * Render items in this category (table view: append rows to tbody).
+     * Used when creating new items dynamically.
      */
-    _renderItems() {
+    async _renderItems() {
         if (!this.categoryElement) {
             return;
         }
@@ -118,13 +119,46 @@ export default class ResourceCategory extends BaseComponent {
             .sort((a, b) => a.sortorder - b.sortorder);
 
         // Render each item as a table row.
-        items.forEach(itemData => {
+        for (const itemData of items) {
             const itemComponent = new ResourceItem({
                 element: this.categoryElement,
                 reactive: this.reactive,
                 itemData: itemData,
             });
+            // Explicitly call render for dynamically created items.
+            await itemComponent._render();
             this.itemComponents.set(itemData.id, itemComponent);
+        }
+    }
+
+    /**
+     * Initialize item components from existing DOM.
+     * Called when attaching to pre-rendered HTML.
+     */
+    _initItemsFromDOM() {
+        if (!this.categoryElement) {
+            return;
+        }
+
+        const state = this.reactive.state;
+        const itemRows = this.categoryElement.querySelectorAll('tr[data-item-id]');
+
+        itemRows.forEach(itemRow => {
+            const itemId = parseInt(itemRow.dataset.itemId);
+            const itemData = state.items.get(itemId);
+
+            if (itemData && itemData.categoryid === this.categoryData.id) {
+                const itemComponent = new ResourceItem({
+                    element: this.categoryElement,
+                    reactive: this.reactive,
+                    itemData: itemData,
+                });
+                // Set existing DOM element instead of rendering.
+                itemComponent.itemElement = itemRow;
+                itemComponent._attachEventListeners();
+
+                this.itemComponents.set(itemData.id, itemComponent);
+            }
         });
     }
 
@@ -141,12 +175,12 @@ export default class ResourceCategory extends BaseComponent {
     }
 
     /**
-     * Handle item updated.
+     * Handle item category changed (item moved between categories).
      *
      * @param {Object} args - Event args
      * @param {Object} args.element - Updated item data
      */
-    _handleItemUpdated({element}) {
+    _handleItemCategoryChanged({element}) {
         // Check if item moved to/from this category.
         const hadItem = this.itemComponents.has(element.id);
         const shouldHaveItem = element.categoryid === this.categoryData.id;
@@ -154,12 +188,6 @@ export default class ResourceCategory extends BaseComponent {
         if (hadItem !== shouldHaveItem) {
             // Item moved - re-render.
             this._renderItems();
-        } else if (shouldHaveItem) {
-            // Item updated in place.
-            const component = this.itemComponents.get(element.id);
-            if (component) {
-                component.update(element);
-            }
         }
     }
 

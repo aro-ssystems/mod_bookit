@@ -548,18 +548,17 @@ export default class extends BaseComponent {
             const categoryId = parseInt(categoryEl.dataset.categoryid);
             const category = state.categories.get(categoryId);
             if (category) {
-                // Component will manage this existing DOM element.
+                // Component attaches to existing DOM element (no rendering).
                 const component = new ResourceCategory({
                     element: this.element.querySelector('#mod-bookit-resource-table'),
                     reactive: this.reactive,
                     categoryData: category,
                 });
-                // Override the rendered element with existing one.
-                if (component.categoryElement) {
-                    component.categoryElement.remove();
-                }
+                // Set existing DOM element.
                 component.categoryElement = categoryEl;
                 component._attachEventListeners();
+                // Initialize item components from existing DOM.
+                component._initItemsFromDOM();
 
                 this.categoryComponents.set(categoryId, component);
             }
