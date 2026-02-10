@@ -109,6 +109,7 @@ export default class extends BaseComponent {
      */
     create() {
         this.selectors.addCategoryBtn = '#add-category-btn';
+        this.selectors.addResourceBtn = '#add-resource-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
         this.categoryComponents = new Map();
     }
@@ -241,6 +242,14 @@ export default class extends BaseComponent {
             addBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this._handleAddCategory();
+            });
+        }
+
+        const addResourceBtn = document.querySelector(this.selectors.addResourceBtn);
+        if (addResourceBtn) {
+            addResourceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this._handleAddResource();
             });
         }
 
@@ -415,6 +424,27 @@ export default class extends BaseComponent {
             },
             modalConfig: {
                 title: await getString('resources:add_category', 'mod_bookit'),
+            },
+        });
+
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
+        });
+
+        modalForm.show();
+    }
+
+    /**
+     * Handle add resource button click.
+     */
+    async _handleAddResource() {
+        const modalForm = new ModalForm({
+            formClass: 'mod_bookit\\form\\edit_resource_form',
+            args: {
+                contextid: this.selectors.contextId,
+            },
+            modalConfig: {
+                title: await getString('resources:add_resource', 'mod_bookit'),
             },
         });
 
