@@ -71,16 +71,12 @@ export default class extends BaseComponent {
     }
 
     async _handleEditChecklistCategoryButtonClick() {
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
-        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
-
         const modalForm = new ModalForm({
             formClass: 'mod_bookit\\local\\form\\masterchecklist\\edit_checklist_category_form',
             moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 id: this.element.dataset.bookitCategoryId,
-                masterid: masterChecklist.id,
+                masterid: this.reactive.state.activechecklist.id,
                 checklistitems: JSON.stringify(
                     this.reactive.state.checklistcategories.get(this.element.dataset.bookitCategoryId).items
                 ),

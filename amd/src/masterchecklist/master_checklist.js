@@ -43,8 +43,7 @@ export default class extends BaseComponent {
 
     stateReady(state) {
 
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
+        // Get master name for display (only place we need the full master object)
         const masterChecklist = state.masterchecklists.get(state.activechecklist.id);
         const name = masterChecklist.name;
 
@@ -112,14 +111,10 @@ export default class extends BaseComponent {
     }
 
     async _handleAddChecklistItemButtonClick() {
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
-        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
-
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_item_form",
             args: {
-                masterid: masterChecklist.id,
+                masterid: this.reactive.state.activechecklist.id,
                 itemid: null,
                 categories: Array.from(this.reactive.state.checklistcategories.values()),
             },
@@ -138,14 +133,10 @@ export default class extends BaseComponent {
 
 
     async _handleAddChecklistCategoryButtonClick() {
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
-        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
-
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\edit_checklist_category_form",
             args: {
-                masterid: masterChecklist.id
+                masterid: this.reactive.state.activechecklist.id
             },
             modalConfig: {
                 title: await getString('checklistcategory', 'mod_bookit'),
@@ -161,14 +152,10 @@ export default class extends BaseComponent {
     }
 
     async _handleExportChecklistButtonClick() {
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
-        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
-
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\export_checklist_form",
             args: {
-                masterid: masterChecklist.id
+                masterid: this.reactive.state.activechecklist.id
             },
             modalConfig: {
                 title: await getString('export', 'mod_bookit'),
@@ -189,14 +176,10 @@ export default class extends BaseComponent {
     }
 
     async _handleImportChecklistButtonClick() {
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
-        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
-
         const modalForm = new ModalForm({
             formClass: "mod_bookit\\local\\form\\masterchecklist\\import_checklist_form",
             args: {
-                masterid: masterChecklist.id
+                masterid: this.reactive.state.activechecklist.id
             },
             modalConfig: {
                 title: await getString('import', 'mod_bookit'),
@@ -228,16 +211,12 @@ export default class extends BaseComponent {
             }
         }
 
-        // State always contains exactly one master checklist (architectural guarantee)
-        // Access via activechecklist.id (already contains master ID) (Moodle pattern: always know the ID)
-        const masterChecklist = this.reactive.state.masterchecklists.get(this.reactive.state.activechecklist.id);
-
         Templates.renderForPromise('mod_bookit/masterchecklist/bookit_checklist_category',
             {
                 id: event.element.id,
                 name: event.element.name,
                 order: event.element.order,
-                masterid: masterChecklist.id,
+                masterid: this.reactive.state.activechecklist.id,
                 type: 'category',
             })
             .then(({html, js}) => {
