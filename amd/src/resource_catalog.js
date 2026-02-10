@@ -270,6 +270,12 @@ export default class extends BaseComponent {
         tableView.addEventListener('click', async(e) => {
             const target = e.target.closest('button[data-action]');
             if (!target) {
+                // Check for toggle switches.
+                const toggle = e.target.closest('[data-action="toggle-active"]');
+                if (toggle) {
+                    e.preventDefault();
+                    await this._handleToggleActive(toggle);
+                }
                 return;
             }
 
@@ -452,6 +458,60 @@ export default class extends BaseComponent {
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
+        modalForm.show();
+    }
+
+    /**
+     * Handle toggle active switch.
+     *
+     * @param {HTMLElement} checkbox - Toggle checkbox element
+     */
+    async _handleToggleActive(checkbox) {
+        const itemId = parseInt(checkbox.dataset.itemId);
+        const state = this.reactive.state;
+        const item = state.items.get(itemId);
+
+        if (!item) {
+            return;
+        }
+
+        // Get the new active state from the checkbox.
+        const newActiveState = checkbox.checked;
+
+        // Create modal form with current resource data and toggled active state.
+        const modalForm = new ModalForm({
+            formClass: 'mod_bookit\\form\\edit_resource_form',
+            args: {
+                id: itemId,
+                name: item.name,
+                description: item.description || '',
+                categoryid: item.categoryid,
+                amount: item.amount,
+                amountirrelevant: item.amountirrelevant,
+                sortorder: item.sortorder,
+                active: newActiveState,
+                roomids: item.roomids || [],
+            },
+            modalConfig: {
+                title: await getString('resources:edit_resource', 'mod_bookit'),
+            },
+        });
+
+        // Handle form submission.
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
+        });
+
+        // Auto-submit when form is loaded.
+        modalForm.addEventListener(modalForm.events.LOADED, () => {
+            // Submit the form programmatically.
+            const formElement = modalForm.modal.getRoot().find('form')[0];
+            if (formElement) {
+                formElement.submit();
+            }
+        });
+
+        // Show modal (will be hidden automatically after submission).
         modalForm.show();
     }
 
