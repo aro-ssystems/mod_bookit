@@ -74,8 +74,8 @@ export default class extends BaseComponent {
                     description: itemEl.dataset.itemDescription || '',
                     categoryid: parseInt(itemEl.dataset.itemCategoryid),
                     amount: parseInt(itemEl.dataset.itemAmount) || 0,
-                    amountirrelevant: itemEl.dataset.itemAmountirrelevant === 'true',
-                    active: itemEl.dataset.itemActive === 'true' || itemEl.dataset.itemActive === '1',
+                    amountirrelevant: itemEl.dataset.itemAmountirrelevant === '1',
+                    active: itemEl.dataset.itemActive === '1',
                     sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
                 };
                 itemsArray.push(itemData);
