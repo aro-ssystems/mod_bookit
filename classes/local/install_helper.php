@@ -46,9 +46,12 @@ class install_helper {
     public static function create_default_checklists(bool $force = false, bool $verbose = false): bool {
         global $DB;
 
-        // Check if a master checklist already exists.
-        $existing = $DB->count_records('bookit_checklist_master');
-        if ($existing > 0 && !$force) {
+        // Check if complete checklist data already exists (master + categories + items).
+        $existingmaster = $DB->count_records('bookit_checklist_master');
+        $existingcategories = $DB->count_records('bookit_checklist_category');
+        $existingitems = $DB->count_records('bookit_checklist_item');
+
+        if ($existingmaster > 0 && $existingcategories > 0 && $existingitems > 0 && !$force) {
             if ($verbose) {
                 mtrace('Checklist data already exists. Skipping creation.');
             }
@@ -61,6 +64,39 @@ class install_helper {
 
         // First, ensure we have some default rooms available.
         self::create_default_rooms($force, $verbose);
+
+        // Get or create master checklist.
+        $masterid = null;
+        $master = null;
+
+        // Try to find existing master checklist first.
+        $existingmasters = $DB->get_records('bookit_checklist_master', ['isdefault' => 1]);
+        if (!empty($existingmasters)) {
+            $master = reset($existingmasters);
+            $masterid = $master->id;
+            if ($verbose) {
+                mtrace("Using existing master checklist with ID: $masterid");
+            }
+        } else {
+            // Create new master checklist.
+            if ($verbose) {
+                mtrace('Creating master checklist...');
+            }
+
+            $master = new bookit_checklist_master(
+                null,
+                'University Examination Administration Checklist',
+                'A comprehensive checklist for planning, executing, and concluding university examinations',
+                1, // Make it the default.
+                []
+            );
+
+            $masterid = $master->save();
+
+            if ($verbose) {
+                mtrace("Created master checklist with ID: $masterid");
+            }
+        }
 
         // Collection of exam-related task items for our test data.
         $taskitems = [
@@ -86,31 +122,6 @@ class install_helper {
             'Grade all exams within the deadline',
             'Record all results in the academic system',
         ];
-
-        // Create the master checklist.
-        if ($verbose) {
-            mtrace('Creating master checklist...');
-        }
-
-        $master = new bookit_checklist_master(
-            null,
-            'University Examination Administration Checklist',
-            'A comprehensive checklist for planning, executing, and concluding university examinations',
-            1, // Make it the default.
-            []
-        );
-
-        $masterid = $master->save();
-
-        // Update the ID to 1 for testing purposes.
-        if ($masterid != 1) {
-            $DB->execute("UPDATE {bookit_checklist_master} SET id = 1 WHERE id = ?", [$masterid]);
-            $masterid = 1;
-        }
-
-        if ($verbose) {
-            mtrace("Created master checklist with ID: $masterid");
-        }
 
         // Define category data.
         $categories = [
