@@ -137,11 +137,7 @@ export default class extends BaseComponent {
             {watch: `categories.description:updated`, handler: this._handleCategoryUpdated},
             {watch: `categories:deleted`, handler: this._handleCategoryDeleted},
             {watch: `items:created`, handler: this._handleItemCreated},
-            {watch: `items.name:updated`, handler: this._replaceRenderedItem},
-            {watch: `items.description:updated`, handler: this._replaceRenderedItem},
-            {watch: `items.amount:updated`, handler: this._replaceRenderedItem},
-            {watch: `items.amountirrelevant:updated`, handler: this._replaceRenderedItem},
-            {watch: `items.active:updated`, handler: this._replaceRenderedItem},
+            {watch: `items:updated`, handler: this._handleItemUpdated},
         ];
     }
 
@@ -189,6 +185,58 @@ export default class extends BaseComponent {
      */
     _handleItemCreated() {
         // Category component handles this via its watchers.
+    }
+
+    /**
+     * Handle item updated.
+     *
+     * @param {Object} args - Event args
+     * @param {Object} args.element - Updated item data
+     */
+    _handleItemUpdated({element}) {
+        // Update checkbox state.
+        const checkbox = document.querySelector(`#resource-active-${element.id}`);
+        if (checkbox) {
+            checkbox.checked = element.active;
+        }
+
+        // Update label text.
+        const label = document.querySelector(`label[for="resource-active-${element.id}"]`);
+        if (label) {
+            label.textContent = element.active ? 'Active' : 'Inactive';
+        }
+
+        // Update row opacity.
+        const row = document.querySelector(`#resource-item-row-${element.id}`);
+        if (row) {
+            if (element.active) {
+                row.classList.remove('opacity-50');
+            } else {
+                row.classList.add('opacity-50');
+            }
+        }
+
+        // Update amount display if changed.
+        const amountCell = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${element.id}"]`);
+        if (amountCell) {
+            if (element.amountirrelevant) {
+                amountCell.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
+            } else {
+                amountCell.innerHTML = `<span class="badge badge-info">${element.amount}x</span>`;
+            }
+        }
+
+        // Update name if changed.
+        const nameSpan = document.querySelector(`span[data-bookit-resource-tabledata-name-id="${element.id}"]`);
+        if (nameSpan) {
+            nameSpan.textContent = element.name;
+        }
+
+        // Update description if changed.
+        const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${element.id}"]`);
+        if (descSpan) {
+            descSpan.innerHTML = element.description || '';
+        }
     }
 
     /**
