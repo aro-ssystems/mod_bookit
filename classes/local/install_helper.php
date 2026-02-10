@@ -541,9 +541,9 @@ class install_helper {
     public static function create_default_resources(bool $force = false, bool $verbose = false): bool {
         global $DB;
 
-        // Check if resource categories already exist.
-        $existing = $DB->count_records('bookit_resource_categories');
-        if ($existing > 0 && !$force) {
+        // Check if resources already exist (not just categories).
+        $existingresources = $DB->count_records('bookit_resource');
+        if ($existingresources > 0 && !$force) {
             if ($verbose) {
                 mtrace('Resource data already exists. Skipping creation.');
             }
@@ -598,32 +598,49 @@ class install_helper {
             ],
         ];
 
-        // Create categories.
+        // Create or get existing categories.
         $categoryids = [];
         $categorymap = []; // Name => ID mapping.
 
+        // Get all existing categories.
+        $existingcats = $DB->get_records('bookit_resource_categories');
+        $existingcatsbyname = [];
+        foreach ($existingcats as $cat) {
+            $existingcatsbyname[$cat->name] = $cat;
+        }
+
         foreach ($categories as $catdata) {
-            if ($verbose) {
-                mtrace("Creating resource category: {$catdata['name']}");
-            }
+            // Check if category already exists.
+            if (isset($existingcatsbyname[$catdata['name']])) {
+                $existingcat = $existingcatsbyname[$catdata['name']];
+                if ($verbose) {
+                    mtrace("Using existing resource category: {$catdata['name']} (ID: {$existingcat->id})");
+                }
+                $categoryids[] = $existingcat->id;
+                $categorymap[$catdata['name']] = $existingcat->id;
+            } else {
+                if ($verbose) {
+                    mtrace("Creating resource category: {$catdata['name']}");
+                }
 
-            $category = new bookit_resource_categories(
-                null, // ID.
-                $catdata['name'],
-                $catdata['description'],
-                $catdata['sortorder'],
-                true, // Active.
-                time(), // Timecreated.
-                time(), // Timemodified.
-                2 // Usermodified (admin).
-            );
+                $category = new bookit_resource_categories(
+                    null, // ID.
+                    $catdata['name'],
+                    $catdata['description'],
+                    $catdata['sortorder'],
+                    true, // Active.
+                    time(), // Timecreated.
+                    time(), // Timemodified.
+                    2 // Usermodified (admin).
+                );
 
-            $categoryid = resource_manager::save_category($category, 2);
-            $categoryids[] = $categoryid;
-            $categorymap[$catdata['name']] = $categoryid;
+                $categoryid = resource_manager::save_category($category, 2);
+                $categoryids[] = $categoryid;
+                $categorymap[$catdata['name']] = $categoryid;
 
-            if ($verbose) {
-                mtrace("  Category ID: $categoryid");
+                if ($verbose) {
+                    mtrace("  Category ID: $categoryid");
+                }
             }
         }
 
