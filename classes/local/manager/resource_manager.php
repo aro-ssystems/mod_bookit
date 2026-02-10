@@ -315,6 +315,7 @@ class resource_manager {
         $record->amountirrelevant = $resource->is_amountirrelevant() ? 1 : 0;
         $record->sortorder = $resource->get_sortorder();
         $record->active = $resource->is_active() ? 1 : 0;
+        $record->roomids = ($resource->get_roomids() !== null) ? json_encode($resource->get_roomids()) : null;
         $record->usermodified = $userid;
 
         if ($resource->get_id() === null) {
@@ -401,6 +402,12 @@ class resource_manager {
      * @return bookit_resource Resource entity
      */
     private static function resource_from_record(\stdClass $record): bookit_resource {
+        $roomids = null;
+        if (isset($record->roomids) && $record->roomids !== null) {
+            $decoded = json_decode($record->roomids, true);
+            $roomids = is_array($decoded) ? $decoded : null;
+        }
+
         return new bookit_resource(
             isset($record->id) ? (int)$record->id : null,
             $record->name ?? '',
@@ -410,6 +417,7 @@ class resource_manager {
             (bool)($record->amountirrelevant ?? 0),
             (int)($record->sortorder ?? 0),
             (bool)($record->active ?? 1),
+            $roomids,
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0),
             (int)($record->usermodified ?? 0)
