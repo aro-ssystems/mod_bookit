@@ -349,16 +349,18 @@ export default class extends BaseComponent {
             return;
         }
 
+        // Event delegation for toggle switches (using 'change' event).
+        tableView.addEventListener('change', async(e) => {
+            const toggle = e.target.closest('[data-action="toggle-active"]');
+            if (toggle) {
+                await this._handleToggleActive(toggle);
+            }
+        });
+
         // Event delegation for all buttons in table view.
         tableView.addEventListener('click', async(e) => {
             const target = e.target.closest('button[data-action]');
             if (!target) {
-                // Check for toggle switches.
-                const toggle = e.target.closest('[data-action="toggle-active"]');
-                if (toggle) {
-                    // Don't preventDefault - let checkbox toggle naturally.
-                    await this._handleToggleActive(toggle);
-                }
                 return;
             }
 
