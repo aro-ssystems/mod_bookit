@@ -298,7 +298,7 @@ export default class extends BaseComponent {
                 // Check for toggle switches.
                 const toggle = e.target.closest('[data-action="toggle-active"]');
                 if (toggle) {
-                    e.preventDefault();
+                    // Don't preventDefault - let checkbox toggle naturally.
                     await this._handleToggleActive(toggle);
                 }
                 return;
