@@ -129,6 +129,21 @@ export default class extends BaseComponent {
         this.selectors.addResourceBtn = '#add-resource-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
         this.categoryComponents = new Map();
+
+        // Cache localized strings for active/inactive.
+        this.strings = {};
+        getString('active', 'core').then(str => {
+            this.strings.active = str;
+            return str;
+        }).catch(() => {
+            this.strings.active = 'Active';
+        });
+        getString('inactive', 'core').then(str => {
+            this.strings.inactive = str;
+            return str;
+        }).catch(() => {
+            this.strings.inactive = 'Inactive';
+        });
     }
 
     /**
@@ -223,7 +238,9 @@ export default class extends BaseComponent {
 
         const label = document.querySelector(`label[for="resource-active-${element.id}"]`);
         if (label) {
-            label.textContent = element.active ? 'Active' : 'Inactive';
+            label.textContent = element.active ?
+                (this.strings.active || 'Active') :
+                (this.strings.inactive || 'Inactive');
         }
 
         const row = document.querySelector(`#resource-item-row-${element.id}`);
