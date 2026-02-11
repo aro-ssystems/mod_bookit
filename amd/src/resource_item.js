@@ -64,7 +64,7 @@ export default class extends BaseComponent {
                 id: event.currentTarget.value,
             },
             modalConfig: {
-                title: await getString('resources:edit', 'mod_bookit'),
+                title: await getString('resources:edit_resource', 'mod_bookit'),
             },
         });
 
