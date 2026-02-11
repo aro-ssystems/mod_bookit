@@ -173,6 +173,8 @@ export default class extends BaseComponent {
             {watch: `items.description:updated`, handler: this._replaceRenderedItem},
             {watch: `items.amount:updated`, handler: this._replaceRenderedItem},
             {watch: `items.amountirrelevant:updated`, handler: this._replaceRenderedItem},
+            {watch: `items.roomids:updated`, handler: this._handleRoomidsUpdated},
+            {watch: `items.roomnames:updated`, handler: this._handleRoomnamesUpdated},
         ];
     }
 
