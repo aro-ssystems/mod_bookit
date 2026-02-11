@@ -261,6 +261,9 @@ export default class extends BaseComponent {
 
         if (fieldPart === 'amount' || fieldPart === 'amountirrelevant') {
             const amountCell = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${item.id}"]`);
+            if (!amountCell) {
+                return;
+            }
             if (item.amountirrelevant) {
                 amountCell.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
             } else {
@@ -268,10 +271,26 @@ export default class extends BaseComponent {
             }
         } else if (fieldPart === 'name') {
             const nameSpan = document.querySelector(`span[data-bookit-resource-tabledata-name-id="${item.id}"]`);
+            if (!nameSpan) {
+                return;
+            }
             nameSpan.textContent = item.name;
         } else if (fieldPart === 'description') {
             const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${item.id}"]`);
-            descSpan.innerHTML = item.description || '';
+            if (descSpan) {
+                descSpan.innerHTML = item.description || '';
+            } else if (item.description) {
+                // Description was added but <small> element doesn't exist - need to re-render row.
+                const row = document.querySelector(`#resource-item-row-${item.id}`);
+                if (row) {
+                    // Find category component and trigger re-render.
+                    const categoryComponent = Array.from(this.categoryComponents.values())
+                        .find(cat => cat.categoryData.id === item.categoryid);
+                    if (categoryComponent) {
+                        categoryComponent._renderItems();
+                    }
+                }
+            }
         }
     }
 
