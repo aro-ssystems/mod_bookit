@@ -76,7 +76,7 @@ class resource_catalog implements renderable, templatable {
         $roomfilter = new roomfilter(
             'roomfilter',
             get_string('filters:room_label', 'mod_bookit'),
-            [], // Auto-loads rooms from database.
+            null, // Let constructor auto-load rooms.
             ['mode' => 'filter', 'id' => 'id_roomfilter']
         );
 

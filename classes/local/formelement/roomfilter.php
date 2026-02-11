@@ -50,6 +50,12 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
         export_for_template as export_for_template_base;
     }
 
+    /** @var bool Filter mode flag. */
+    private $filtermode = false;
+
+    /** @var array Room data for custom rendering. */
+    private $roomdata = [];
+
     /**
      * Registers the element type.
      */
@@ -77,6 +83,10 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
             $options = $this->load_room_options();
         }
 
+        // Store room data for custom rendering.
+        $this->roomdata = $options;
+
+        // Initialize parent with options for hidden select element.
         parent::__construct($elementname, $elementlabel, $options, $attributes);
         $this->setMultiple(true);
 
@@ -84,6 +94,7 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
         $class = $this->getAttribute('class') ?? '';
         $mode = $attributes['mode'] ?? 'filter';
         $this->updateAttributes(['class' => $class . ' mod_bookit-roomfilter mod_bookit-roomfilter-' . $mode]);
+        $this->filtermode = ($mode === 'filter');
     }
 
     /**
@@ -150,20 +161,21 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
         $context = new \stdClass();
         $context->name = $this->getName();
         $context->id = $this->getAttribute('id');
+        $context->filter_section_id = $context->id . '_filter_section';
         $context->label = $this->getLabel();
         $rooms = [];
 
         $selectedvalues = (array) $this->getValue();
-        $options = $this->_options;
         $roomcolors = $this->get_room_colors();
 
-        foreach ($options as $roomid => $roomname) {
+        // Use our stored room data instead of $this->_options.
+        foreach ($this->roomdata as $roomid => $roomname) {
             $isselected = in_array($roomid, $selectedvalues);
             $eventcolor = $roomcolors[$roomid] ?? '#6c757d';
 
             $rooms[] = [
-                'id' => $roomid,
-                'name' => $roomname,
+                'id' => (string)$roomid,
+                'name' => (string)$roomname,
                 'selected' => $isselected,
                 'eventcolor' => $eventcolor,
                 'colorselected' => $eventcolor,
@@ -182,10 +194,8 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
         $result = new \stdClass();
         $result->html = $html;
 
-        // Initialize JavaScript for filter interactions.
-        $PAGE->requires->js_call_amd('mod_bookit/resource_filter', 'init', [
-            ['selector' => '#' . $context->id],
-        ]);
+        // Initialize JavaScript for filter interactions - pass filter section ID!
+        $PAGE->requires->js_call_amd('mod_bookit/resource_filter', 'init', ['#' . $context->filter_section_id]);
 
         return $result;
     }
