@@ -28,6 +28,7 @@ import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
 import ResourceItem from './resource_item';
+import {SELECTORS} from './resource_reactive';
 
 /**
  * Resource category component.
@@ -144,18 +145,15 @@ export default class ResourceCategory extends BaseComponent {
         const itemRows = this.categoryElement.querySelectorAll('tr[data-itemid]');
 
         itemRows.forEach(itemRow => {
-            const itemId = parseInt(itemRow.dataset.itemid);
+            const itemId = parseInt(itemRow.dataset.bookitItemId);
             const itemData = state.items.get(itemId);
 
             if (itemData && itemData.categoryid === this.categoryData.id) {
                 const itemComponent = new ResourceItem({
-                    element: this.categoryElement,
+                    element: itemRow,
                     reactive: this.reactive,
-                    itemData: itemData,
+                    selectors: SELECTORS,
                 });
-                // Set existing DOM element instead of rendering.
-                itemComponent.itemElement = itemRow;
-                itemComponent._attachEventListeners();
 
                 this.itemComponents.set(itemData.id, itemComponent);
             }
