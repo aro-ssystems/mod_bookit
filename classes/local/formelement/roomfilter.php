@@ -89,20 +89,34 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
     /**
      * Load active rooms as options.
      *
-     * @return array Room options with eventcolor data.
+     * @return array Room options as id => name pairs.
      */
     private function load_room_options(): array {
         $rooms = room::get_records(['active' => 1], 'name', 'ASC');
         $options = [];
 
         foreach ($rooms as $room) {
-            $options[$room->get('id')] = [
-                'text' => $room->get('name'),
-                'eventcolor' => $room->get('eventcolor'),
-            ];
+            // Store simple string value (name) as option.
+            $options[$room->get('id')] = $room->get('name');
         }
 
         return $options;
+    }
+
+    /**
+     * Get room color data.
+     *
+     * @return array Room colors indexed by room ID.
+     */
+    private function get_room_colors(): array {
+        $rooms = room::get_records(['active' => 1], 'name', 'ASC');
+        $colors = [];
+
+        foreach ($rooms as $room) {
+            $colors[$room->get('id')] = $room->get('eventcolor');
+        }
+
+        return $colors;
     }
 
     /**
@@ -141,14 +155,15 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
 
         $selectedvalues = (array) $this->getValue();
         $options = $this->_options;
+        $roomcolors = $this->get_room_colors();
 
-        foreach ($options as $roomid => $roomdata) {
+        foreach ($options as $roomid => $roomname) {
             $isselected = in_array($roomid, $selectedvalues);
-            $eventcolor = $roomdata['eventcolor'] ?? '#6c757d';
+            $eventcolor = $roomcolors[$roomid] ?? '#6c757d';
 
             $rooms[] = [
                 'id' => $roomid,
-                'name' => $roomdata['text'],
+                'name' => $roomname,
                 'selected' => $isselected,
                 'eventcolor' => $eventcolor,
                 'colorselected' => $eventcolor,
