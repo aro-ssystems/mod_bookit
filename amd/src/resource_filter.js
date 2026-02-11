@@ -22,21 +22,23 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-export default class ResourceFilter {
-    /**
-     * Constructor
-     *
-     * @param {string} selector - Selector for the filter container
-     */
-    constructor(selector) {
-        this.container = document.querySelector(selector);
-        if (!this.container) {
-            return;
-        }
+define([], function() {
 
-        this.selectedRooms = new Set();
-        this.initEventListeners();
-    }
+    class ResourceFilter {
+        /**
+         * Constructor
+         *
+         * @param {string} selector - Selector for the filter container
+         */
+        constructor(selector) {
+            this.container = document.querySelector(selector);
+            if (!this.container) {
+                return;
+            }
+
+            this.selectedRooms = new Set();
+            this.initEventListeners();
+        }
 
     /**
      * Initialize event listeners for filter buttons
@@ -157,15 +159,18 @@ export default class ResourceFilter {
         return resourceRooms.some(roomId =>
             this.selectedRooms.has(String(roomId))
         );
+        }
     }
-}
 
-/**
- * Initialize the resource filter
- *
- * @param {string} selector - Selector for the filter container
- * @return {ResourceFilter} Filter instance
- */
-export const init = (selector) => {
-    return new ResourceFilter(selector);
-};
+    /**
+     * Initialize the resource filter
+     *
+     * @param {string} selector - Selector for the filter container
+     * @return {ResourceFilter} Filter instance
+     */
+    return {
+        init: function(selector) {
+            return new ResourceFilter(selector);
+        }
+    };
+});
