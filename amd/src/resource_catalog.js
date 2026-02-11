@@ -68,6 +68,20 @@ export default class extends BaseComponent {
             // Read resources for this category.
             const itemElements = categoryEl.querySelectorAll('[data-region="resource-item-row"]');
             itemElements.forEach(itemEl => {
+                // Parse roomids from JSON string.
+                let roomids = [];
+                if (itemEl.dataset.itemRoomids) {
+                    try {
+                        roomids = JSON.parse(itemEl.dataset.itemRoomids);
+                        if (!Array.isArray(roomids)) {
+                            roomids = [];
+                        }
+                    } catch (e) {
+                        window.console.warn('Failed to parse roomids:', e);
+                        roomids = [];
+                    }
+                }
+
                 const itemData = {
                     id: parseInt(itemEl.dataset.itemid),
                     name: itemEl.dataset.itemName || '',
@@ -77,6 +91,7 @@ export default class extends BaseComponent {
                     amountirrelevant: itemEl.dataset.itemAmountirrelevant === '1',
                     active: itemEl.dataset.itemActive === '1',
                     sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
+                    roomids: roomids,
                 };
                 itemsArray.push(itemData);
             });
@@ -488,7 +503,7 @@ export default class extends BaseComponent {
         // Get the new active state from the checkbox.
         const newActiveState = checkbox.checked;
 
-        // Build form data object.
+        // Build form data object (excluding roomids array).
         const formData = {
             id: itemId,
             name: item.name,
@@ -498,13 +513,20 @@ export default class extends BaseComponent {
             amountirrelevant: item.amountirrelevant ? 1 : 0,
             sortorder: item.sortorder,
             active: newActiveState ? 1 : 0,
-            roomids: item.roomids || [],
             action: 'put',
             [`_qf__mod_bookit_form_edit_resource_form`]: 1
         };
 
         // Convert to URL-encoded string.
-        const formDataString = new URLSearchParams(formData).toString();
+        const params = new URLSearchParams(formData);
+
+        // Add roomids as repeated parameters (roomids[]=1&roomids[]=2).
+        const roomids = item.roomids || [];
+        roomids.forEach(roomid => {
+            params.append('roomids[]', roomid);
+        });
+
+        const formDataString = params.toString();
 
         // Submit via Ajax.
         Ajax.call([{
