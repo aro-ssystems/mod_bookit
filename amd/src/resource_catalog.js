@@ -369,7 +369,7 @@ export default class extends BaseComponent {
             return;
         }
 
-        const row = document.querySelector(`tr[data-itemid="${item.id}"]`);
+        const row = document.querySelector(`tr[data-bookit-item-id="${item.id}"]`);
         if (!row) {
             return;
         }
