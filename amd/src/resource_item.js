@@ -23,160 +23,67 @@
  */
 
 import {BaseComponent} from 'core/reactive';
-import Templates from 'core/templates';
+import {resourceReactiveInstance} from 'mod_bookit/resource_reactive';
+import {SELECTORS} from 'mod_bookit/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
-import Notification from 'core/notification';
 
-/**
- * Resource item component.
- */
-export default class ResourceItem extends BaseComponent {
-    /**
-     * Component descriptor for debugging.
-     *
-     * @return {string} Component name
-     */
-    static get componentName() {
-        return 'mod_bookit/resource_item';
+export default class extends BaseComponent {
+
+    create(descriptor) {
+        const itemEditBtnSelector = 'EDIT_ITEM_BTN_' + descriptor.element.dataset.bookitItemId;
+        this.selectors[itemEditBtnSelector] = `#edit-item-${descriptor.element.dataset.bookitItemId}`;
     }
 
-    /**
-     * Create component.
-     *
-     * @param {Object} options - Component options
-     * @param {HTMLElement} options.element - Parent container element
-     * @param {Object} options.itemData - Item data
-     */
-    create({element, itemData}) {
-        this.itemData = itemData;
-        this.itemElement = null;
-        this.parentElement = element;
-
-        // Note: _render() must be called explicitly when creating new items.
-        // When initializing from existing DOM, itemElement is set externally.
+    static init(target, selectors) {
+        return new this({
+            element: document.querySelector(target),
+            reactive: resourceReactiveInstance,
+            selectors: selectors || SELECTORS,
+        });
     }
 
-    /**
-     * Get state watchers.
-     *
-     * Resource items don't need state watchers -
-     * parent category handles item changes.
-     *
-     * @return {Array} Empty array
-     */
     getWatchers() {
         return [];
     }
 
-    /**
-     * Render item (table row).
-     */
-    async _render() {
-        const html = await Templates.render('mod_bookit/resource_item_row', this.itemData);
+    stateReady() {
+        const itemEditBtnSelector = 'EDIT_ITEM_BTN_' + this.element.dataset.bookitItemId;
 
-        const wrapper = document.createElement('tbody');
-        wrapper.innerHTML = html.trim();
-        this.itemElement = wrapper.firstChild;
-
-        this.parentElement.appendChild(this.itemElement);
-
-        this._attachEventListeners();
+        this.addEventListener(this.getElement(this.selectors[itemEditBtnSelector]), 'click', (e) => {
+            e.preventDefault();
+            this._handleEdit(e);
+        });
     }
 
-    /**
-     * Attach event listeners.
-     */
-    _attachEventListeners() {
-        if (!this.itemElement) {
-            return;
-        }
-
-        // Edit Item.
-        const editBtn = this.itemElement.querySelector('[data-action="edit-item"]');
-        if (editBtn) {
-            editBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this._handleEdit();
-            });
-        }
-    }
-
-    /**
-     * Handle edit item.
-     */
-    async _handleEdit() {
+    async _handleEdit(event) {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\edit_resource_form',
+            formClass: "mod_bookit\\form\\edit_resource_form",
             moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
-                id: this.itemData.id,
+                id: event.currentTarget.value,
             },
             modalConfig: {
-                title: await getString('resources:edit_resource', 'mod_bookit'),
+                title: await getString('resources:edit', 'mod_bookit'),
             },
         });
 
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (e) => {
-            this.reactive.stateManager.processUpdates(e.detail);
-        });
+        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            this.reactive.stateManager.processUpdates(response.detail);
 
-        modalForm.addEventListener(modalForm.events.LOADED, () => {
-            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
-
-            deleteButton.on('click', async(e) => {
-                e.preventDefault();
-
-                const confirmTitle = await getString('confirm', 'core');
-                const confirmMessage = await getString('areyousure', 'core');
-                const deleteText = await getString('delete', 'core');
-
-                Notification.deleteCancel(
-                    confirmTitle,
-                    confirmMessage,
-                    deleteText,
-                    () => {
-                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
-                        modalForm.submitFormAjax();
-                    }
-                );
-            });
+            if (response.detail[0].action === 'delete') {
+                this.reactive.dispatch('resourceDeleted', {id: parseInt(response.detail[0].fields.id)});
+                this.remove();
+                return;
+            }
         });
 
         modalForm.show();
     }
 
-    /**
-     * Update with new data (re-render table row).
-     *
-     * @param {Object} newData - Updated item data
-     */
-    update(newData) {
-        this.itemData = newData;
-        // Re-render the entire row.
-        Templates.render('mod_bookit/resource_item_row', newData)
-            .then(html => {
-                const wrapper = document.createElement('tbody');
-                wrapper.innerHTML = html.trim();
-                const newRow = wrapper.firstChild;
-                if (this.itemElement && this.itemElement.parentNode) {
-                    this.itemElement.parentNode.replaceChild(newRow, this.itemElement);
-                    this.itemElement = newRow;
-                    this._attachEventListeners();
-                }
-                return true;
-            })
-            .catch(error => {
-                window.console.error('Error updating resource item:', error);
-            });
-    }
-
-    /**
-     * Remove from DOM.
-     */
     remove() {
-        if (this.itemElement && this.itemElement.parentNode) {
-            this.itemElement.parentNode.removeChild(this.itemElement);
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.removeChild(this.element);
         }
     }
 }

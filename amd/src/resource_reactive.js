@@ -25,6 +25,12 @@
 import {Reactive} from 'core/reactive';
 import Mutations from 'mod_bookit/resource_mutations';
 
+export const SELECTORS = {
+    TABLE: '#resource-table',
+    ALL_CATEGORY_ROWS: 'tbody[data-bookit-category-id]',
+    ALL_ITEM_ROWS: 'tr[data-bookit-item-id]',
+};
+
 const EVENTNAME = 'mod_bookit:resource_catalog_state_event';
 
 let resourceReactiveInstance = null;

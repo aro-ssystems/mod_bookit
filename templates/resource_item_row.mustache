@@ -43,6 +43,7 @@
 <tr class="resource-item-row {{^active}}opacity-50{{/active}}"
     id="resource-item-row-{{id}}"
     data-region="resource-item-row"
+    data-bookit-item-id="{{id}}"
     data-itemid="{{id}}"
     data-item-name="{{name}}"
     data-item-description="{{description}}"
@@ -106,8 +107,10 @@
     <td class="align-middle py-3 text-center">
         <button type="button"
                 class="btn btn-sm btn-light rounded-pill pl-3 text-dark"
+                id="edit-item-{{id}}"
                 data-action="edit-item"
-                data-item-id="{{id}}">
+                data-item-id="{{id}}"
+                value="{{id}}">
             {{#pix}}i/edit, core{{/pix}}
         </button>
     </td>

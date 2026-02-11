@@ -26,7 +26,6 @@ import {BaseComponent} from 'core/reactive';
 import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
-import Notification from 'core/notification';
 import Ajax from 'core/ajax';
 import ResourceCategory from './resource_category';
 
@@ -325,12 +324,17 @@ export default class extends BaseComponent {
      */
     _handleRoomnamesUpdated(event) {
         const item = this.reactive.state.items.get(event.element.id);
+        window.console.log('[BOOKIT DEBUG] _handleRoomnamesUpdated fired for item:', event.element.id);
         if (!item) {
+            window.console.log('[BOOKIT DEBUG] Item not found in state');
             return;
         }
 
+        window.console.log('[BOOKIT DEBUG] Item roomnames:', item.roomnames, 'length:', item.roomnames?.length);
+
         const roomsCell = document.querySelector(`td[data-bookit-resource-tabledata-roomids-id="${item.id}"]`);
         if (!roomsCell) {
+            window.console.log('[BOOKIT DEBUG] Rooms cell not found');
             return;
         }
 
@@ -340,8 +344,10 @@ export default class extends BaseComponent {
 
         if (!item.roomnames || item.roomnames.length === 0) {
             // Show "All rooms" badge.
+            window.console.log('[BOOKIT DEBUG] Showing "All rooms" badge (roomnames empty)');
             container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
         } else {
+            window.console.log('[BOOKIT DEBUG] Rendering room badges:', item.roomnames);
             // Render room badges with colors.
             item.roomnames.forEach(room => {
                 const badge = document.createElement('span');
@@ -399,182 +405,16 @@ export default class extends BaseComponent {
             });
         }
 
-        // Table view button event delegation.
-        this._attachTableViewEventListeners();
-    }
-
-    /**
-     * Attach event listeners for table view buttons (event delegation).
-     */
-    _attachTableViewEventListeners() {
+        // Toggle active switches (event delegation).
         const tableView = document.querySelector(this.selectors.tableView);
-        if (!tableView) {
-            return;
-        }
-
-        // Event delegation for toggle switches (using 'change' event).
-        tableView.addEventListener('change', async(e) => {
-            const toggle = e.target.closest('[data-action="toggle-active"]');
-            if (toggle) {
-                await this._handleToggleActive(toggle);
-            }
-        });
-
-        // Event delegation for all buttons in table view.
-        tableView.addEventListener('click', async(e) => {
-            const target = e.target.closest('button[data-action]');
-            if (!target) {
-                return;
-            }
-
-            const action = target.dataset.action;
-            e.preventDefault();
-
-            switch (action) {
-                case 'edit-category':
-                    await this._handleEditCategoryFromTable(target);
-                    break;
-                case 'edit-item':
-                    await this._handleEditItemFromTable(target);
-                    break;
-            }
-        });
-    }
-
-    /**
-     * Handle edit category from table view.
-     *
-     * @param {HTMLElement} button - Button element
-     */
-    async _handleEditCategoryFromTable(button) {
-        const categoryId = parseInt(button.dataset.categoryId);
-        const state = this.reactive.state;
-        const category = state.categories.get(categoryId);
-
-        if (!category) {
-            return;
-        }
-
-        const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\edit_resource_category_form',
-            moduleName: 'mod_bookit/modal_delete_save_cancel',
-            args: {
-                id: categoryId,
-            },
-            modalConfig: {
-                title: await getString('resources:edit_category', 'mod_bookit'),
-            },
-        });
-
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
-            this.reactive.stateManager.processUpdates(response.detail);
-        });
-
-        modalForm.addEventListener(modalForm.events.LOADED, () => {
-            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
-
-            deleteButton.on('click', async(e) => {
-                e.preventDefault();
-
-                // Check if category has resources.
-                const state = this.reactive.state;
-                const resourceCount = Array.from(state.items.values())
-                    .filter(item => item.categoryid === categoryId).length;
-
-                if (resourceCount > 0) {
-                    // Category has resources - show informative message.
-                    const errorTitle = await getString('error', 'core');
-                    const errorMessage = await getString('resources:category_has_resources', 'mod_bookit');
-
-                    Notification.alert(
-                        errorTitle,
-                        errorMessage
-                    );
-                    return;
+        if (tableView) {
+            tableView.addEventListener('change', async(e) => {
+                const toggle = e.target.closest('[data-action="toggle-active"]');
+                if (toggle) {
+                    await this._handleToggleActive(toggle);
                 }
-
-                // No resources - proceed with delete confirmation.
-                const confirmTitle = await getString('confirm', 'core');
-                const confirmMessage = await getString('areyousure', 'core');
-                const deleteText = await getString('delete', 'core');
-
-                Notification.deleteCancel(
-                    confirmTitle,
-                    confirmMessage,
-                    deleteText,
-                    () => {
-                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
-                        modalForm.submitFormAjax();
-                    }
-                );
             });
-        });
-
-        modalForm.show();
-    }
-
-    /**
-     * Handle edit item from table view.
-     *
-     * @param {HTMLElement} button - Button element
-     */
-    async _handleEditItemFromTable(button) {
-        const itemId = parseInt(button.dataset.itemId);
-        const state = this.reactive.state;
-        const item = state.items.get(itemId);
-
-        if (!item) {
-            return;
         }
-
-        const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\edit_resource_form',
-            moduleName: 'mod_bookit/modal_delete_save_cancel',
-            args: {
-                id: itemId,
-            },
-            modalConfig: {
-                title: await getString('resources:edit_resource', 'mod_bookit'),
-            },
-        });
-
-        modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
-            window.console.log('[BOOKIT DEBUG] Edit form submitted, response:', response.detail);
-            this.reactive.stateManager.processUpdates(response.detail);
-        });
-
-        modalForm.addEventListener(modalForm.events.CLIENT_VALIDATION_ERROR, () => {
-            window.console.error('[BOOKIT DEBUG] Client validation error!');
-        });
-
-        modalForm.addEventListener(modalForm.events.SERVER_VALIDATION_ERROR, () => {
-            window.console.error('[BOOKIT DEBUG] Server validation error!');
-        });
-
-        modalForm.addEventListener(modalForm.events.LOADED, () => {
-            window.console.log('[BOOKIT DEBUG] Edit form loaded for item:', itemId);
-            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
-
-            deleteButton.on('click', async(e) => {
-                e.preventDefault();
-
-                const confirmTitle = await getString('confirm', 'core');
-                const confirmMessage = await getString('areyousure', 'core');
-                const deleteText = await getString('delete', 'core');
-
-                Notification.deleteCancel(
-                    confirmTitle,
-                    confirmMessage,
-                    deleteText,
-                    () => {
-                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
-                        modalForm.submitFormAjax();
-                    }
-                );
-            });
-        });
-
-        modalForm.show();
     }
 
     /**
