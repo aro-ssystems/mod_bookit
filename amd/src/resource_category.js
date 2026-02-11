@@ -141,10 +141,10 @@ export default class ResourceCategory extends BaseComponent {
         }
 
         const state = this.reactive.state;
-        const itemRows = this.categoryElement.querySelectorAll('tr[data-item-id]');
+        const itemRows = this.categoryElement.querySelectorAll('tr[data-itemid]');
 
         itemRows.forEach(itemRow => {
-            const itemId = parseInt(itemRow.dataset.itemId);
+            const itemId = parseInt(itemRow.dataset.itemid);
             const itemData = state.items.get(itemId);
 
             if (itemData && itemData.categoryid === this.categoryData.id) {
