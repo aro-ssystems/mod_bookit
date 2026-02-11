@@ -543,6 +543,14 @@ export default class extends BaseComponent {
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
+        modalForm.addEventListener(modalForm.events.CLIENT_VALIDATION_ERROR, () => {
+            window.console.error('[BOOKIT DEBUG] Client validation error!');
+        });
+
+        modalForm.addEventListener(modalForm.events.SERVER_VALIDATION_ERROR, () => {
+            window.console.error('[BOOKIT DEBUG] Server validation error!');
+        });
+
         modalForm.addEventListener(modalForm.events.LOADED, () => {
             window.console.log('[BOOKIT DEBUG] Edit form loaded for item:', itemId);
             const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
