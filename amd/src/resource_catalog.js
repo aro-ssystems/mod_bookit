@@ -27,6 +27,7 @@ import {resourceReactiveInstance, initResourceReactive} from './resource_reactiv
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
+import Ajax from 'core/ajax';
 import ResourceCategory from './resource_category';
 
 /**
@@ -67,14 +68,30 @@ export default class extends BaseComponent {
             // Read resources for this category.
             const itemElements = categoryEl.querySelectorAll('[data-region="resource-item-row"]');
             itemElements.forEach(itemEl => {
+                // Parse roomids from JSON string.
+                let roomids = [];
+                if (itemEl.dataset.itemRoomids) {
+                    try {
+                        roomids = JSON.parse(itemEl.dataset.itemRoomids);
+                        if (!Array.isArray(roomids)) {
+                            roomids = [];
+                        }
+                    } catch (e) {
+                        window.console.warn('Failed to parse roomids:', e);
+                        roomids = [];
+                    }
+                }
+
                 const itemData = {
                     id: parseInt(itemEl.dataset.itemid),
                     name: itemEl.dataset.itemName || '',
                     description: itemEl.dataset.itemDescription || '',
                     categoryid: parseInt(itemEl.dataset.itemCategoryid),
                     amount: parseInt(itemEl.dataset.itemAmount) || 0,
-                    amountirrelevant: itemEl.dataset.itemAmountirrelevant === 'true',
+                    amountirrelevant: itemEl.dataset.itemAmountirrelevant === '1',
+                    active: itemEl.dataset.itemActive === '1',
                     sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
+                    roomids: roomids,
                 };
                 itemsArray.push(itemData);
             });
@@ -112,6 +129,21 @@ export default class extends BaseComponent {
         this.selectors.addResourceBtn = '#add-resource-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
         this.categoryComponents = new Map();
+
+        // Cache localized strings for active/inactive.
+        this.strings = {};
+        getString('active', 'core').then(str => {
+            this.strings.active = str;
+            return str;
+        }).catch(() => {
+            this.strings.active = 'Active';
+        });
+        getString('inactive', 'core').then(str => {
+            this.strings.inactive = str;
+            return str;
+        }).catch(() => {
+            this.strings.inactive = 'Inactive';
+        });
     }
 
     /**
@@ -136,11 +168,11 @@ export default class extends BaseComponent {
             {watch: `categories.description:updated`, handler: this._handleCategoryUpdated},
             {watch: `categories:deleted`, handler: this._handleCategoryDeleted},
             {watch: `items:created`, handler: this._handleItemCreated},
+            {watch: `items.active:updated`, handler: this._handleActiveToggle},
             {watch: `items.name:updated`, handler: this._replaceRenderedItem},
             {watch: `items.description:updated`, handler: this._replaceRenderedItem},
             {watch: `items.amount:updated`, handler: this._replaceRenderedItem},
             {watch: `items.amountirrelevant:updated`, handler: this._replaceRenderedItem},
-            {watch: `items.active:updated`, handler: this._replaceRenderedItem},
         ];
     }
 
@@ -150,8 +182,8 @@ export default class extends BaseComponent {
      * @param {Object} args - Event args
      * @param {Object} args.element - New category data
      */
-    _handleCategoryCreated({element}) {
-        this._renderCategory(element);
+    async _handleCategoryCreated({element}) {
+        await this._renderCategory(element);
     }
 
     /**
@@ -191,45 +223,96 @@ export default class extends BaseComponent {
     }
 
     /**
-     * Replace rendered item field (follows checklist pattern).
+     * Handle active state toggle.
+     *
+     * @param {Object} args - Event args
+     * @param {Object} args.element - Updated item data
+     */
+    _handleActiveToggle({element}) {
+        const checkbox = document.querySelector(`#resource-active-${element.id}`);
+        if (!checkbox) {
+            window.console.warn(`Toggle checkbox not found for item ${element.id}`);
+            return;
+        }
+        checkbox.checked = element.active;
+
+        const label = document.querySelector(`label[for="resource-active-${element.id}"]`);
+        if (label) {
+            label.textContent = element.active ?
+                (this.strings.active || 'Active') :
+                (this.strings.inactive || 'Inactive');
+        }
+
+        const row = document.querySelector(`#resource-item-row-${element.id}`);
+        if (row) {
+            row.classList.toggle('opacity-50', !element.active);
+        }
+    }
+
+    /**
+     * Replace rendered item field (follows masterchecklist pattern).
      *
      * @param {Object} event - Event object
      */
-    _replaceRenderedItem(event) {
+    async _replaceRenderedItem(event) {
         const actionParts = event.action.split('.');
         const fieldPart = actionParts[1].split(':')[0];
+        const item = this.reactive.state.items.get(event.element.id);
 
         if (fieldPart === 'amount' || fieldPart === 'amountirrelevant') {
-            // Amount field requires template re-render due to conditional logic
-            const targetElement = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${event.element.id}"]`);
-            if (targetElement) {
-                const state = this.reactive.state;
-                const item = state.items.get(event.element.id);
-                if (item.amountirrelevant) {
-                    targetElement.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
-                } else {
-                    targetElement.innerHTML = `<span class="badge badge-info">${item.amount}x</span>`;
-                }
+            const amountCell = document.querySelector(`td[data-bookit-resource-tabledata-amount-id="${item.id}"]`);
+            if (!amountCell) {
+                return;
             }
-        } else if (fieldPart === 'active') {
-            // Active field requires conditional badge rendering
-            const targetElement = document.querySelector(`td[data-bookit-resource-tabledata-active-id="${event.element.id}"]`);
-            if (targetElement) {
-                const state = this.reactive.state;
-                const item = state.items.get(event.element.id);
-                if (item.active) {
-                    targetElement.innerHTML = '<span class="badge badge-success">Active</span>';
-                } else {
-                    targetElement.innerHTML = '<span class="badge badge-secondary">Inactive</span>';
-                }
+            if (item.amountirrelevant) {
+                amountCell.innerHTML = '<span class="badge badge-secondary">Unlimited</span>';
+            } else {
+                amountCell.innerHTML = `<span class="badge badge-info">${item.amount}x</span>`;
             }
-        } else {
-            // Simple fields: directly update innerHTML
-            const elementSelector = `span[data-bookit-resource-tabledata-${fieldPart}-id="${event.element.id}"]`;
-            const targetElement = document.querySelector(elementSelector);
-            if (targetElement) {
-                targetElement.innerHTML = event.element[fieldPart];
+        } else if (fieldPart === 'name') {
+            const nameSpan = document.querySelector(`span[data-bookit-resource-tabledata-name-id="${item.id}"]`);
+            if (!nameSpan) {
+                return;
             }
+            nameSpan.textContent = item.name;
+        } else if (fieldPart === 'description') {
+            await this._updateDescriptionField(item);
+        }
+    }
+
+    /**
+     * Update description field in the DOM.
+     *
+     * @param {Object} item - Item data
+     */
+    async _updateDescriptionField(item) {
+        const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${item.id}"]`);
+        if (descSpan) {
+            descSpan.innerHTML = item.description || '';
+            return;
+        }
+
+        // Description was added but <small> element doesn't exist - need to re-render row.
+        if (!item.description) {
+            return;
+        }
+
+        const row = document.querySelector(`#resource-item-row-${item.id}`);
+        if (!row) {
+            return;
+        }
+
+        // Find category component and trigger re-render.
+        const categoryComponent = Array.from(this.categoryComponents.values())
+            .find(cat => cat.categoryData.id === item.categoryid);
+        if (!categoryComponent) {
+            return;
+        }
+
+        try {
+            await categoryComponent._renderItems();
+        } catch (error) {
+            window.console.error('Failed to re-render items:', error);
         }
     }
 
@@ -265,6 +348,14 @@ export default class extends BaseComponent {
         if (!tableView) {
             return;
         }
+
+        // Event delegation for toggle switches (using 'change' event).
+        tableView.addEventListener('change', async(e) => {
+            const toggle = e.target.closest('[data-action="toggle-active"]');
+            if (toggle) {
+                await this._handleToggleActive(toggle);
+            }
+        });
 
         // Event delegation for all buttons in table view.
         tableView.addEventListener('click', async(e) => {
@@ -456,6 +547,65 @@ export default class extends BaseComponent {
     }
 
     /**
+     * Handle toggle active switch.
+     *
+     * @param {HTMLElement} checkbox - Toggle checkbox element
+     */
+    async _handleToggleActive(checkbox) {
+        const itemId = parseInt(checkbox.dataset.itemId);
+        const state = this.reactive.state;
+        const item = state.items.get(itemId);
+
+        if (!item) {
+            return;
+        }
+
+        // Get the new active state from the checkbox.
+        const newActiveState = checkbox.checked;
+
+        // Build form data object (excluding roomids array).
+        const formData = {
+            id: itemId,
+            name: item.name,
+            description: item.description || '',
+            categoryid: item.categoryid,
+            amount: item.amount,
+            amountirrelevant: item.amountirrelevant ? 1 : 0,
+            sortorder: item.sortorder,
+            active: newActiveState ? 1 : 0,
+            action: 'put',
+            [`_qf__mod_bookit_form_edit_resource_form`]: 1
+        };
+
+        // Convert to URL-encoded string.
+        const params = new URLSearchParams(formData);
+
+        // Add roomids as repeated parameters (roomids[]=1&roomids[]=2).
+        const roomids = item.roomids || [];
+        roomids.forEach(roomid => {
+            params.append('roomids[]', roomid);
+        });
+
+        const formDataString = params.toString();
+
+        // Submit via Ajax.
+        try {
+            const response = await Ajax.call([{
+                methodname: 'core_form_dynamic_form',
+                args: {
+                    formdata: formDataString,
+                    form: 'mod_bookit\\form\\edit_resource_form'
+                }
+            }])[0];
+            this.reactive.stateManager.processUpdates(JSON.parse(response.data));
+        } catch (error) {
+            // Revert checkbox on error.
+            checkbox.checked = !newActiveState;
+            window.console.error('Toggle active error:', error);
+        }
+    }
+
+    /**
      * Show no categories message.
      */
     _showNoCategoriesMessage() {
@@ -486,18 +636,17 @@ export default class extends BaseComponent {
             const categoryId = parseInt(categoryEl.dataset.categoryid);
             const category = state.categories.get(categoryId);
             if (category) {
-                // Component will manage this existing DOM element.
+                // Component attaches to existing DOM element (no rendering).
                 const component = new ResourceCategory({
                     element: this.element.querySelector('#mod-bookit-resource-table'),
                     reactive: this.reactive,
                     categoryData: category,
                 });
-                // Override the rendered element with existing one.
-                if (component.categoryElement) {
-                    component.categoryElement.remove();
-                }
+                // Set existing DOM element.
                 component.categoryElement = categoryEl;
                 component._attachEventListeners();
+                // Initialize item components from existing DOM.
+                component._initItemsFromDOM();
 
                 this.categoryComponents.set(categoryId, component);
             }
@@ -507,9 +656,9 @@ export default class extends BaseComponent {
     /**
      * Render a new category component.
      *
-     * @param {Object} categoryData - Category data
+     * @param {Object} categoryData - Category data object
      */
-    _renderCategory(categoryData) {
+    async _renderCategory(categoryData) {
         const tableEl = this.element.querySelector('#mod-bookit-resource-table');
         if (!tableEl) {
             return;
@@ -520,6 +669,8 @@ export default class extends BaseComponent {
             reactive: this.reactive,
             categoryData: categoryData,
         });
+
+        await component._render();
 
         this.categoryComponents.set(categoryData.id, component);
     }

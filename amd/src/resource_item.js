@@ -53,8 +53,8 @@ export default class ResourceItem extends BaseComponent {
         this.itemElement = null;
         this.parentElement = element;
 
-        // Render immediately.
-        this._render();
+        // Note: _render() must be called explicitly when creating new items.
+        // When initializing from existing DOM, itemElement is set externally.
     }
 
     /**

@@ -85,12 +85,22 @@
     </td>
 
     <td class="align-middle py-3" data-bookit-resource-tabledata-active-id="{{id}}">
-        {{#active}}
-            <span class="badge badge-success">{{#str}}active, core{{/str}}</span>
-        {{/active}}
-        {{^active}}
-            <span class="badge badge-secondary">{{#str}}inactive, core{{/str}}</span>
-        {{/active}}
+        <div class="custom-control custom-switch">
+            <input type="checkbox"
+                   class="custom-control-input"
+                   data-action="toggle-active"
+                   data-item-id="{{id}}"
+                   {{#active}}checked{{/active}}
+                   id="resource-active-{{id}}">
+            <label class="custom-control-label" for="resource-active-{{id}}">
+                {{#active}}
+                    {{#str}}active, core{{/str}}
+                {{/active}}
+                {{^active}}
+                    {{#str}}inactive, core{{/str}}
+                {{/active}}
+            </label>
+        </div>
     </td>
 
     <td class="align-middle py-3 text-center">
