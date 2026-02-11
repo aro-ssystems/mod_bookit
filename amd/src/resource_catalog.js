@@ -319,6 +319,67 @@ export default class extends BaseComponent {
     }
 
     /**
+     * Handle roomnames updated.
+     *
+     * @param {Object} event - Event object
+     */
+    _handleRoomnamesUpdated(event) {
+        const item = this.reactive.state.items.get(event.element.id);
+        if (!item) {
+            return;
+        }
+
+        const roomsCell = document.querySelector(`td[data-bookit-resource-tabledata-roomids-id="${item.id}"]`);
+        if (!roomsCell) {
+            return;
+        }
+
+        // Clear existing content.
+        roomsCell.innerHTML = '<div class="d-flex flex-wrap align-items-center"></div>';
+        const container = roomsCell.querySelector('div');
+
+        if (!item.roomnames || item.roomnames.length === 0) {
+            // Show "All rooms" badge.
+            container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
+        } else {
+            // Render room badges with colors.
+            item.roomnames.forEach(room => {
+                const badge = document.createElement('span');
+                badge.className = `badge ${room.textclass} mr-1 mb-1`;
+                badge.style.opacity = '0.8';
+                badge.style.backgroundColor = room.eventcolor;
+                badge.dataset.bookitResourceTabledataRoomColor = room.eventcolor;
+                badge.dataset.bookitResourceTabledataRoomTextclass = room.textclass;
+                badge.dataset.bookitResourceTabledataRoomId = room.roomid;
+                badge.dataset.bookitResourceRoomname = room.roomname;
+                badge.dataset.bookitResourceTabledataIsRoomElement = '';
+                badge.textContent = room.roomname;
+                container.appendChild(badge);
+            });
+        }
+    }
+
+    /**
+     * Handle roomids updated.
+     *
+     * @param {Object} event - Event object
+     */
+    _handleRoomidsUpdated(event) {
+        const item = this.reactive.state.items.get(event.element.id);
+        if (!item) {
+            return;
+        }
+
+        const row = document.querySelector(`tr[data-itemid="${item.id}"]`);
+        if (!row) {
+            return;
+        }
+
+        // Update data-item-roomids attribute with JSON string.
+        row.dataset.itemRoomids = JSON.stringify(item.roomids || []);
+    }
+
+    /**
      * Attach event listeners.
      */
     _attachEventListeners() {
