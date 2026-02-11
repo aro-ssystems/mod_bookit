@@ -24,11 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-use mod_bookit\local\formelement\roomfilter;
-
-// Register custom form elements globally.
-roomfilter::register();
-
 /**
  * Return if the plugin supports $feature.
  *

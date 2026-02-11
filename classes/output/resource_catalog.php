@@ -69,6 +69,9 @@ class resource_catalog implements renderable, templatable {
      * @return string HTML for room filter
      */
     private function render_room_filter(renderer_base $output): string {
+        // Register the custom form element.
+        roomfilter::register();
+
         // Create roomfilter element in filter mode.
         $roomfilter = new roomfilter(
             'roomfilter',
