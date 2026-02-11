@@ -91,7 +91,7 @@ export default class ResourceCategory extends BaseComponent {
         this.categoryElement = tbody;
         this.parentElement.appendChild(this.categoryElement);
 
-        this._renderItems();
+        await this._renderItems();
         this._attachEventListeners();
     }
 
