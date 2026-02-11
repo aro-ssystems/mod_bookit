@@ -587,22 +587,20 @@ export default class extends BaseComponent {
         const formDataString = params.toString();
 
         // Submit via Ajax.
-        Ajax.call([{
-            methodname: 'core_form_dynamic_form',
-            args: {
-                formdata: formDataString,
-                form: 'mod_bookit\\form\\edit_resource_form'
-            }
-        }])[0]
-        .then((response) => {
+        try {
+            const response = await Ajax.call([{
+                methodname: 'core_form_dynamic_form',
+                args: {
+                    formdata: formDataString,
+                    form: 'mod_bookit\\form\\edit_resource_form'
+                }
+            }])[0];
             this.reactive.stateManager.processUpdates(JSON.parse(response.data));
-            return;
-        })
-        .catch((error) => {
+        } catch (error) {
             // Revert checkbox on error.
             checkbox.checked = !newActiveState;
             window.console.error('Toggle active error:', error);
-        });
+        }
     }
 
     /**
