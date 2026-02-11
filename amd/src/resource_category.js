@@ -168,9 +168,9 @@ export default class ResourceCategory extends BaseComponent {
      * @param {Object} args - Event args
      * @param {Object} args.element - New item data
      */
-    _handleItemCreated({element}) {
+    async _handleItemCreated({element}) {
         if (element.categoryid === this.categoryData.id) {
-            this._renderItems();
+            await this._renderItems();
         }
     }
 
