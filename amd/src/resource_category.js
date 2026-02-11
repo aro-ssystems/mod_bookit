@@ -180,14 +180,14 @@ export default class ResourceCategory extends BaseComponent {
      * @param {Object} args - Event args
      * @param {Object} args.element - Updated item data
      */
-    _handleItemCategoryChanged({element}) {
+    async _handleItemCategoryChanged({element}) {
         // Check if item moved to/from this category.
         const hadItem = this.itemComponents.has(element.id);
         const shouldHaveItem = element.categoryid === this.categoryData.id;
 
         if (hadItem !== shouldHaveItem) {
             // Item moved - re-render.
-            this._renderItems();
+            await this._renderItems();
         }
     }
 
