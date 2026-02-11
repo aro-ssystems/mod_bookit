@@ -59,11 +59,4 @@ $PAGE->requires->js_call_amd(
     ['#mod-bookit-resource-catalog']
 );
 
-// Init Resource Filter.
-$PAGE->requires->js_call_amd(
-    'mod_bookit/resource_filter',
-    'init',
-    ['.filter-section']
-);
-
 echo $OUTPUT->footer();

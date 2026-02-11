@@ -1,0 +1,198 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Custom form element for room multi-select filter with two-row toggle layout.
+ *
+ * @package     mod_bookit
+ * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+namespace mod_bookit\local\formelement;
+
+use HTML_QuickForm_select;
+use renderer_base;
+use mod_bookit\local\persistent\room;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/lib/form/templatable_form_element.php');
+require_once($CFG->dirroot . '/lib/form/select.php');
+
+/**
+ * Custom form element for room multi-select filter.
+ *
+ * Supports two rendering modes:
+ * - filter: Two-row toggle layout with +/✓ icons (for table filtering)
+ * - form: Traditional multiselect (for edit forms)
+ *
+ * @package     mod_bookit
+ * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class roomfilter extends HTML_QuickForm_select implements \core\output\templatable {
+    use \templatable_form_element {
+        export_for_template as export_for_template_base;
+    }
+
+    /**
+     * Registers the element type.
+     */
+    public static function register(): void {
+        global $CFG;
+
+        \MoodleQuickForm::registerElementType(
+            'mod_bookit_roomfilter',
+            $CFG->dirroot . '/mod/bookit/classes/local/formelement/roomfilter.php',
+            '\mod_bookit\local\formelement\roomfilter'
+        );
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param string $elementname Element name.
+     * @param string $elementlabel Element label.
+     * @param array $options Room options (optional, will auto-load if empty).
+     * @param array $attributes Element attributes (mode => 'filter'|'form').
+     */
+    public function __construct($elementname = null, $elementlabel = null, $options = null, $attributes = null) {
+        // If no options provided, load active rooms.
+        if (empty($options) || !is_array($options)) {
+            $options = $this->load_room_options();
+        }
+
+        parent::__construct($elementname, $elementlabel, $options, $attributes);
+        $this->setMultiple(true);
+
+        // Add CSS class for styling.
+        $class = $this->getAttribute('class') ?? '';
+        $mode = $attributes['mode'] ?? 'filter';
+        $this->updateAttributes(['class' => $class . ' mod_bookit-roomfilter mod_bookit-roomfilter-' . $mode]);
+    }
+
+    /**
+     * Load active rooms as options.
+     *
+     * @return array Room options with eventcolor data.
+     */
+    private function load_room_options(): array {
+        $rooms = room::get_records(['active' => 1], 'name', 'ASC');
+        $options = [];
+
+        foreach ($rooms as $room) {
+            $options[$room->get('id')] = [
+                'text' => $room->get('name'),
+                'eventcolor' => $room->get('eventcolor'),
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Export for template.
+     *
+     * @param renderer_base $output Renderer.
+     * @return \stdClass Template context.
+     */
+    public function export_for_template(renderer_base $output): \stdClass {
+        global $PAGE;
+
+        $mode = $this->getAttribute('mode') ?? 'filter';
+
+        if ($mode === 'filter') {
+            return $this->export_for_filter_mode($output);
+        } else {
+            // For form mode, use default rendering.
+            return $this->export_for_template_base($output);
+        }
+    }
+
+    /**
+     * Export for filter mode (two-row toggle layout).
+     *
+     * @param renderer_base $output Renderer.
+     * @return \stdClass Template context.
+     */
+    private function export_for_filter_mode(renderer_base $output): \stdClass {
+        global $PAGE;
+
+        $context = new \stdClass();
+        $context->name = $this->getName();
+        $context->id = $this->getAttribute('id');
+        $context->label = $this->getLabel();
+        $rooms = [];
+
+        $selectedvalues = (array) $this->getValue();
+        $options = $this->_options;
+
+        foreach ($options as $roomid => $roomdata) {
+            $isselected = in_array($roomid, $selectedvalues);
+            $eventcolor = $roomdata['eventcolor'] ?? '#6c757d';
+
+            $rooms[] = [
+                'id' => $roomid,
+                'name' => $roomdata['text'],
+                'selected' => $isselected,
+                'eventcolor' => $eventcolor,
+                'colorselected' => $eventcolor,
+                'colorunselected' => $this->calculate_unselected_color($eventcolor),
+            ];
+        }
+
+        // Separate into selected and unselected for two-row layout.
+        $context->rooms_selected = array_values(array_filter($rooms, fn($r) => $r['selected']));
+        $context->rooms_unselected = array_values(array_filter($rooms, fn($r) => !$r['selected']));
+
+        // Render the template.
+        $html = $output->render_from_template('mod_bookit/form/roomfilter', $context);
+
+        // Return context with rendered HTML.
+        $result = new \stdClass();
+        $result->html = $html;
+
+        // Initialize JavaScript for filter interactions.
+        $PAGE->requires->js_call_amd('mod_bookit/resource_filter', 'init', [
+            ['selector' => '#' . $context->id],
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Calculate unselected color (lighter version of eventcolor).
+     *
+     * @param string $hexcolor Hex color code.
+     * @return string Lighter hex color.
+     */
+    private function calculate_unselected_color(string $hexcolor): string {
+        // Convert hex to RGB.
+        $hex = str_replace('#', '', $hexcolor);
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+
+        // Mix with white (70% original, 30% white for lighter appearance).
+        $r = round($r * 0.7 + 255 * 0.3);
+        $g = round($g * 0.7 + 255 * 0.3);
+        $b = round($b * 0.7 + 255 * 0.3);
+
+        return sprintf('#%02x%02x%02x', $r, $g, $b);
+    }
+}

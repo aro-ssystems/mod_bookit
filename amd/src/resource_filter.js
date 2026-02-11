@@ -76,6 +76,8 @@ define([], function() {
         const value = button.dataset.value;
         const isPressed = button.getAttribute('aria-pressed') === 'true';
         const icon = button.querySelector('.filter-icon');
+        const filterSection = button.closest('.filter-section');
+        const hiddenSelect = filterSection ? filterSection.querySelector('select[multiple]') : null;
 
         if (isPressed) {
             // Deselect: Move to unselected row, show plus, unselected color
@@ -86,6 +88,14 @@ define([], function() {
             }
             this.selectedRooms.delete(value);
             unselectedRow.appendChild(button);
+
+            // Update hidden select
+            if (hiddenSelect) {
+                const option = hiddenSelect.querySelector(`option[value="${value}"]`);
+                if (option) {
+                    option.selected = false;
+                }
+            }
         } else {
             // Select: Move to selected row, show checkmark, selected color
             button.style.backgroundColor = button.dataset.colorSelected;
@@ -95,6 +105,14 @@ define([], function() {
             }
             this.selectedRooms.add(value);
             selectedRow.appendChild(button);
+
+            // Update hidden select
+            if (hiddenSelect) {
+                const option = hiddenSelect.querySelector(`option[value="${value}"]`);
+                if (option) {
+                    option.selected = true;
+                }
+            }
         }
     }
 

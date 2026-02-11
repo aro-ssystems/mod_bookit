@@ -26,7 +26,7 @@
 namespace mod_bookit\output;
 
 use mod_bookit\local\manager\resource_manager;
-use mod_bookit\local\persistent\room;
+use mod_bookit\local\formelement\roomfilter;
 use renderer_base;
 use renderable;
 use templatable;
@@ -56,42 +56,29 @@ class resource_catalog implements renderable, templatable {
             $data->categories[] = $categorycard->export_for_template($output);
         }
 
-        // Get rooms and separate into selected/unselected for two-row layout.
-        $roomsdata = $this->get_rooms_for_filter();
-        $data->rooms_selected = []; // All start as unselected.
-        $data->rooms_unselected = $roomsdata;
+        // Render room filter using custom form element.
+        $data->roomfilter = $this->render_room_filter($output);
 
         return $data;
     }
 
     /**
-     * Get all active rooms for the filter
+     * Render room filter using roomfilter form element
      *
-     * @return array Array of room objects with id, name, and colors
+     * @param renderer_base $output
+     * @return string HTML for room filter
      */
-    private function get_rooms_for_filter(): array {
-        $rooms = room::get_records(['active' => 1], 'name', 'ASC');
-        $roomsdata = [];
+    private function render_room_filter(renderer_base $output): string {
+        // Create roomfilter element in filter mode.
+        $roomfilter = new roomfilter(
+            'roomfilter',
+            get_string('filters:room_label', 'mod_bookit'),
+            [], // Auto-loads rooms from database.
+            ['mode' => 'filter', 'id' => 'id_roomfilter']
+        );
 
-        $colors = [
-            ['selected' => '#5BC0BE', 'unselected' => '#A8E6CF'],
-            ['selected' => '#FF6B6B', 'unselected' => '#FFE5E5'],
-            ['selected' => '#4ECDC4', 'unselected' => '#B4F8C8'],
-            ['selected' => '#FF8B94', 'unselected' => '#FFD4A3'],
-        ];
-
-        $index = 0;
-        foreach ($rooms as $room) {
-            $colorset = $colors[$index % count($colors)];
-            $roomsdata[] = [
-                'id' => $room->get('id'),
-                'name' => $room->get('name'),
-                'colorselected' => $colorset['selected'],
-                'colorunselected' => $colorset['unselected'],
-            ];
-            $index++;
-        }
-
-        return $roomsdata;
+        // Export and render template.
+        $context = $roomfilter->export_for_template($output);
+        return $context->html ?? '';
     }
 }
