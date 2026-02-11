@@ -59,6 +59,32 @@
             </button>
         </div>
 
+        {{! Filter Section }}
+        {{#rooms}}
+        <div class="filter-section mb-4">
+            <h5 class="mb-3">{{#str}}filters:label, mod_bookit{{/str}}</h5>
+            <div class="filter-group d-flex align-items-center">
+                <label class="mr-2 mb-0">{{#str}}filters:room_label, mod_bookit{{/str}}</label>
+                <div class="btn-group btn-group-toggle" role="group" data-filter="room">
+                    {{#.}}
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary"
+                            data-value="{{id}}"
+                            aria-pressed="false">
+                        {{name}}
+                    </button>
+                    {{/.}}
+                    <button type="button"
+                            class="btn btn-sm btn-outline-secondary"
+                            data-action="clear"
+                            aria-label="{{#str}}filters:no_selection, mod_bookit{{/str}}">
+                        {{#str}}filters:no_selection, mod_bookit{{/str}}
+                    </button>
+                </div>
+            </div>
+        </div>
+        {{/rooms}}
+
         {{! Table View (Default) }}
         <div id="mod-bookit-resource-table-view" class="resource-view">
             <table class="table table-borderless table-hover bg-white rounded w-100"

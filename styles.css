@@ -137,3 +137,27 @@
 .mod_bookit-view-calendar_view .bookit-filterdropdown-panel {
     left: 0;
 }
+
+/* Resource filter button group styling */
+.filter-section {
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+}
+
+.filter-section .filter-group {
+    gap: 0.5rem;
+}
+
+.filter-section .btn-group button {
+    transition: all 0.2s ease;
+}
+
+.filter-section .btn-group button:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.filter-section .btn-group button[aria-pressed="true"] {
+    font-weight: 600;
+}
+

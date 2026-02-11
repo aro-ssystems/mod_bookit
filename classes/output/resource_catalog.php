@@ -26,6 +26,7 @@
 namespace mod_bookit\output;
 
 use mod_bookit\local\manager\resource_manager;
+use mod_bookit\local\persistent\room;
 use renderer_base;
 use renderable;
 use templatable;
@@ -55,6 +56,27 @@ class resource_catalog implements renderable, templatable {
             $data->categories[] = $categorycard->export_for_template($output);
         }
 
+        $data->rooms = $this->get_rooms_for_filter();
+
         return $data;
+    }
+
+    /**
+     * Get all active rooms for the filter
+     *
+     * @return array Array of room objects with id and name
+     */
+    private function get_rooms_for_filter(): array {
+        $rooms = room::get_records(['active' => 1], 'name', 'ASC');
+        $roomsdata = [];
+
+        foreach ($rooms as $room) {
+            $roomsdata[] = [
+                'id' => $room->get('id'),
+                'name' => $room->get('name'),
+            ];
+        }
+
+        return $roomsdata;
     }
 }
