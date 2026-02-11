@@ -31,8 +31,9 @@ import {get_string as getString} from 'core/str';
 export default class ResourceItem extends BaseComponent {
 
     create(descriptor) {
-        const itemEditBtnSelector = 'EDIT_ITEM_BTN_' + descriptor.element.dataset.bookitItemId;
-        this.selectors[itemEditBtnSelector] = `#edit-item-${descriptor.element.dataset.bookitItemId}`;
+        const itemId = descriptor.element.dataset.bookitItemId;
+        const itemEditBtnSelector = this._getEditButtonSelector(itemId);
+        this.selectors[itemEditBtnSelector] = `#edit-item-${itemId}`;
     }
 
     static init(target, selectors) {
@@ -47,8 +48,19 @@ export default class ResourceItem extends BaseComponent {
         return [];
     }
 
+    /**
+     * Get the selector key for the edit button of a specific item.
+     *
+     * @param {string} itemId The item ID
+     * @returns {string} The selector key
+     */
+    _getEditButtonSelector(itemId) {
+        return 'EDIT_ITEM_BTN_' + itemId;
+    }
+
     stateReady() {
-        const itemEditBtnSelector = 'EDIT_ITEM_BTN_' + this.element.dataset.bookitItemId;
+        const itemId = this.element.dataset.bookitItemId;
+        const itemEditBtnSelector = this._getEditButtonSelector(itemId);
 
         this.addEventListener(this.getElement(this.selectors[itemEditBtnSelector]), 'click', (e) => {
             e.preventDefault();
