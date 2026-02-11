@@ -656,11 +656,6 @@ export default class extends BaseComponent {
     /**
      * Render a new category component.
      *
-     * @param {Object} categoryData - Category data
-     */
-    /**
-     * Render a new category.
-     *
      * @param {Object} categoryData - Category data object
      */
     async _renderCategory(categoryData) {
