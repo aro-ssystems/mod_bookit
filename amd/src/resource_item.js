@@ -70,7 +70,7 @@ export default class ResourceItem extends BaseComponent {
 
     async _handleEdit(event) {
         const modalForm = new ModalForm({
-            formClass: "mod_bookit\\form\\edit_resource_form",
+            formClass: 'mod_bookit\\form\\edit_resource_form',
             moduleName: 'mod_bookit/modal_delete_save_cancel',
             args: {
                 id: event.currentTarget.value,
