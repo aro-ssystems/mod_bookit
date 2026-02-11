@@ -254,7 +254,7 @@ export default class extends BaseComponent {
      *
      * @param {Object} event - Event object
      */
-    _replaceRenderedItem(event) {
+    async _replaceRenderedItem(event) {
         const actionParts = event.action.split('.');
         const fieldPart = actionParts[1].split(':')[0];
         const item = this.reactive.state.items.get(event.element.id);
@@ -276,21 +276,43 @@ export default class extends BaseComponent {
             }
             nameSpan.textContent = item.name;
         } else if (fieldPart === 'description') {
-            const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${item.id}"]`);
-            if (descSpan) {
-                descSpan.innerHTML = item.description || '';
-            } else if (item.description) {
-                // Description was added but <small> element doesn't exist - need to re-render row.
-                const row = document.querySelector(`#resource-item-row-${item.id}`);
-                if (row) {
-                    // Find category component and trigger re-render.
-                    const categoryComponent = Array.from(this.categoryComponents.values())
-                        .find(cat => cat.categoryData.id === item.categoryid);
-                    if (categoryComponent) {
-                        categoryComponent._renderItems();
-                    }
-                }
-            }
+            await this._updateDescriptionField(item);
+        }
+    }
+
+    /**
+     * Update description field in the DOM.
+     *
+     * @param {Object} item - Item data
+     */
+    async _updateDescriptionField(item) {
+        const descSpan = document.querySelector(`small[data-bookit-resource-tabledata-description-id="${item.id}"]`);
+        if (descSpan) {
+            descSpan.innerHTML = item.description || '';
+            return;
+        }
+
+        // Description was added but <small> element doesn't exist - need to re-render row.
+        if (!item.description) {
+            return;
+        }
+
+        const row = document.querySelector(`#resource-item-row-${item.id}`);
+        if (!row) {
+            return;
+        }
+
+        // Find category component and trigger re-render.
+        const categoryComponent = Array.from(this.categoryComponents.values())
+            .find(cat => cat.categoryData.id === item.categoryid);
+        if (!categoryComponent) {
+            return;
+        }
+
+        try {
+            await categoryComponent._renderItems();
+        } catch (error) {
+            window.console.error('Failed to re-render items:', error);
         }
     }
 
