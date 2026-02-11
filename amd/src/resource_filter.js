@@ -48,18 +48,12 @@ export default class ResourceFilter {
         }
 
         filterGroup.addEventListener('click', (e) => {
-            if (!e.target.matches('button')) {
+            if (!e.target.matches('button') && !e.target.closest('button')) {
                 return;
             }
 
-            const button = e.target;
-
-            if (button.dataset.action === 'clear') {
-                this.clearSelection(filterGroup);
-            } else {
-                this.toggleButton(button);
-            }
-
+            const button = e.target.closest('button');
+            this.toggleButton(button);
             this.applyFilter();
         });
     }
@@ -72,33 +66,25 @@ export default class ResourceFilter {
     toggleButton(button) {
         const value = button.dataset.value;
         const isPressed = button.getAttribute('aria-pressed') === 'true';
+        const icon = button.querySelector('.filter-icon');
 
         if (isPressed) {
-            button.classList.remove('btn-primary');
-            button.classList.add('btn-outline-primary');
+            // Deselect: Show plus icon, unselected color
+            button.style.backgroundColor = button.dataset.colorUnselected;
             button.setAttribute('aria-pressed', 'false');
+            if (icon) {
+                icon.textContent = '+';
+            }
             this.selectedRooms.delete(value);
         } else {
-            button.classList.remove('btn-outline-primary');
-            button.classList.add('btn-primary');
+            // Select: Show checkmark icon, selected color
+            button.style.backgroundColor = button.dataset.colorSelected;
             button.setAttribute('aria-pressed', 'true');
+            if (icon) {
+                icon.textContent = '✓';
+            }
             this.selectedRooms.add(value);
         }
-    }
-
-    /**
-     * Clear all selections in a filter group
-     *
-     * @param {HTMLElement} filterGroup - Filter group container
-     */
-    clearSelection(filterGroup) {
-        const buttons = filterGroup.querySelectorAll('[data-value]');
-        buttons.forEach(button => {
-            button.classList.remove('btn-primary');
-            button.classList.add('btn-outline-primary');
-            button.setAttribute('aria-pressed', 'false');
-        });
-        this.selectedRooms.clear();
     }
 
     /**

@@ -64,17 +64,29 @@ class resource_catalog implements renderable, templatable {
     /**
      * Get all active rooms for the filter
      *
-     * @return array Array of room objects with id and name
+     * @return array Array of room objects with id, name, and colors
      */
     private function get_rooms_for_filter(): array {
         $rooms = room::get_records(['active' => 1], 'name', 'ASC');
         $roomsdata = [];
 
+        $colors = [
+            ['selected' => '#5BC0BE', 'unselected' => '#A8E6CF'],
+            ['selected' => '#FF6B6B', 'unselected' => '#FFE5E5'],
+            ['selected' => '#4ECDC4', 'unselected' => '#B4F8C8'],
+            ['selected' => '#FF8B94', 'unselected' => '#FFD4A3'],
+        ];
+
+        $index = 0;
         foreach ($rooms as $room) {
+            $colorset = $colors[$index % count($colors)];
             $roomsdata[] = [
                 'id' => $room->get('id'),
                 'name' => $room->get('name'),
+                'colorselected' => $colorset['selected'],
+                'colorunselected' => $colorset['unselected'],
             ];
+            $index++;
         }
 
         return $roomsdata;
