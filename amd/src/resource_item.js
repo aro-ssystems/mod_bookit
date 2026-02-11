@@ -28,7 +28,7 @@ import {SELECTORS} from 'mod_bookit/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 
-export default class extends BaseComponent {
+export default class ResourceItem extends BaseComponent {
 
     create(descriptor) {
         const itemEditBtnSelector = 'EDIT_ITEM_BTN_' + descriptor.element.dataset.bookitItemId;
