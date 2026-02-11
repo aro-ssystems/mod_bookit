@@ -539,10 +539,12 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            window.console.log('[BOOKIT DEBUG] Edit form submitted, response:', response.detail);
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
         modalForm.addEventListener(modalForm.events.LOADED, () => {
+            window.console.log('[BOOKIT DEBUG] Edit form loaded for item:', itemId);
             const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
 
             deleteButton.on('click', async(e) => {
