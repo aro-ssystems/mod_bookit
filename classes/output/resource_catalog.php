@@ -56,7 +56,10 @@ class resource_catalog implements renderable, templatable {
             $data->categories[] = $categorycard->export_for_template($output);
         }
 
-        $data->rooms = $this->get_rooms_for_filter();
+        // Get rooms and separate into selected/unselected for two-row layout.
+        $roomsdata = $this->get_rooms_for_filter();
+        $data->rooms_selected = []; // All start as unselected.
+        $data->rooms_unselected = $roomsdata;
 
         return $data;
     }

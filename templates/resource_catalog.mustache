@@ -59,12 +59,32 @@
             </button>
         </div>
 
-        {{! Filter Section }}
+        {{! Filter Section - Two-Row Layout }}
         <div class="filter-section mb-4">
-            <div class="filter-group d-flex align-items-center">
-                <label class="mr-3 mb-0 font-weight-bold">{{#str}}filters:room_label, mod_bookit{{/str}}</label>
-                <div class="btn-group" role="group" data-filter="room">
-                    {{#rooms}}
+            <div class="filter-group">
+                <label class="mb-2 font-weight-bold d-block">{{#str}}filters:room_label, mod_bookit{{/str}}</label>
+                
+                {{! Selected Filters Row (Top) }}
+                <div class="filter-row-selected mb-2" data-filter="room" data-row="selected">
+                    {{#rooms_selected}}
+                    <button type="button"
+                            class="btn btn-room-filter"
+                            data-value="{{id}}"
+                            data-color-selected="{{colorselected}}"
+                            data-color-unselected="{{colorunselected}}"
+                            style="background-color: {{colorselected}}; border: none; color: #fff;"
+                            aria-pressed="true">
+                        <span class="filter-icon">✓</span> {{name}}
+                    </button>
+                    {{/rooms_selected}}
+                </div>
+                
+                {{! Horizontal Divider }}
+                <hr class="filter-divider">
+                
+                {{! Unselected Filters Row (Bottom) }}
+                <div class="filter-row-unselected" data-filter="room" data-row="unselected">
+                    {{#rooms_unselected}}
                     <button type="button"
                             class="btn btn-room-filter"
                             data-value="{{id}}"
@@ -74,7 +94,7 @@
                             aria-pressed="false">
                         <span class="filter-icon">+</span> {{name}}
                     </button>
-                    {{/rooms}}
+                    {{/rooms_unselected}}
                 </div>
             </div>
         </div>

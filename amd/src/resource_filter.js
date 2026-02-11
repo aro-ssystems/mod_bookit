@@ -44,48 +44,57 @@ define([], function() {
      * Initialize event listeners for filter buttons
      */
     initEventListeners() {
-        const filterGroup = this.container.querySelector('[data-filter="room"]');
-        if (!filterGroup) {
+        const selectedRow = this.container.querySelector('[data-row="selected"]');
+        const unselectedRow = this.container.querySelector('[data-row="unselected"]');
+
+        if (!selectedRow || !unselectedRow) {
             return;
         }
 
-        filterGroup.addEventListener('click', (e) => {
-            if (!e.target.matches('button') && !e.target.closest('button')) {
-                return;
-            }
+        // Event delegation on both rows
+        [selectedRow, unselectedRow].forEach(row => {
+            row.addEventListener('click', (e) => {
+                if (!e.target.matches('button') && !e.target.closest('button')) {
+                    return;
+                }
 
-            const button = e.target.closest('button');
-            this.toggleButton(button);
-            this.applyFilter();
+                const button = e.target.closest('button');
+                this.toggleButton(button, selectedRow, unselectedRow);
+                this.applyFilter();
+            });
         });
     }
 
     /**
-     * Toggle button state
+     * Toggle button state and move between rows
      *
      * @param {HTMLElement} button - Button element to toggle
+     * @param {HTMLElement} selectedRow - Selected row container
+     * @param {HTMLElement} unselectedRow - Unselected row container
      */
-    toggleButton(button) {
+    toggleButton(button, selectedRow, unselectedRow) {
         const value = button.dataset.value;
         const isPressed = button.getAttribute('aria-pressed') === 'true';
         const icon = button.querySelector('.filter-icon');
 
         if (isPressed) {
-            // Deselect: Show plus icon, unselected color
+            // Deselect: Move to unselected row, show plus, unselected color
             button.style.backgroundColor = button.dataset.colorUnselected;
             button.setAttribute('aria-pressed', 'false');
             if (icon) {
                 icon.textContent = '+';
             }
             this.selectedRooms.delete(value);
+            unselectedRow.appendChild(button);
         } else {
-            // Select: Show checkmark icon, selected color
+            // Select: Move to selected row, show checkmark, selected color
             button.style.backgroundColor = button.dataset.colorSelected;
             button.setAttribute('aria-pressed', 'true');
             if (icon) {
                 icon.textContent = '✓';
             }
             this.selectedRooms.add(value);
+            selectedRow.appendChild(button);
         }
     }
 
