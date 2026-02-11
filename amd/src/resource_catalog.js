@@ -324,17 +324,12 @@ export default class extends BaseComponent {
      */
     _handleRoomnamesUpdated(event) {
         const item = this.reactive.state.items.get(event.element.id);
-        window.console.log('[BOOKIT DEBUG] _handleRoomnamesUpdated fired for item:', event.element.id);
         if (!item) {
-            window.console.log('[BOOKIT DEBUG] Item not found in state');
             return;
         }
 
-        window.console.log('[BOOKIT DEBUG] Item roomnames:', item.roomnames, 'length:', item.roomnames?.length);
-
         const roomsCell = document.querySelector(`td[data-bookit-resource-tabledata-roomids-id="${item.id}"]`);
         if (!roomsCell) {
-            window.console.log('[BOOKIT DEBUG] Rooms cell not found');
             return;
         }
 
@@ -344,10 +339,8 @@ export default class extends BaseComponent {
 
         if (!item.roomnames || item.roomnames.length === 0) {
             // Show "All rooms" badge.
-            window.console.log('[BOOKIT DEBUG] Showing "All rooms" badge (roomnames empty)');
             container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
         } else {
-            window.console.log('[BOOKIT DEBUG] Rendering room badges:', item.roomnames);
             // Render room badges with colors.
             item.roomnames.forEach(room => {
                 const badge = document.createElement('span');
