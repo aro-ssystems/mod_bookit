@@ -182,8 +182,8 @@ export default class extends BaseComponent {
      * @param {Object} args - Event args
      * @param {Object} args.element - New category data
      */
-    _handleCategoryCreated({element}) {
-        this._renderCategory(element);
+    async _handleCategoryCreated({element}) {
+        await this._renderCategory(element);
     }
 
     /**
@@ -636,7 +636,12 @@ export default class extends BaseComponent {
      *
      * @param {Object} categoryData - Category data
      */
-    _renderCategory(categoryData) {
+    /**
+     * Render a new category.
+     *
+     * @param {Object} categoryData - Category data object
+     */
+    async _renderCategory(categoryData) {
         const tableEl = this.element.querySelector('#mod-bookit-resource-table');
         if (!tableEl) {
             return;
@@ -647,6 +652,8 @@ export default class extends BaseComponent {
             reactive: this.reactive,
             categoryData: categoryData,
         });
+
+        await component._render();
 
         this.categoryComponents.set(categoryData.id, component);
     }
