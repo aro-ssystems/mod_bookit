@@ -677,7 +677,7 @@ export default class extends BaseComponent {
      * Apply current filter to resource table.
      */
     _applyFilter() {
-        const allCategories = this.getElement('[data-region="resource-category"]');
+        const allCategories = document.querySelectorAll('[data-region="resource-category"]');
 
         if (this.selectedRooms.size === 0) {
             allCategories.forEach(category => {
