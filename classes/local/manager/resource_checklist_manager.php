@@ -79,6 +79,29 @@ class resource_checklist_manager {
     }
 
     /**
+     * Get checklist item by ID (alias for get_checklist_item).
+     *
+     * @param int $id Checklist item ID
+     * @return bookit_resource_checklist|null
+     * @throws dml_exception
+     */
+    public static function get_checklist_item_by_id(int $id): ?bookit_resource_checklist {
+        return self::get_checklist_item($id);
+    }
+
+    /**
+     * Update checklist item (alias for save_checklist_item).
+     *
+     * @param bookit_resource_checklist $item Checklist item
+     * @param int $userid User ID
+     * @return int Item ID
+     * @throws dml_exception
+     */
+    public static function update_checklist_item(bookit_resource_checklist $item, int $userid): int {
+        return self::save_checklist_item($item, $userid);
+    }
+
+    /**
      * Get checklist item by resource ID.
      *
      * @param int $resourceid Resource ID
