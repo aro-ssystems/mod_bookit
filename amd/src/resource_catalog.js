@@ -678,14 +678,21 @@ export default class extends BaseComponent {
      */
     _applyFilter() {
         const allCategories = document.querySelectorAll('[data-region="resource-category"]');
+        const hasActiveFilters = this.selectedRooms.size > 0;
 
-        if (this.selectedRooms.size === 0) {
+        // Reset: Show all categories and resources when no filters are active.
+        if (!hasActiveFilters) {
             allCategories.forEach(category => {
                 category.style.display = '';
+                const resourceRows = category.querySelectorAll('[data-region="resource-row"]');
+                resourceRows.forEach(row => {
+                    row.style.display = '';
+                });
             });
             return;
         }
 
+        // Filters active: Apply strict matching.
         allCategories.forEach(category => {
             const resourceRows = category.querySelectorAll('[data-region="resource-row"]');
 
@@ -702,7 +709,8 @@ export default class extends BaseComponent {
                 }
             });
 
-            if (hasVisibleResources || resourceRows.length === 0) {
+            // Hide category if no resources match filter.
+            if (hasVisibleResources) {
                 category.style.display = '';
             } else {
                 category.style.display = 'none';
@@ -732,12 +740,15 @@ export default class extends BaseComponent {
     /**
      * Check if resource has any matching room.
      *
+     * Resources with no rooms assigned cannot match any filter.
+     *
      * @param {Array} resourceRooms - Array of room IDs
      * @return {boolean} True if any room matches
      */
     _hasMatchingRoom(resourceRooms) {
+        // Resources with no rooms cannot match filters.
         if (resourceRooms.length === 0) {
-            return true;
+            return false;
         }
 
         return resourceRooms.some(roomId =>
