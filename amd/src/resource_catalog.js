@@ -639,9 +639,7 @@ export default class extends BaseComponent {
         const hiddenSelect = filterSection ? filterSection.querySelector('select[multiple]') : null;
 
         if (isPressed) {
-            // Deselect: Move to unselected row, show plus, unselected color.
-            button.style.backgroundColor = button.dataset.colorUnselected;
-            button.style.color = '#333';
+            // Deselect: Move to unselected row, show plus.
             button.setAttribute('aria-pressed', 'false');
             if (icon) {
                 icon.textContent = '+';
@@ -657,9 +655,7 @@ export default class extends BaseComponent {
                 }
             }
         } else {
-            // Select: Move to selected row, show checkmark, selected color.
-            button.style.backgroundColor = button.dataset.colorSelected;
-            button.style.color = '#fff';
+            // Select: Move to selected row, show checkmark.
             button.setAttribute('aria-pressed', 'true');
             if (icon) {
                 icon.textContent = '✓';

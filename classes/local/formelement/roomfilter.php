@@ -28,6 +28,7 @@ namespace mod_bookit\local\formelement;
 use HTML_QuickForm_select;
 use renderer_base;
 use mod_bookit\local\persistent\room;
+use mod_bookit\local\manager\color_manager;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -189,8 +190,7 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
                 'name' => (string)$roomname,
                 'selected' => $isselected,
                 'eventcolor' => $eventcolor,
-                'colorselected' => $eventcolor,
-                'colorunselected' => $this->calculate_unselected_color($eventcolor),
+                'textcolor' => color_manager::get_textcolor_for_background($eventcolor),
             ];
         }
 
@@ -209,26 +209,5 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
         // This allows the filter to integrate with Moodle's reactive system properly.
 
         return $result;
-    }
-
-    /**
-     * Calculate unselected color (lighter version of eventcolor).
-     *
-     * @param string $hexcolor Hex color code.
-     * @return string Lighter hex color.
-     */
-    private function calculate_unselected_color(string $hexcolor): string {
-        // Convert hex to RGB.
-        $hex = str_replace('#', '', $hexcolor);
-        $r = hexdec(substr($hex, 0, 2));
-        $g = hexdec(substr($hex, 2, 2));
-        $b = hexdec(substr($hex, 4, 2));
-
-        // Mix with white (70% original, 30% white for lighter appearance).
-        $r = round($r * 0.7 + 255 * 0.3);
-        $g = round($g * 0.7 + 255 * 0.3);
-        $b = round($b * 0.7 + 255 * 0.3);
-
-        return sprintf('#%02x%02x%02x', $r, $g, $b);
     }
 }

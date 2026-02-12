@@ -36,17 +36,15 @@
                 "id": 1,
                 "name": "Room A",
                 "eventcolor": "#FF0000",
-                "colorselected": "#FF0000",
-                "colorunselected": "#FFB3B3"
+                "textcolor": "#fff"
             }
         ],
         "rooms_unselected": [
             {
                 "id": 2,
                 "name": "Room B",
-                "eventcolor": "#00FF00",
-                "colorselected": "#00FF00",
-                "colorunselected": "#B3FFB3"
+                "eventcolor": "#FFFF00",
+                "textcolor": "#000"
             }
         ]
     }
@@ -64,11 +62,9 @@
                     class="btn btn-sm btn-room-filter"
                     data-value="{{id}}"
                     data-room-name="{{name}}"
-                    data-color-selected="{{colorselected}}"
-                    data-color-unselected="{{colorunselected}}"
                     data-state="selected"
                     aria-pressed="true"
-                    style="background-color: {{colorselected}}; color: #fff;">
+                    style="--room-color: {{eventcolor}}; --text-color: {{textcolor}};">
                 <span class="filter-icon">✓</span>
                 {{name}}
             </button>
@@ -83,11 +79,9 @@
                     class="btn btn-sm btn-room-filter"
                     data-value="{{id}}"
                     data-room-name="{{name}}"
-                    data-color-selected="{{colorselected}}"
-                    data-color-unselected="{{colorunselected}}"
                     data-state="unselected"
                     aria-pressed="false"
-                    style="background-color: {{colorunselected}}; color: #333;">
+                    style="--room-color: {{eventcolor}}; --text-color: {{textcolor}};">
                 <span class="filter-icon">+</span>
                 {{name}}
             </button>

@@ -185,6 +185,18 @@
     transition: all 0.2s ease;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--room-color);
+    color: var(--text-color);
+}
+
+#mod-bookit-resource-catalog .btn-room-filter[aria-pressed="true"] {
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+}
+
+#mod-bookit-resource-catalog .btn-room-filter[aria-pressed="false"] {
+    opacity: 0.5;
 }
 
 #mod-bookit-resource-catalog .btn-room-filter:hover {
@@ -200,9 +212,3 @@
     font-weight: bold;
     margin-right: 0.25rem;
 }
-
-#mod-bookit-resource-catalog .btn-room-filter[aria-pressed="true"] {
-    font-weight: 600;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
