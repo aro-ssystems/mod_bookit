@@ -80,6 +80,7 @@ if (empty($eventresources)) {
     $table->head = [
         get_string('resource', 'mod_bookit'),
         get_string('quantity', 'mod_bookit'),
+        get_string('resource_status', 'mod_bookit'),
         get_string('duedate', 'mod_bookit'),
         get_string('status', 'core'),
     ];
@@ -88,6 +89,7 @@ if (empty($eventresources)) {
     foreach ($eventresources as $eventresource) {
         $resourceid = $eventresource->get_resourceid();
         $quantity = $eventresource->get_quantity();
+        $resourcestatus = $eventresource->get_status();
 
         $resource = $DB->get_record('bookit_resource', ['id' => $resourceid]);
         if (!$resource) {
@@ -107,10 +109,26 @@ if (empty($eventresources)) {
             ]);
         }
 
+        // Resource status badge.
+        $statusclass = 'badge badge-secondary';
+        if ($resourcestatus === 'confirmed') {
+            $statusclass = 'badge badge-success';
+        } else if ($resourcestatus === 'inprogress') {
+            $statusclass = 'badge badge-primary';
+        } else if ($resourcestatus === 'rejected') {
+            $statusclass = 'badge badge-danger';
+        }
+        $resourcestatusbadge = html_writer::tag(
+            'span',
+            get_string('resource_status_' . $resourcestatus, 'mod_bookit'),
+            ['class' => $statusclass]
+        );
+
         $row = new html_table_row();
         $row->cells = [
             format_string($resource->name),
             $quantity,
+            $resourcestatusbadge,
             $checklistitem && $checklistitem->get_duedate() ? userdate($checklistitem->get_duedate()) : '-',
             $statusbadge,
         ];

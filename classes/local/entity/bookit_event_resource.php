@@ -44,6 +44,9 @@ class bookit_event_resource {
     /** @var int Quantity of resource units used */
     private int $quantity;
 
+    /** @var string Status (requested, confirmed, inprogress, rejected) */
+    private string $status;
+
     /** @var int User who created/modified */
     private int $usermodified;
 
@@ -60,6 +63,7 @@ class bookit_event_resource {
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
      * @param int $quantity Quantity
+     * @param string $status Status
      * @param int $usermodified User ID
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
@@ -69,6 +73,7 @@ class bookit_event_resource {
         int $eventid = 0,
         int $resourceid = 0,
         int $quantity = 1,
+        string $status = 'requested',
         int $usermodified = 0,
         int $timecreated = 0,
         int $timemodified = 0
@@ -77,6 +82,7 @@ class bookit_event_resource {
         $this->eventid = $eventid;
         $this->resourceid = $resourceid;
         $this->quantity = $quantity;
+        $this->status = $status;
         $this->usermodified = $usermodified;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
@@ -152,6 +158,24 @@ class bookit_event_resource {
      */
     public function set_quantity(int $quantity): void {
         $this->quantity = $quantity;
+    }
+
+    /**
+     * Get status.
+     *
+     * @return string
+     */
+    public function get_status(): string {
+        return $this->status;
+    }
+
+    /**
+     * Set status.
+     *
+     * @param string $status
+     */
+    public function set_status(string $status): void {
+        $this->status = $status;
     }
 
     /**

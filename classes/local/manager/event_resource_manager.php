@@ -104,6 +104,7 @@ class event_resource_manager {
      * @param int $resourceid Resource ID
      * @param int $quantity Quantity
      * @param int $userid User ID
+     * @param string $status Status
      * @return int Record ID
      * @throws dml_exception
      */
@@ -111,7 +112,8 @@ class event_resource_manager {
         int $eventid,
         int $resourceid,
         int $quantity,
-        int $userid
+        int $userid,
+        string $status = 'requested'
     ): int {
         global $DB;
 
@@ -120,6 +122,7 @@ class event_resource_manager {
         $record->eventid = $eventid;
         $record->resourceid = $resourceid;
         $record->quantity = $quantity;
+        $record->status = $status;
         $record->usermodified = $userid;
         $record->timecreated = $time;
         $record->timemodified = $time;
@@ -134,6 +137,7 @@ class event_resource_manager {
      * @param int $resourceid Resource ID
      * @param int $quantity New quantity
      * @param int $userid User ID
+     * @param string|null $status Optional new status
      * @return bool Success
      * @throws dml_exception
      */
@@ -141,7 +145,8 @@ class event_resource_manager {
         int $eventid,
         int $resourceid,
         int $quantity,
-        int $userid
+        int $userid,
+        ?string $status = null
     ): bool {
         global $DB;
 
@@ -155,6 +160,9 @@ class event_resource_manager {
         }
 
         $record->quantity = $quantity;
+        if ($status !== null) {
+            $record->status = $status;
+        }
         $record->usermodified = $userid;
         $record->timemodified = time();
 
@@ -203,6 +211,7 @@ class event_resource_manager {
             (int)$record->eventid,
             (int)$record->resourceid,
             (int)($record->quantity ?? 1),
+            $record->status ?? 'requested',
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0)
