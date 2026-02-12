@@ -56,6 +56,9 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
     /** @var array Room data for custom rendering. */
     private $roomdata = [];
 
+    /** @var array|null Cached room records. */
+    private $cachedrooms = null;
+
     /**
      * Registers the element type.
      */
@@ -98,12 +101,24 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
     }
 
     /**
+     * Get active rooms from database, with caching.
+     *
+     * @return array Room objects indexed by ID.
+     */
+    private function get_rooms(): array {
+        if ($this->cachedrooms === null) {
+            $this->cachedrooms = room::get_records(['active' => 1], 'name', 'ASC');
+        }
+        return $this->cachedrooms;
+    }
+
+    /**
      * Load active rooms as options.
      *
      * @return array Room options as id => name pairs.
      */
     private function load_room_options(): array {
-        $rooms = room::get_records(['active' => 1], 'name', 'ASC');
+        $rooms = $this->get_rooms();
         $options = [];
 
         foreach ($rooms as $room) {
@@ -120,7 +135,7 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
      * @return array Room colors indexed by room ID.
      */
     private function get_room_colors(): array {
-        $rooms = room::get_records(['active' => 1], 'name', 'ASC');
+        $rooms = $this->get_rooms();
         $colors = [];
 
         foreach ($rooms as $room) {
