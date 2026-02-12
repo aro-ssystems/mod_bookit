@@ -52,7 +52,7 @@
     }
 }}
 
-<div class="filter-section" data-filter-id="{{id}}">
+<div class="filter-section" {{#filter_section_id}}id="{{filter_section_id}}"{{/filter_section_id}} data-filter-id="{{id}}">
     {{#label}}
     <label class="filter-label">{{label}}</label>
     {{/label}}

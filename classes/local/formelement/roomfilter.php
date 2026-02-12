@@ -194,8 +194,8 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
         $result = new \stdClass();
         $result->html = $html;
 
-        // Initialize JavaScript for filter interactions - pass filter section ID!
-        $PAGE->requires->js_call_amd('mod_bookit/resource_filter', 'init', ['#' . $context->filter_section_id]);
+        // Note: JavaScript initialization is handled by the parent reactive component (resource_catalog.js).
+        // This allows the filter to integrate with Moodle's reactive system properly.
 
         return $result;
     }
