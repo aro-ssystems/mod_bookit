@@ -632,7 +632,7 @@ export default class extends BaseComponent {
      * @param {HTMLElement} unselectedRow - Unselected row container
      */
     _toggleFilterButton(button, selectedRow, unselectedRow) {
-        const value = parseInt(button.dataset.value, 10);
+        const value = button.dataset.value;
         const isPressed = button.getAttribute('aria-pressed') === 'true';
         const icon = button.querySelector('.filter-icon');
         const filterSection = button.closest('.filter-section');
@@ -742,7 +742,7 @@ export default class extends BaseComponent {
      *
      * Resources with no rooms assigned cannot match any filter.
      *
-     * @param {Array} resourceRooms - Array of room IDs (integers from JSON)
+     * @param {Array} resourceRooms - Array of room IDs (strings from JSON)
      * @return {boolean} True if any room matches
      */
     _hasMatchingRoom(resourceRooms) {

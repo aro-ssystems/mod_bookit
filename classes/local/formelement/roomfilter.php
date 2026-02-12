@@ -186,7 +186,7 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
             $eventcolor = $roomcolors[$roomid] ?? '#6c757d';
 
             $rooms[] = [
-                'id' => (int)$roomid,
+                'id' => (string)$roomid,
                 'name' => (string)$roomname,
                 'selected' => $isselected,
                 'eventcolor' => $eventcolor,
