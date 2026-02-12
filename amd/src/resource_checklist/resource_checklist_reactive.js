@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {createChecklistReactive} from 'mod_bookit/checklist/base_checklist_reactive';
+import {Reactive} from 'core/reactive';
 import ResourceChecklistMutations from 'mod_bookit/resource_checklist/resource_checklist_mutations';
 
 export const SELECTORS = {
@@ -31,16 +31,56 @@ export const SELECTORS = {
     ALL_ITEM_ROWS: 'tr[data-bookit-item-id]',
 };
 
-const store = createChecklistReactive({
-    name: 'Moodle Bookit Resource Checklist',
-    eventName: 'mod_bookit:resource_checklist_state_event',
-    selectors: SELECTORS,
-    mutationsClass: new ResourceChecklistMutations(),
-    stateKeys: {
-        categories: 'categories',
-        items: 'checklistitems'
-    }
-});
+const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
 
-export const resourceChecklistReactiveInstance = store.reactiveInstance;
-export const initResourceChecklistReactive = store.initReactive;
+let resourceChecklistReactiveInstance = null;
+
+/**
+ * Initialize resource checklist reactive store.
+ *
+ * @param {Object} initialState - Initial state with categories and checklistitems
+ * @param {Array} initialState.categories - Array of category data
+ * @param {Array} initialState.checklistitems - Array of checklist item data
+ * @return {Reactive} Reactive instance
+ */
+export const initResourceChecklistReactive = (initialState) => {
+    if (resourceChecklistReactiveInstance === null) {
+        resourceChecklistReactiveInstance = new Reactive({
+            name: 'Moodle Bookit Resource Checklist',
+            eventName: EVENTNAME,
+            eventDispatch: dispatchResourceChecklistStateEvent,
+            mutations: new ResourceChecklistMutations(),
+        });
+
+        // Set initial state - Moodle automatically converts arrays to Maps.
+        resourceChecklistReactiveInstance.setInitialState({
+            categories: initialState.categories || [],
+            checklistitems: initialState.checklistitems || [],
+        });
+    }
+
+    return resourceChecklistReactiveInstance;
+};
+
+/**
+ * Dispatch the resource checklist state event.
+ *
+ * @param {Object} detail - The event detail
+ * @param {HTMLElement} target - The target element
+ */
+function dispatchResourceChecklistStateEvent(detail, target) {
+    if (target === undefined) {
+        target = document;
+    }
+    target.dispatchEvent(
+        new CustomEvent(
+            EVENTNAME,
+            {
+                bubbles: true,
+                detail: detail,
+            }
+        )
+    );
+}
+
+export {resourceChecklistReactiveInstance};
