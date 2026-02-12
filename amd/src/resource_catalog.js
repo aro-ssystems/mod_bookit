@@ -684,7 +684,7 @@ export default class extends BaseComponent {
         if (!hasActiveFilters) {
             allCategories.forEach(category => {
                 category.style.display = '';
-                const resourceRows = category.querySelectorAll('[data-region="resource-row"]');
+                const resourceRows = category.querySelectorAll('[data-region="resource-item-row"]');
                 resourceRows.forEach(row => {
                     row.style.display = '';
                 });
@@ -694,7 +694,7 @@ export default class extends BaseComponent {
 
         // Filters active: Apply strict matching.
         allCategories.forEach(category => {
-            const resourceRows = category.querySelectorAll('[data-region="resource-row"]');
+            const resourceRows = category.querySelectorAll('[data-region="resource-item-row"]');
 
             let hasVisibleResources = false;
 
