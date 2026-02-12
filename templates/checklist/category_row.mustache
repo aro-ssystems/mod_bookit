@@ -1,0 +1,51 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/checklist/category_row
+    Base category row for checklist table view
+
+    This is a minimal base template. Specializations should create their own
+    templates with specific styling and fields.
+
+    Context variables:
+    * id - Category ID
+    * name - Category name
+    * description - Category description (optional)
+    * sortorder - Sort order
+
+    Example context (json):
+    {
+        "id": 1,
+        "name": "Technical Equipment",
+        "description": "Audio and video equipment",
+        "sortorder": 0
+    }
+}}
+<tr class="table-active bg-light border-bottom checklist-category-row"
+    id="checklist-category-row-{{id}}"
+    data-region="checklist-category-row"
+    data-categoryid="{{id}}"
+    data-category-sortorder="{{sortorder}}"
+    draggable="true">
+
+    <td class="font-weight-bold text-dark py-3" colspan="100">
+        <span data-field="category-name">{{{name}}}</span>
+        {{#description}}
+        <small class="text-muted d-block">{{{description}}}</small>
+        {{/description}}
+    </td>
+</tr>

@@ -1,0 +1,86 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/checklist/container
+    Base container for checklist table view
+
+    This is a minimal base template. Specializations should create their own
+    templates with specific styling and structure.
+
+    Context variables:
+    * categories - Array of categories (with items nested)
+    * contextid - Context ID
+    * canmanage - Whether user can manage (bool)
+
+    Example context (json):
+    {
+        "contextid": 1,
+        "canmanage": true,
+        "categories": [
+            {
+                "id": 1,
+                "name": "Category 1",
+                "items": [
+                    {"id": 1, "name": "Item 1"},
+                    {"id": 2, "name": "Item 2"}
+                ]
+            }
+        ]
+    }
+}}
+<div class="mod-bookit-checklist-container"
+     data-region="checklist-container"
+     data-contextid="{{contextid}}">
+
+    {{#canmanage}}
+    <div class="mb-3">
+        <button type="button"
+                id="add-category-btn"
+                class="btn btn-primary">
+            {{#pix}}t/add, core{{/pix}}
+            {{#str}}addcategory, mod_bookit{{/str}}
+        </button>
+        <button type="button"
+                id="add-item-btn"
+                class="btn btn-secondary ml-2">
+            {{#pix}}t/add, core{{/pix}}
+            {{#str}}additem, mod_bookit{{/str}}
+        </button>
+    </div>
+    {{/canmanage}}
+
+    <table class="table mod-bookit-table-view" id="checklist-table">
+        <thead>
+            <tr>
+                <th>{{#str}}name, core{{/str}}</th>
+                <th class="text-center" style="width: 100px;">{{#str}}actions, core{{/str}}</th>
+            </tr>
+        </thead>
+        {{#categories}}
+        <tbody data-region="checklist-category"
+               data-categoryid="{{id}}"
+               data-category-name="{{name}}"
+               data-category-description="{{description}}"
+               data-category-sortorder="{{sortorder}}">
+            {{> mod_bookit/checklist/category_row }}
+            {{#items}}
+            {{> mod_bookit/checklist/item_row }}
+            {{/items}}
+        </tbody>
+        {{/categories}}
+    </table>
+</div>
