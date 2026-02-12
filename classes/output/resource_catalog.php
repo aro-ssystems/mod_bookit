@@ -26,6 +26,7 @@
 namespace mod_bookit\output;
 
 use mod_bookit\local\manager\resource_manager;
+use mod_bookit\local\formelement\roomfilter;
 use renderer_base;
 use renderable;
 use templatable;
@@ -55,6 +56,32 @@ class resource_catalog implements renderable, templatable {
             $data->categories[] = $categorycard->export_for_template($output);
         }
 
+        // Render room filter using custom form element.
+        $data->roomfilter = $this->render_room_filter($output);
+
         return $data;
+    }
+
+    /**
+     * Render room filter using roomfilter form element
+     *
+     * @param renderer_base $output
+     * @return string HTML for room filter
+     */
+    private function render_room_filter(renderer_base $output): string {
+        // Register the custom form element.
+        roomfilter::register();
+
+        // Create roomfilter element in filter mode.
+        $roomfilter = new roomfilter(
+            'roomfilter',
+            get_string('filters:room_label', 'mod_bookit'),
+            null, // Let constructor auto-load rooms.
+            ['mode' => 'filter', 'id' => 'id_roomfilter']
+        );
+
+        // Export and render template.
+        $context = $roomfilter->export_for_template($output);
+        return $context->html ?? '';
     }
 }

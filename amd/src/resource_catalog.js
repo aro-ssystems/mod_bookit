@@ -127,7 +127,9 @@ export default class extends BaseComponent {
         this.selectors.addCategoryBtn = '#add-category-btn';
         this.selectors.addResourceBtn = '#add-resource-btn';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
+        this.selectors.roomFilter = '#id_roomfilter_filter_section';
         this.categoryComponents = new Map();
+        this.selectedRooms = new Set();
 
         // Cache localized strings for active/inactive.
         this.strings = {};
@@ -153,6 +155,7 @@ export default class extends BaseComponent {
     stateReady() {
         this._initializeCategoryComponents();
         this._attachEventListeners();
+        this._initializeRoomFilter();
     }
 
     /**
@@ -376,6 +379,8 @@ export default class extends BaseComponent {
 
         // Update data-item-roomids attribute with JSON string.
         row.dataset.itemRoomids = JSON.stringify(item.roomids || []);
+        // Also update data-rooms to keep filter in sync.
+        row.dataset.rooms = JSON.stringify(item.roomids || []);
     }
 
     /**
@@ -579,5 +584,175 @@ export default class extends BaseComponent {
         await component._render();
 
         this.categoryComponents.set(categoryData.id, component);
+    }
+
+    /**
+     * Initialize room filter event handlers.
+     *
+     * Integrates the roomfilter form element with reactive component.
+     */
+    _initializeRoomFilter() {
+        const filterContainer = this.element.querySelector(this.selectors.roomFilter);
+        if (!filterContainer) {
+            return;
+        }
+
+        const selectedRow = filterContainer.querySelector('[data-row="selected"]');
+        const unselectedRow = filterContainer.querySelector('[data-row="unselected"]');
+
+        if (!selectedRow || !unselectedRow) {
+            return;
+        }
+
+        // Event delegation on both rows using addEventListener (BaseComponent integration).
+        this.addEventListener(selectedRow, 'click', (e) => {
+            if (!e.target.matches('button') && !e.target.closest('button')) {
+                return;
+            }
+            const button = e.target.closest('button');
+            this._toggleFilterButton(button, selectedRow, unselectedRow);
+            this._applyFilter();
+        });
+
+        this.addEventListener(unselectedRow, 'click', (e) => {
+            if (!e.target.matches('button') && !e.target.closest('button')) {
+                return;
+            }
+            const button = e.target.closest('button');
+            this._toggleFilterButton(button, selectedRow, unselectedRow);
+            this._applyFilter();
+        });
+    }
+
+    /**
+     * Toggle filter button state and move between rows.
+     *
+     * @param {HTMLElement} button - Button element to toggle
+     * @param {HTMLElement} selectedRow - Selected row container
+     * @param {HTMLElement} unselectedRow - Unselected row container
+     */
+    _toggleFilterButton(button, selectedRow, unselectedRow) {
+        const value = button.dataset.value;
+        const isPressed = button.getAttribute('aria-pressed') === 'true';
+        const icon = button.querySelector('.filter-icon');
+        const filterSection = button.closest('.filter-section');
+        const hiddenSelect = filterSection ? filterSection.querySelector('select[multiple]') : null;
+
+        if (isPressed) {
+            // Deselect: Move to unselected row, show plus.
+            button.setAttribute('aria-pressed', 'false');
+            if (icon) {
+                icon.textContent = '+';
+            }
+            this.selectedRooms.delete(value);
+            unselectedRow.appendChild(button);
+
+            // Update hidden select.
+            if (hiddenSelect) {
+                const option = hiddenSelect.querySelector(`option[value="${value}"]`);
+                if (option) {
+                    option.selected = false;
+                }
+            }
+        } else {
+            // Select: Move to selected row, show checkmark.
+            button.setAttribute('aria-pressed', 'true');
+            if (icon) {
+                icon.textContent = '✓';
+            }
+            this.selectedRooms.add(value);
+            selectedRow.appendChild(button);
+
+            // Update hidden select.
+            if (hiddenSelect) {
+                const option = hiddenSelect.querySelector(`option[value="${value}"]`);
+                if (option) {
+                    option.selected = true;
+                }
+            }
+        }
+    }
+
+    /**
+     * Apply current filter to resource table.
+     */
+    _applyFilter() {
+        const allCategories = this.element.querySelectorAll('[data-region="resource-category"]');
+        const hasActiveFilters = this.selectedRooms.size > 0;
+
+        // Reset: Show all categories and resources when no filters are active.
+        if (!hasActiveFilters) {
+            allCategories.forEach(category => {
+                category.style.display = '';
+                const resourceRows = category.querySelectorAll('[data-region="resource-item-row"]');
+                resourceRows.forEach(row => {
+                    row.style.display = '';
+                });
+            });
+            return;
+        }
+
+        // Filters active: Apply strict matching.
+        allCategories.forEach(category => {
+            const resourceRows = category.querySelectorAll('[data-region="resource-item-row"]');
+
+            let hasVisibleResources = false;
+
+            resourceRows.forEach(row => {
+                const resourceRooms = this._getResourceRooms(row);
+
+                if (this._hasMatchingRoom(resourceRooms)) {
+                    row.style.display = '';
+                    hasVisibleResources = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Hide category if no resources match filter.
+            if (hasVisibleResources) {
+                category.style.display = '';
+            } else {
+                category.style.display = 'none';
+            }
+        });
+    }
+
+    /**
+     * Get room IDs for a resource row.
+     *
+     * @param {HTMLElement} row - Resource row element
+     * @return {Array} Array of room IDs
+     */
+    _getResourceRooms(row) {
+        const roomsData = row.dataset.rooms;
+        if (!roomsData) {
+            return [];
+        }
+
+        try {
+            return JSON.parse(roomsData);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    /**
+     * Check if resource has any matching room.
+     *
+     * Resources with no rooms assigned cannot match any filter.
+     *
+     * @param {Array} resourceRooms - Array of room IDs (strings from JSON)
+     * @return {boolean} True if any room matches
+     */
+    _hasMatchingRoom(resourceRooms) {
+        // Resources with no rooms cannot match filters.
+        if (resourceRooms.length === 0) {
+            return false;
+        }
+
+        return resourceRooms.some(roomId =>
+            this.selectedRooms.has(roomId)
+        );
     }
 }
