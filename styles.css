@@ -139,19 +139,19 @@
 }
 
 /* Resource filter two-row layout styling */
-.filter-section {
+#mod-bookit-resource-catalog .filter-section {
     padding: 0;
     background-color: transparent;
     border-radius: 0;
 }
 
-.filter-section .filter-group {
+#mod-bookit-resource-catalog .filter-section .filter-group {
     display: flex;
     flex-direction: column;
 }
 
 /* Selected filters row (top) */
-.filter-row-selected {
+#mod-bookit-resource-catalog .filter-row-selected {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -160,7 +160,7 @@
 }
 
 /* Horizontal divider */
-.filter-divider {
+#mod-bookit-resource-catalog .filter-divider {
     margin: 0.75rem 0;
     border: 0;
     border-top: 3px solid #6c757d;
@@ -169,7 +169,7 @@
 }
 
 /* Unselected filters row (bottom) */
-.filter-row-unselected {
+#mod-bookit-resource-catalog .filter-row-unselected {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -177,7 +177,7 @@
     padding: 0.5rem 0;
 }
 
-.btn-room-filter {
+#mod-bookit-resource-catalog .btn-room-filter {
     padding: 0.5rem 1rem;
     border-radius: 0.375rem;
     font-weight: 500;
@@ -187,21 +187,21 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.btn-room-filter:hover {
+#mod-bookit-resource-catalog .btn-room-filter:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
-.btn-room-filter:active {
+#mod-bookit-resource-catalog .btn-room-filter:active {
     transform: translateY(0);
 }
 
-.btn-room-filter .filter-icon {
+#mod-bookit-resource-catalog .btn-room-filter .filter-icon {
     font-weight: bold;
     margin-right: 0.25rem;
 }
 
-.btn-room-filter[aria-pressed="true"] {
+#mod-bookit-resource-catalog .btn-room-filter[aria-pressed="true"] {
     font-weight: 600;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
