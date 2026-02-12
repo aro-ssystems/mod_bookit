@@ -379,6 +379,8 @@ export default class extends BaseComponent {
 
         // Update data-item-roomids attribute with JSON string.
         row.dataset.itemRoomids = JSON.stringify(item.roomids || []);
+        // Also update data-rooms to keep filter in sync.
+        row.dataset.rooms = JSON.stringify(item.roomids || []);
     }
 
     /**
@@ -639,6 +641,7 @@ export default class extends BaseComponent {
         if (isPressed) {
             // Deselect: Move to unselected row, show plus, unselected color.
             button.style.backgroundColor = button.dataset.colorUnselected;
+            button.style.color = '#333';
             button.setAttribute('aria-pressed', 'false');
             if (icon) {
                 icon.textContent = '+';
@@ -656,6 +659,7 @@ export default class extends BaseComponent {
         } else {
             // Select: Move to selected row, show checkmark, selected color.
             button.style.backgroundColor = button.dataset.colorSelected;
+            button.style.color = '#fff';
             button.setAttribute('aria-pressed', 'true');
             if (icon) {
                 icon.textContent = '✓';
@@ -677,7 +681,7 @@ export default class extends BaseComponent {
      * Apply current filter to resource table.
      */
     _applyFilter() {
-        const allCategories = document.querySelectorAll('[data-region="resource-category"]');
+        const allCategories = this.element.querySelectorAll('[data-region="resource-category"]');
         const hasActiveFilters = this.selectedRooms.size > 0;
 
         // Reset: Show all categories and resources when no filters are active.

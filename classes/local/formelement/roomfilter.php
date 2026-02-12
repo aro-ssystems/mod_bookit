@@ -152,8 +152,6 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
      * @return \stdClass Template context.
      */
     public function export_for_template(renderer_base $output): \stdClass {
-        global $PAGE;
-
         $mode = $this->getAttribute('mode') ?? 'filter';
 
         if ($mode === 'filter') {
@@ -171,8 +169,6 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
      * @return \stdClass Template context.
      */
     private function export_for_filter_mode(renderer_base $output): \stdClass {
-        global $PAGE;
-
         $context = new \stdClass();
         $context->name = $this->getName();
         $context->id = $this->getAttribute('id');
