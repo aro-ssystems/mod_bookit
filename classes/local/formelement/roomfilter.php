@@ -92,7 +92,7 @@ class roomfilter extends HTML_QuickForm_select implements \core\output\templatab
 
         // Add CSS class for styling.
         $class = $this->getAttribute('class') ?? '';
-        $mode = $attributes['mode'] ?? 'filter';
+        $mode = is_array($attributes) ? ($attributes['mode'] ?? 'filter') : 'filter';
         $this->updateAttributes(['class' => $class . ' mod_bookit-roomfilter mod_bookit-roomfilter-' . $mode]);
         $this->filtermode = ($mode === 'filter');
     }
