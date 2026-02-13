@@ -383,9 +383,12 @@ class edit_event_form extends dynamic_form {
 
         // Add resources section using new grouped data.
         if (!empty($resourcesdata)) {
+            debugging('Resources section: ADDING resources, count = ' . count($resourcesdata), DEBUG_DEVELOPER);
             foreach ($resourcesdata as $categorygroup) {
                 $category = $categorygroup['category'];
                 $resources = $categorygroup['resources'];
+
+                debugging("Category: {$category['name']}, resources: " . count($resources), DEBUG_DEVELOPER);
 
                 // Add category header.
                 $mform->addElement('header', 'header_cat_' . $category['id'], $category['name']);
@@ -397,10 +400,16 @@ class edit_event_form extends dynamic_form {
                     $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
                     $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
 
+                    debugging("  Resource: {$resource['name']}, roomids: {$resource['roomids']}, decoded: " .
+                        json_encode($roomidsarray) . ", empty: " . (empty($roomidsarray) ? 'YES' : 'NO'), DEBUG_DEVELOPER);
+
                     // Skip resources with no room assignments (hide completely).
                     if (empty($roomidsarray)) {
+                        debugging("    -> SKIPPED (no rooms)", DEBUG_DEVELOPER);
                         continue;
                     }
+
+                    debugging("    -> ADDING to form", DEBUG_DEVELOPER);
 
                     $groupelements = [];
 
@@ -436,6 +445,9 @@ class edit_event_form extends dynamic_form {
                         );
                     }
 
+                    // Set data attribute for room filtering on the checkbox element.
+                    $groupelements[0]->updateAttributes(['data-resource-rooms' => json_encode($roomidsarray)]);
+
                     $mform->addGroup(
                         $groupelements,
                         'resourcegroup_' . $resource['id'],
@@ -443,19 +455,6 @@ class edit_event_form extends dynamic_form {
                         [' '],
                         false
                     );
-
-                    // Add data attribute with room IDs for JavaScript filtering.
-                    $mform->setAdvanced('resourcegroup_' . $resource['id'], false);
-                    // Store roomids as data attribute via template.
-                    $groupid = 'fgroup_id_resourcegroup_' . $resource['id'];
-                    $PAGE->requires->js_init_code("
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const group = document.querySelector('[id*=\"resourcegroup_{$resource['id']}\"]');
-                            if (group) {
-                                group.setAttribute('data-resource-rooms', '" . json_encode($roomidsarray) . "');
-                            }
-                        });
-                    ");
                 }
             }
         }
