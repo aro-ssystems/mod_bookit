@@ -561,64 +561,28 @@ class resource_manager {
     /**
      * Get room-resource mapping for JavaScript filtering.
      *
+     * NOTE: Resource-room relationships not yet implemented in schema.
+     * This method returns empty array for now.
+     *
      * @return array [room_id => [resource_id, resource_id, ...], ...]
      * @throws dml_exception
      */
     public static function get_room_resource_map(): array {
-        global $DB;
-
-        $records = $DB->get_records('bookit_resource_room', null, '', 'roomid, resourceid');
-
-        $map = [];
-        foreach ($records as $record) {
-            if (!isset($map[$record->roomid])) {
-                $map[$record->roomid] = [];
-            }
-            $map[$record->roomid][] = (int)$record->resourceid;
-        }
-
-        return $map;
+        // MDL-15781 TODO: Implement when bookit_resource_room table is added to schema.
+        return [];
     }
 
     /**
      * Get room details for each resource (for room icon display).
      *
+     * NOTE: Resource-room relationships not yet implemented in schema.
+     * This method returns empty array for now.
+     *
      * @return array [resource_id => [['id' => int, 'name' => string, 'shortname' => string, 'color' => string], ...], ...]
      * @throws dml_exception
      */
     public static function get_resource_rooms(): array {
-        global $DB;
-
-        $sql = "
-            SELECT
-                rr.resourceid,
-                ro.id as room_id,
-                ro.name as room_name,
-                ro.shortname as room_shortname,
-                ro.color as room_color
-            FROM {bookit_resource_room} rr
-            LEFT JOIN {bookit_room} ro ON ro.id = rr.roomid
-            ORDER BY rr.resourceid ASC, ro.name ASC
-        ";
-
-        $records = $DB->get_records_sql($sql);
-
-        $rooms = [];
-        foreach ($records as $record) {
-            $resid = $record->resourceid;
-
-            if (!isset($rooms[$resid])) {
-                $rooms[$resid] = [];
-            }
-
-            $rooms[$resid][] = [
-                'id' => $record->room_id,
-                'name' => $record->room_name,
-                'shortname' => $record->room_shortname,
-                'color' => $record->room_color,
-            ];
-        }
-
-        return $rooms;
+        // MDL-15781 TODO: Implement when bookit_resource_room table is added to schema.
+        return [];
     }
 }

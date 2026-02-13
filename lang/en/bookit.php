@@ -45,7 +45,6 @@ $string['booking:resource_room_conflict'] = 'The selected room does not provide 
 $string['booking:resource_selected'] = 'Selected';
 $string['booking:resource_unavailable'] = 'Not available in selected room';
 $string['booking:resources_booked'] = 'Booked Resources';
-// Booking form - Resources section.
 $string['booking:resources_header'] = 'Resources';
 $string['booking:resources_info'] = 'Select the resources you need for this booking.';
 $string['bookit:addevent'] = 'Add an event';
