@@ -618,6 +618,16 @@ class edit_event_form extends dynamic_form {
         // Quick client-side alert (does not block submission).
         $allowed = implode(',', bookit_allowed_weekdays());
         if ($allowed !== '') {
+            // Initialize room-based resource filtering.
+            $PAGE->requires->js_init_code("
+                require(['mod_bookit/booking_form_resources'], function(ResourceFilter) {
+                    ResourceFilter.init(
+                        " . json_encode($roomresourcemap) . ",
+                        " . json_encode($resourcerooms) . "
+                    );
+                });
+            ");
+
             $PAGE->requires->js_init_code("
                 require(['jquery'], function($) {
                     const allowed = [$allowed];
