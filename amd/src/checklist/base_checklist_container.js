@@ -52,8 +52,6 @@ export default class BaseChecklistContainer extends BaseComponent {
      * Called by BaseComponent constructor.
      */
     create() {
-        // eslint-disable-next-line no-console
-        console.log('BaseChecklistContainer.create() called');
         const config = this.getConfig();
 
         // Initialize selectors
@@ -66,8 +64,6 @@ export default class BaseChecklistContainer extends BaseComponent {
 
         // Initialize component registry
         this.categoryComponents = new Map();
-        // eslint-disable-next-line no-console
-        console.log('BaseChecklistContainer categoryComponents initialized:', this.categoryComponents);
 
         // Cache localized strings
         this.strings = {};
@@ -80,8 +76,6 @@ export default class BaseChecklistContainer extends BaseComponent {
      * Called when reactive state is ready.
      */
     stateReady() {
-        window.console.log('BaseChecklistContainer.stateReady() CALLED');
-        window.console.log('State:', this.reactive.state);
         this._initializeCategoryComponents();
         this._attachEventListeners();
         if (this._initializeCustomControls) {
@@ -149,38 +143,24 @@ export default class BaseChecklistContainer extends BaseComponent {
      * Initialize category components.
      */
     _initializeCategoryComponents() {
-        window.console.log('BaseChecklistContainer._initializeCategoryComponents() CALLED');
         const config = this.getConfig();
         const categoriesKey = config.categoriesStateKey || 'categories';
-        window.console.log('categoriesKey:', categoriesKey);
         const categories = this.reactive.state[categoriesKey];
-        window.console.log('categories from state:', categories);
 
         if (!categories) {
-            window.console.log('NO CATEGORIES FOUND IN STATE - RETURNING');
             return;
         }
 
-        window.console.log('Iterating over', categories.size, 'categories');
         categories.forEach((category, categoryId) => {
-            window.console.log('Processing category:', categoryId, category);
             const categoryRegion = config.categoryRegion || 'checklist-category';
-            window.console.log('Looking for category with region:', categoryRegion);
             const categoryElement = this.getElement(`[data-region="${categoryRegion}"][data-categoryid="${categoryId}"]`);
-            window.console.log('categoryElement found:', categoryElement);
             if (categoryElement) {
-                window.console.log('Creating category component for categoryId:', categoryId);
                 const CategoryComponent = this.getCategoryComponent();
-                window.console.log('CategoryComponent class:', CategoryComponent);
                 const instance = new CategoryComponent({
                     element: categoryElement,
                     reactive: this.reactive,
                 });
-                window.console.log('Category component instance created:', instance);
                 this.categoryComponents.set(categoryId, instance);
-                window.console.log('Category component stored in map');
-            } else {
-                window.console.log('NO categoryElement found for categoryId:', categoryId);
             }
         });
     }
