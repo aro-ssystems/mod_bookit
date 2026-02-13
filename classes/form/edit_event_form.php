@@ -71,6 +71,8 @@ class edit_event_form extends dynamic_form {
         $resourcesdata = resource_manager::get_active_resources_grouped();
         $resourcerooms = resource_manager::get_resource_rooms();
 
+        debugging('edit_event_form: resourcesdata count = ' . count($resourcesdata), DEBUG_DEVELOPER);
+
         // Define variables.
         $context = $this->get_context_for_dynamic_submission();
         $caneditinternal = has_capability('mod/bookit:editinternal', $context);
@@ -639,6 +641,19 @@ class edit_event_form extends dynamic_form {
         // Quick client-side alert (does not block submission).
         $allowed = implode(',', bookit_allowed_weekdays());
         if ($allowed !== '') {
+            // Initialize room-based resource filtering for modal form.
+            $PAGE->requires->js_init_code("
+                require(['mod_bookit/booking_form_resources'], function(ResourceFilter) {
+                    // Wait for modal to be ready (in dynamic form context).
+                    setTimeout(function() {
+                        const form = document.querySelector('form[data-form-type=\"dynamic\"]');
+                        if (form) {
+                            ResourceFilter.init(form.closest('.modal-content') || form);
+                        }
+                    }, 500);
+                });
+            ");
+
             $PAGE->requires->js_init_code("
                 require(['jquery'], function($) {
                     const allowed = [$allowed];

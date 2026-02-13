@@ -531,8 +531,14 @@ class resource_manager {
 
         $records = $DB->get_records_sql($sql);
 
+        debugging('get_active_resources_grouped: Found ' . count($records) . ' records', DEBUG_DEVELOPER);
+
         $grouped = [];
         foreach ($records as $record) {
+            debugging(
+                "Record: catid={$record->category_id}, resid={$record->resource_id}, resname={$record->resource_name}",
+                DEBUG_DEVELOPER
+            );
             $catid = $record->category_id;
 
             if (!isset($grouped[$catid])) {
@@ -557,6 +563,7 @@ class resource_manager {
             ];
         }
 
+        debugging('get_active_resources_grouped: Returning ' . count($grouped) . ' category groups', DEBUG_DEVELOPER);
         return array_values($grouped);
     }
 
