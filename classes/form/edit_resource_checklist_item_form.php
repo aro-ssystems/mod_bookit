@@ -28,6 +28,8 @@ namespace mod_bookit\form;
 use core_form\dynamic_form;
 use context;
 use context_system;
+use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\resource_manager;
 use moodle_url;
 
 /**
@@ -44,31 +46,84 @@ class edit_resource_checklist_item_form extends dynamic_form {
     public function definition(): void {
         $mform =& $this->_form;
 
-        // Hidden field: id.
+        // Hidden fields.
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
-        // Hidden field: action (put or delete).
         $mform->addElement('hidden', 'action');
         $mform->setType('action', PARAM_TEXT);
         $mform->setDefault('action', 'put');
 
-        // Placeholder message.
+        // Resource display (read-only).
         $mform->addElement(
             'static',
-            'placeholder',
-            '',
-            '<div class="alert alert-info">' .
-            '<h4>Resource Checklist Item Editor</h4>' .
-            '<p>This is a placeholder form for editing resource checklist items.</p>' .
-            '<p><strong>Item ID:</strong> ' . ($this->optional_param('id', 0, PARAM_INT) ?: 'New Item') . '</p>' .
-            '<p>Full form implementation coming soon...</p>' .
-            '</div>'
+            'resourcename',
+            get_string('resource', 'mod_bookit'),
+            ''
         );
 
-        // Simple active checkbox for testing.
-        $mform->addElement('advcheckbox', 'active', 'Active');
+        $mform->addElement(
+            'static',
+            'categoryname',
+            get_string('resources:category', 'mod_bookit'),
+            ''
+        );
+
+        // Sort order.
+        $mform->addElement(
+            'text',
+            'sortorder',
+            get_string('checklist_sortorder', 'mod_bookit'),
+            ['size' => 10]
+        );
+        $mform->setType('sortorder', PARAM_INT);
+        $mform->addRule('sortorder', null, 'numeric', null, 'client');
+        $mform->addHelpButton('sortorder', 'checklist_sortorder', 'mod_bookit');
+
+        // Active checkbox.
+        $mform->addElement(
+            'advcheckbox',
+            'active',
+            get_string('active', 'mod_bookit')
+        );
         $mform->setDefault('active', 1);
+        $mform->addHelpButton('active', 'checklist_active', 'mod_bookit');
+
+        // Due date type selector.
+        $duedatetypes = [
+            '' => get_string('none'),
+            'before_event' => get_string('duedate_before_event', 'mod_bookit'),
+            'after_event' => get_string('duedate_after_event', 'mod_bookit'),
+            'fixed_date' => get_string('duedate_fixed_date', 'mod_bookit'),
+        ];
+
+        $mform->addElement(
+            'select',
+            'duedatetype',
+            get_string('duedatetype', 'mod_bookit'),
+            $duedatetypes
+        );
+        $mform->addHelpButton('duedatetype', 'duedatetype', 'mod_bookit');
+
+        // Due date value - days offset (for before_event / after_event).
+        $mform->addElement(
+            'text',
+            'duedate_days',
+            get_string('duedate_days', 'mod_bookit'),
+            ['size' => 10]
+        );
+        $mform->setType('duedate_days', PARAM_INT);
+        $mform->hideIf('duedate_days', 'duedatetype', 'eq', '');
+        $mform->hideIf('duedate_days', 'duedatetype', 'eq', 'fixed_date');
+
+        // Due date value - fixed date (for fixed_date).
+        $mform->addElement(
+            'date_time_selector',
+            'duedate_fixed',
+            get_string('duedate_fixed', 'mod_bookit'),
+            ['optional' => false]
+        );
+        $mform->hideIf('duedate_fixed', 'duedatetype', 'neq', 'fixed_date');
     }
 
     /**
@@ -81,35 +136,85 @@ class edit_resource_checklist_item_form extends dynamic_form {
     }
 
     /**
+     * Validate the form data.
+     *
+     * @param array $data Form data
+     * @param array $files Uploaded files
+     * @return array Validation errors
+     */
+    public function validation($data, $files): array {
+        $errors = parent::validation($data, $files);
+
+        // Validate sortorder is positive.
+        if (isset($data['sortorder']) && $data['sortorder'] < 0) {
+            $errors['sortorder'] = get_string('error_sortorder_negative', 'mod_bookit');
+        }
+
+        // Validate due date configuration.
+        if (!empty($data['duedatetype'])) {
+            if ($data['duedatetype'] === 'fixed_date') {
+                // Fixed date must be in the future (optional validation).
+                if (empty($data['duedate_fixed'])) {
+                    $errors['duedate_fixed'] = get_string('error_duedate_required', 'mod_bookit');
+                }
+            } else {
+                // Before_event / after_event require days value.
+                if (empty($data['duedate_days']) && $data['duedate_days'] !== '0') {
+                    $errors['duedate_days'] = get_string('error_duedate_days_required', 'mod_bookit');
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Process the form submission.
      *
      * @return array Result data
      */
     public function process_dynamic_submission(): array {
+        global $USER;
+
         $data = $this->get_data();
 
-        // For now, just return success without saving.
-        return [
-            'success' => true,
-            'action' => 'placeholder',
-            'message' => 'Form submitted successfully (placeholder)',
-        ];
-    }
-
-    /**
-     * Load initial data for form.
-     *
-     * @return object Data
-     */
-    protected function get_default_data(): object {
-        $data = parent::get_default_data();
-
-        // For placeholder, just set some defaults.
-        if (!empty($data->id)) {
-            $data->active = 1;
+        // Handle delete action.
+        if ($data->action === 'delete') {
+            resource_checklist_manager::delete_checklist_item($data->id);
+            return [
+                'success' => true,
+                'action' => 'deleted',
+            ];
         }
 
-        return $data;
+        // Load existing item.
+        $item = resource_checklist_manager::get_checklist_item_by_id($data->id);
+        if (!$item) {
+            throw new \moodle_exception('checklistitemnotfound', 'mod_bookit');
+        }
+
+        // Update basic fields.
+        $item->set_sortorder($data->sortorder ?? 0);
+        $item->set_active($data->active ?? false);
+        $item->set_duedatetype($data->duedatetype ?? null);
+
+        // Convert duedate based on type.
+        if ($data->duedatetype === 'fixed_date' && !empty($data->duedate_fixed)) {
+            $item->set_duedate($data->duedate_fixed);
+        } else if ($data->duedatetype && !empty($data->duedate_days)) {
+            // Convert days to seconds.
+            $item->set_duedate($data->duedate_days * 86400);
+        } else {
+            $item->set_duedate(null);
+        }
+
+        // Save item.
+        resource_checklist_manager::update_checklist_item($item, $USER->id);
+
+        return [
+            'success' => true,
+            'action' => 'updated',
+        ];
     }
 
     /**
@@ -149,13 +254,46 @@ class edit_resource_checklist_item_form extends dynamic_form {
      * This method is called when the form is loaded dynamically.
      */
     public function set_data_for_dynamic_submission(): void {
+        global $DB;
+
         $id = $this->optional_param('id', null, PARAM_INT);
 
+        if (empty($id)) {
+            throw new \moodle_exception('invalidchecklistitemid', 'mod_bookit');
+        }
+
+        // Load checklist item.
+        $item = resource_checklist_manager::get_checklist_item_by_id($id);
+        if (!$item) {
+            throw new \moodle_exception('checklistitemnotfound', 'mod_bookit');
+        }
+
+        // Load associated resource for display.
+        $resource = resource_manager::get_resource_by_id($item->get_resourceid());
+        if (!$resource) {
+            throw new \moodle_exception('resourcenotfound', 'mod_bookit');
+        }
+
+        // Load category for display.
+        $category = resource_manager::get_category($resource->get_categoryid());
+
         $data = (object) [
-            'id' => $id ?? 0,
+            'id' => $item->get_id(),
+            'resourcename' => $resource->get_name(),
+            'categoryname' => $category ? $category->get_name() : get_string('none'),
+            'sortorder' => $item->get_sortorder(),
+            'active' => $item->get_active() ? 1 : 0,
+            'duedatetype' => $item->get_duedatetype() ?? '',
             'action' => 'put',
-            'active' => 1,
         ];
+
+        // Convert duedate based on type.
+        if ($item->get_duedatetype() === 'fixed_date' && $item->get_duedate()) {
+            $data->duedate_fixed = $item->get_duedate();
+        } else if ($item->get_duedatetype() && $item->get_duedate()) {
+            // Convert seconds to days.
+            $data->duedate_days = intval($item->get_duedate() / 86400);
+        }
 
         $this->set_data($data);
     }
