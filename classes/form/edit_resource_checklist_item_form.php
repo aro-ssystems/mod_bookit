@@ -282,7 +282,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
             'resourcename' => $resource->get_name(),
             'categoryname' => $category ? $category->get_name() : get_string('none'),
             'sortorder' => $item->get_sortorder(),
-            'active' => $item->get_active() ? 1 : 0,
+            'active' => $item->is_active() ? 1 : 0,
             'duedatetype' => $item->get_duedatetype() ?? '',
             'action' => 'put',
         ];
