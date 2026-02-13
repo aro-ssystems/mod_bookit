@@ -107,6 +107,59 @@
         <KEY NAME="even_res_fk" TYPE="foreign" FIELDS="resourceid" REFTABLE="bookit_resource" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
+    <TABLE NAME="bookit_resource_checklist" COMMENT="Resource checklist metadata with due dates and notifications">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="resourceid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="FK to bookit_resource"/>
+        <FIELD NAME="duedate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Default due date offset in seconds (NULL = no default)"/>
+        <FIELD NAME="duedatetype" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Type: before_event, after_event, fixed_date"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Independent sort order for checklist view"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Active in checklist (boolean)"/>
+        <FIELD NAME="beforedueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (before due notification)"/>
+        <FIELD NAME="whendueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (when due notification)"/>
+        <FIELD NAME="overdueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (overdue notification)"/>
+        <FIELD NAME="whendoneid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (when done notification)"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="resourceid" TYPE="foreign" FIELDS="resourceid" REFTABLE="bookit_resource" REFFIELDS="id"/>
+        <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="beforedueid_fk" TYPE="foreign" FIELDS="beforedueid" REFTABLE="bookit_notification_slot" REFFIELDS="id"/>
+        <KEY NAME="whendueid_fk" TYPE="foreign" FIELDS="whendueid" REFTABLE="bookit_notification_slot" REFFIELDS="id"/>
+        <KEY NAME="overdueid_fk" TYPE="foreign" FIELDS="overdueid" REFTABLE="bookit_notification_slot" REFFIELDS="id"/>
+        <KEY NAME="whendoneid_fk" TYPE="foreign" FIELDS="whendoneid" REFTABLE="bookit_notification_slot" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="resourceid_idx" UNIQUE="false" FIELDS="resourceid" COMMENT="Index for resource lookups"/>
+        <INDEX NAME="sortorder_idx" UNIQUE="false" FIELDS="sortorder" COMMENT="Index for sorting"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="bookit_event_resource" COMMENT="Junction table for event-resource relationships">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to bookit_event table"/>
+        <FIELD NAME="resourceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to bookit_resource table"/>
+        <FIELD NAME="quantity" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Number of units of this resource used"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="true" DEFAULT="requested" SEQUENCE="false" COMMENT="Status: requested, confirmed, inprogress, rejected"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="eventid_fk" TYPE="foreign" FIELDS="eventid" REFTABLE="bookit" REFFIELDS="id"/>
+        <KEY NAME="resourceid_fk" TYPE="foreign" FIELDS="resourceid" REFTABLE="bookit_resource" REFFIELDS="id"/>
+        <KEY NAME="usermodified_fk" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="eventid_idx" UNIQUE="false" FIELDS="eventid" COMMENT="Index for event lookups"/>
+        <INDEX NAME="resourceid_idx" UNIQUE="false" FIELDS="resourceid" COMMENT="Index for resource lookups"/>
+        <INDEX NAME="event_resource_unique_idx" UNIQUE="true" FIELDS="eventid,resourceid" COMMENT="Unique constraint for event-resource pair"/>
+      </INDEXES>
+    </TABLE>
     <TABLE NAME="bookit_institution" COMMENT="Institutions choosable in bookit">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>

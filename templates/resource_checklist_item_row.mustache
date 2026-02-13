@@ -1,0 +1,70 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/resource_checklist_item_row
+    Resource checklist item row template
+
+    Context variables:
+    * id - Item ID
+    * resourceid - Resource ID
+    * name - Item name
+    * description - Item description
+    * categoryid - Category ID
+    * sortorder - Sort order
+    * active - Active status
+    * duedate - Due date (timestamp or null)
+    * duedatetype - Due date type
+}}
+<tr class="resource-checklist-item-row {{^active}}opacity-50{{/active}}"
+    data-region="checklist-item-row"
+    data-itemid="{{id}}"
+    data-item-resourceid="{{resourceid}}"
+    data-item-name="{{name}}"
+    data-item-description="{{description}}"
+    data-item-categoryid="{{categoryid}}"
+    data-item-sortorder="{{sortorder}}"
+    data-item-active="{{active}}"
+    data-item-duedate="{{duedate}}"
+    data-item-duedatetype="{{duedatetype}}">
+    <td class="py-2">
+        <span data-field="item-name">{{{name}}}</span>
+        {{#description}}
+        <small class="text-muted d-block" data-field="item-description">{{{description}}}</small>
+        {{/description}}
+    </td>
+    <td class="py-2" data-field="item-duedate">
+        {{#duedate}}{{duedate}}{{/duedate}}
+        {{^duedate}}-{{/duedate}}
+    </td>
+    <td class="text-center py-2">
+        {{#active}}
+            <span class="badge badge-success">{{#str}}active, core{{/str}}</span>
+        {{/active}}
+        {{^active}}
+            <span class="badge badge-secondary">{{#str}}inactive, core{{/str}}</span>
+        {{/active}}
+    </td>
+    <td class="text-center py-2">
+        <button type="button"
+                id="edit-item-{{id}}"
+                class="btn btn-sm btn-light rounded-pill"
+                value="{{id}}"
+                data-action="edit-item">
+            {{#pix}}i/edit, core{{/pix}}
+        </button>
+    </td>
+</tr>
