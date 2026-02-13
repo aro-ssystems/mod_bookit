@@ -49,6 +49,11 @@ export default class BaseChecklistItem extends BaseComponent {
      * @param {Object} descriptor - Component descriptor
      */
     create(descriptor) {
+        // Initialize selectors object if it doesn't exist
+        if (!this.selectors) {
+            this.selectors = {};
+        }
+
         const itemId = descriptor.element.dataset.itemid || descriptor.element.dataset.bookitItemId;
         if (itemId) {
             const itemEditBtnSelector = this._getEditButtonSelector(itemId);
@@ -107,11 +112,17 @@ export default class BaseChecklistItem extends BaseComponent {
     _attachEventListeners() {
         // Edit button
         const itemId = this.element.dataset.itemid || this.element.dataset.bookitItemId;
+        // eslint-disable-next-line no-console
+        console.log('_attachEventListeners itemId:', itemId, 'element:', this.element);
         if (itemId) {
             const itemEditBtnSelector = this._getEditButtonSelector(itemId);
             const editBtn = this.getElement(this.selectors[itemEditBtnSelector]);
+            // eslint-disable-next-line no-console
+            console.log('_attachEventListeners editBtn:', editBtn, 'selector:', this.selectors[itemEditBtnSelector]);
             if (editBtn) {
                 this.addEventListener(editBtn, 'click', this._handleEdit.bind(this));
+                // eslint-disable-next-line no-console
+                console.log('_attachEventListeners addEventListener attached for itemId:', itemId);
             }
         }
 
@@ -127,10 +138,14 @@ export default class BaseChecklistItem extends BaseComponent {
      * @param {Event} event - Click event
      */
     async _handleEdit(event) {
+        // eslint-disable-next-line no-console
+        console.log('_handleEdit called', {event, currentTarget: event.currentTarget});
         event.preventDefault();
 
         const config = this.getConfig();
         const itemId = event.currentTarget.value || event.currentTarget.dataset.itemid;
+        // eslint-disable-next-line no-console
+        console.log('_handleEdit itemId:', itemId, 'config:', config);
 
         const modalForm = new ModalForm({
             formClass: config.itemModalForm,

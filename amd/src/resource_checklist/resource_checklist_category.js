@@ -48,6 +48,8 @@ export default class extends BaseChecklistCategory {
             categoriesStateKey: 'categories',
             itemsStateKey: 'checklistitems',
             itemType: 'checklistitem',
+            categoryRegion: 'resource-checklist-category',
+            itemRegion: 'resource-checklist-item-row',
             itemModalForm: 'mod_bookit\\form\\edit_resource_checklist_item_form',
             categoryModalForm: 'mod_bookit\\form\\edit_category_form',
             templates: {

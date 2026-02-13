@@ -22,10 +22,35 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import {Reactive} from 'core/reactive';
 import BaseChecklistContainer from 'mod_bookit/checklist/base_checklist_container';
-import {resourceChecklistReactiveInstance, initResourceChecklistReactive} from './resource_checklist_reactive';
+import ResourceChecklistMutations from './resource_checklist_mutations';
 import {initializeFromDOM} from 'mod_bookit/checklist/checklist_helper';
 import ResourceChecklistCategory from './resource_checklist_category';
+
+const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
+let resourceChecklistReactiveInstance = null;
+
+/**
+ * Dispatch the resource checklist state event.
+ *
+ * @param {Object} detail - The event detail
+ * @param {HTMLElement} target - The target element
+ */
+function dispatchResourceChecklistStateEvent(detail, target) {
+    if (target === undefined) {
+        target = document;
+    }
+    target.dispatchEvent(
+        new CustomEvent(
+            EVENTNAME,
+            {
+                bubbles: true,
+                detail: detail,
+            }
+        )
+    );
+}
 
 /**
  * Resource checklist container component.
@@ -43,8 +68,6 @@ export default class extends BaseChecklistContainer {
             return null;
         }
 
-        const contextId = parseInt(element.dataset.contextid);
-
         // Initialize from DOM
         const data = initializeFromDOM(element, {
             categoryRegion: 'resource-checklist-category',
@@ -57,16 +80,29 @@ export default class extends BaseChecklistContainer {
             }
         });
 
-        initResourceChecklistReactive({
+        // Initialize reactive WITHOUT setting state yet
+        if (!resourceChecklistReactiveInstance) {
+            resourceChecklistReactiveInstance = new Reactive({
+                name: 'Moodle Bookit Resource Checklist',
+                eventName: 'mod_bookit:resource_checklist_state_event',
+                eventDispatch: dispatchResourceChecklistStateEvent,
+                mutations: new ResourceChecklistMutations(),
+            });
+        }
+
+        // Create component FIRST so it registers for stateReady
+        const instance = new this({
+            element: element,
+            reactive: resourceChecklistReactiveInstance,
+        });
+
+        // Set state AFTER component is registered
+        resourceChecklistReactiveInstance.setInitialState({
             categories: data.categories,
             checklistitems: data.items,
         });
 
-        return new this({
-            element: element,
-            reactive: resourceChecklistReactiveInstance,
-            selectors: {contextId},
-        });
+        return instance;
     }
 
     /**
@@ -88,6 +124,8 @@ export default class extends BaseChecklistContainer {
             categoriesStateKey: 'categories',
             itemsStateKey: 'checklistitems',
             itemType: 'checklistitem',
+            categoryRegion: 'resource-checklist-category',
+            itemRegion: 'resource-checklist-item-row',
             categoryModalForm: 'mod_bookit\\form\\edit_category_form',
             itemModalForm: 'mod_bookit\\form\\edit_resource_checklist_item_form',
             selectors: {

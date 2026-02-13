@@ -52,15 +52,14 @@ export default class BaseChecklistCategory extends BaseComponent {
      * @param {HTMLElement} options.element - Parent container element
      */
     create({element}) {
+        window.console.log('BaseChecklistCategory.create() CALLED with element:', element);
         this.parentElement = element;
         this.categoryElement = null;
         this.itemComponents = new Map();
 
-        // Extract category data from DOM
-        const categoryId = parseInt(element.dataset.categoryid);
-        const config = this.getConfig();
-        const categoriesKey = config.categoriesStateKey || 'categories';
-        this.categoryData = this.reactive.state[categoriesKey].get(categoryId);
+        // Store category ID from DOM - will get data from state in stateReady()
+        this.categoryId = parseInt(element.dataset.categoryid);
+        window.console.log('Category ID from DOM:', this.categoryId);
     }
 
     /**
@@ -118,6 +117,15 @@ export default class BaseChecklistCategory extends BaseComponent {
      * Initialize state ready.
      */
     stateReady() {
+        window.console.log('BaseChecklistCategory.stateReady() CALLED');
+
+        // Now we can access state and get category data
+        const config = this.getConfig();
+        const categoriesKey = config.categoriesStateKey || 'categories';
+        this.categoryData = this.reactive.state[categoriesKey].get(this.categoryId);
+
+        window.console.log('this.element:', this.element);
+        window.console.log('this.categoryData:', this.categoryData);
         this.categoryElement = this.element;
         this._initItemsFromDOM();
         this._attachEventListeners();
@@ -153,29 +161,46 @@ export default class BaseChecklistCategory extends BaseComponent {
      * Initialize item components from existing DOM.
      */
     _initItemsFromDOM() {
+        window.console.log('BaseChecklistCategory._initItemsFromDOM() CALLED');
+        window.console.log('this.categoryElement:', this.categoryElement);
         if (!this.categoryElement) {
+            window.console.log('NO categoryElement - RETURNING');
             return;
         }
 
         const config = this.getConfig();
         const itemsKey = config.itemsStateKey || 'items';
+        window.console.log('itemsKey:', itemsKey);
         const state = this.reactive.state;
-        const itemElements = this.categoryElement.querySelectorAll('[data-region="checklist-item-row"]');
+        window.console.log('state[itemsKey]:', state[itemsKey]);
+        const itemRegion = config.itemRegion || 'checklist-item-row';
+        window.console.log('Looking for items with region:', itemRegion);
+        const itemElements = this.categoryElement.querySelectorAll(`[data-region="${itemRegion}"]`);
+        window.console.log('Found', itemElements.length, 'item elements in DOM');
 
         itemElements.forEach(itemElement => {
             const itemId = parseInt(itemElement.dataset.itemid);
+            window.console.log('Processing item ID:', itemId, 'element:', itemElement);
             const itemData = state[itemsKey].get(itemId);
+            window.console.log('Item data from state:', itemData);
 
             if (itemData && itemData.categoryid === this.categoryData.id) {
+                window.console.log('Item belongs to this category, creating component');
                 const ItemComponent = this.getItemComponent();
+                window.console.log('ItemComponent class:', ItemComponent);
                 const itemComponent = new ItemComponent({
                     element: itemElement,
                     reactive: this.reactive,
                 });
+                window.console.log('Item component created:', itemComponent);
 
                 this.itemComponents.set(itemData.id, itemComponent);
+                window.console.log('Item component stored in map');
+            } else {
+                window.console.log('Item does NOT belong to this category or not found in state');
             }
         });
+        window.console.log('Total item components created:', this.itemComponents.size);
     }
 
     /**

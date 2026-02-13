@@ -54,8 +54,8 @@ export const initResourceChecklistReactive = (initialState) => {
 
         // Set initial state - Moodle automatically converts arrays to Maps.
         resourceChecklistReactiveInstance.setInitialState({
-            categories: initialState.categories || [],
-            checklistitems: initialState.checklistitems || [],
+            categories: initialState.categories,
+            checklistitems: initialState.checklistitems,
         });
     }
 
