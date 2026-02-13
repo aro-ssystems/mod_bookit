@@ -69,7 +69,6 @@ class edit_event_form extends dynamic_form {
 
         // Get active resources grouped by category for booking form.
         $resourcesdata = resource_manager::get_active_resources_grouped();
-        $roomresourcemap = resource_manager::get_room_resource_map();
         $resourcerooms = resource_manager::get_resource_rooms();
 
         // Define variables.
@@ -392,6 +391,15 @@ class edit_event_form extends dynamic_form {
 
                 // Add resources in this category.
                 foreach ($resources as $resource) {
+                    // Parse roomids JSON.
+                    $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
+                    $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+
+                    // Skip resources with no room assignments (hide completely).
+                    if (empty($roomidsarray)) {
+                        continue;
+                    }
+
                     $groupelements = [];
 
                     // Checkbox for resource selection.
@@ -433,6 +441,19 @@ class edit_event_form extends dynamic_form {
                         [' '],
                         false
                     );
+
+                    // Add data attribute with room IDs for JavaScript filtering.
+                    $mform->setAdvanced('resourcegroup_' . $resource['id'], false);
+                    // Store roomids as data attribute via template.
+                    $groupid = 'fgroup_id_resourcegroup_' . $resource['id'];
+                    $PAGE->requires->js_init_code("
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const group = document.querySelector('[id*=\"resourcegroup_{$resource['id']}\"]');
+                            if (group) {
+                                group.setAttribute('data-resource-rooms', '" . json_encode($roomidsarray) . "');
+                            }
+                        });
+                    ");
                 }
             }
         }
@@ -618,16 +639,6 @@ class edit_event_form extends dynamic_form {
         // Quick client-side alert (does not block submission).
         $allowed = implode(',', bookit_allowed_weekdays());
         if ($allowed !== '') {
-            // Initialize room-based resource filtering.
-            $PAGE->requires->js_init_code("
-                require(['mod_bookit/booking_form_resources'], function(ResourceFilter) {
-                    ResourceFilter.init(
-                        " . json_encode($roomresourcemap) . ",
-                        " . json_encode($resourcerooms) . "
-                    );
-                });
-            ");
-
             $PAGE->requires->js_init_code("
                 require(['jquery'], function($) {
                     const allowed = [$allowed];

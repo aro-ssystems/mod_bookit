@@ -519,6 +519,7 @@ class resource_manager {
                 r.amount as resource_amount,
                 r.amountirrelevant as resource_amountirrelevant,
                 r.sortorder as resource_sortorder,
+                r.roomids as resource_roomids,
                 c.id as category_id,
                 c.name as category_name,
                 c.sortorder as category_sortorder
@@ -552,46 +553,11 @@ class resource_manager {
                 'amount' => $record->resource_amount,
                 'amountirrelevant' => (bool)$record->resource_amountirrelevant,
                 'sortorder' => $record->resource_sortorder,
+                'roomids' => $record->resource_roomids,
             ];
         }
 
         return array_values($grouped);
-    }
-
-    /**
-     * Get room-resource mapping for JavaScript filtering.
-     *
-     * Returns mapping from room ID to array of resource IDs available in that room.
-     * Uses the roomids JSON field from bookit_resource table.
-     *
-     * @return array [room_id => [resource_id, resource_id, ...], ...]
-     * @throws dml_exception
-     */
-    public static function get_room_resource_map(): array {
-        global $DB;
-
-        $resources = $DB->get_records('bookit_resource', ['active' => 1], '', 'id, roomids');
-
-        $map = [];
-        foreach ($resources as $resource) {
-            if (empty($resource->roomids)) {
-                continue;
-            }
-
-            $roomids = json_decode($resource->roomids, true);
-            if (!is_array($roomids)) {
-                continue;
-            }
-
-            foreach ($roomids as $roomid) {
-                if (!isset($map[$roomid])) {
-                    $map[$roomid] = [];
-                }
-                $map[$roomid][] = (int)$resource->id;
-            }
-        }
-
-        return $map;
     }
 
     /**

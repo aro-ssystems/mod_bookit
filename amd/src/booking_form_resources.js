@@ -16,307 +16,148 @@
 /**
  * Room-based resource filtering for booking form.
  *
- * This module handles filtering of resources based on room selection in the booking form.
- * It disables resources that are not available in the selected room and validates that
- * all selected resources are available in the chosen room.
- *
  * @module     mod_bookit/booking_form_resources
  * @copyright  2026 ssystems GmbH <oss@ssystems.de>
  * @author     Andreas Rosenthal
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/log', 'core/str', 'core/notification'],
-function($, Log, Str, Notification) {
+
+define([], function() {
+    'use strict';
 
     /**
-     * Selectors for DOM elements.
+     * Show a resource group.
      *
-     * @type {Object}
+     * @param {Element} groupElement The resource group element
      */
-    const SELECTORS = {
-        ROOM_SELECT: 'select[name="roomid"]',
-        RESOURCE_CHECKBOX: '[name^="resource_selected_"]',
-        RESOURCE_GROUP: '[id*="resourcegroup_"]',
-        RESOURCE_AMOUNT: '[name^="resource_amount_"]',
-        CATEGORY_HEADER: '[id^="header_cat_"]',
-    };
+    function showResource(groupElement) {
+        groupElement.style.display = '';
+    }
 
     /**
-     * CSS classes for styling.
+     * Hide a resource group.
      *
-     * @type {Object}
+     * @param {Element} groupElement The resource group element
      */
-    const CSS = {
-        DISABLED: 'disabled',
-        UNAVAILABLE: 'text-muted',
-        CONFLICT: 'alert-danger',
-    };
+    function hideResource(groupElement) {
+        groupElement.style.display = 'none';
+    }
 
     /**
-     * Module state.
+     * Update visibility of resource category groups based on their content.
      *
-     * @type {Object}
+     * @param {Element} modalRoot The modal root element
      */
-    let state = {
-        roomResourceMap: {},
-        resourceRooms: {},
-        currentRoom: null,
-        selectedResources: [],
-    };
+    function updateCategoryVisibility(modalRoot) {
+        if (!modalRoot) {
+            return;
+        }
+
+        // Find all resource category fieldsets (groups).
+        // Category fieldsets have IDs like "id_header_cat_1_*", "id_header_cat_2_*", etc.
+        const categoryGroups = modalRoot.querySelectorAll('fieldset[id*="id_header_cat_"]');
+
+        categoryGroups.forEach(fieldset => {
+            // Check if this category has any visible resources.
+            const resourceCheckboxes = fieldset.querySelectorAll('[data-resource-rooms]');
+            let hasVisibleResource = false;
+
+            resourceCheckboxes.forEach(checkbox => {
+                const display = window.getComputedStyle(checkbox).display;
+                if (display !== 'none') {
+                    hasVisibleResource = true;
+                }
+            });
+
+            // Hide the entire category if no resources are visible.
+            if (hasVisibleResource) {
+                fieldset.style.display = '';
+            } else {
+                fieldset.style.display = 'none';
+            }
+        });
+    }
 
     /**
      * Filter resources based on selected room.
      *
-     * Resources with NO room assignments are always hidden (cannot be booked).
-     * If no room is selected, show only resources that have room assignments.
-     * If a room is selected, show only resources available in that room.
-     *
-     * @param {Number} roomId The selected room ID (null if no room selected)
+     * @param {Element} modalRoot The modal root element
+     * @param {number|string} selectedRoomId The selected room ID
      */
-    const filterResourcesByRoom = function(roomId) {
-        // Defensive check: ensure data is loaded and not just an empty object.
-        if (!state.roomResourceMap || !state.resourceRooms) {
-            Log.debug('[BookIt Resources] Data not yet loaded, hiding all resources');
-            // No valid data means no room assignments - hide everything.
-            $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
-                disableResource($(this));
-            });
+    function filterResourcesByRoom(modalRoot, selectedRoomId) {
+        if (!modalRoot) {
             return;
         }
 
-        // Get all resources that have at least one room assignment.
-        const bookableResourceIds = Object.keys(state.resourceRooms).map(id => parseInt(id, 10));
+        const roomId = parseInt(selectedRoomId, 10);
 
-        // If no bookable resources exist (empty data), hide everything.
-        if (bookableResourceIds.length === 0) {
-            Log.debug('[BookIt Resources] No bookable resources found, hiding all');
-            $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
-                disableResource($(this));
-            });
-            return;
-        }
+        // Find all resource groups with data-resource-rooms attribute.
+        const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
 
-        if (!roomId) {
-            // No room selected - show only resources that have room assignments.
-            $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
-                const checkbox = $(this);
-                const resourceId = getResourceIdFromElement(checkbox);
-
-                if (bookableResourceIds.includes(resourceId)) {
-                    enableResource(checkbox);
-                } else {
-                    // Resource has no room assignments - hide it.
-                    disableResource(checkbox);
-                }
-            });
-            return;
-        }
-
-        // Room selected - show only resources available in that specific room.
-        const availableResources = state.roomResourceMap[roomId] || [];
-
-        $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
-            const checkbox = $(this);
-            const resourceId = getResourceIdFromElement(checkbox);
-
-            if (availableResources.includes(resourceId)) {
-                // Resource available in this room.
-                enableResource(checkbox);
-            } else {
-                // Resource NOT available in this room (or has no room assignments at all).
-                disableResource(checkbox);
-            }
-        });
-    };
-
-    /**
-     * Enable a resource checkbox.
-     *
-     * Removes disabled state, shows the resource row, and removes conflict styling.
-     *
-     * @param {jQuery} checkbox The checkbox element
-     */
-    const enableResource = function(checkbox) {
-        checkbox.prop('disabled', false);
-        checkbox.closest(SELECTORS.RESOURCE_GROUP)
-            .show()
-            .removeClass(CSS.CONFLICT);
-    };
-
-    /**
-     * Disable a resource checkbox.
-     *
-     * Sets disabled state and HIDES the entire resource row.
-     * Does not uncheck if already checked (preserves selection for conflict detection).
-     *
-     * @param {jQuery} checkbox The checkbox element
-     */
-    const disableResource = function(checkbox) {
-        checkbox.prop('disabled', true);
-        checkbox.closest(SELECTORS.RESOURCE_GROUP).hide();
-    };
-
-    /**
-     * Extract resource ID from form element name.
-     *
-     * Parses the element name attribute to extract the resource ID.
-     * Expected format: resource_selected_123
-     *
-     * @param {jQuery} element The form element
-     * @return {Number|null} The resource ID or null if not found
-     */
-    const getResourceIdFromElement = function(element) {
-        const name = element.attr('name');
-        const match = name.match(/resource_selected_(\d+)/);
-        return match ? parseInt(match[1], 10) : null;
-    };
-
-    /**
-     * Check for resource-room conflicts.
-     *
-     * Validates that all selected resources are available in the selected room.
-     * If conflicts exist, shows an error notification and highlights conflicting resources.
-     *
-     * @return {Boolean} True if conflicts exist
-     */
-    const checkForConflicts = function() {
-        const roomId = parseInt($(SELECTORS.ROOM_SELECT).val(), 10);
-        if (!roomId) {
-            return false;
-        }
-
-        // Defensive check: if data not loaded yet, no conflicts possible.
-        if (!state.roomResourceMap) {
-            return false;
-        }
-
-        const selectedResourceIds = getSelectedResourceIds();
-        const availableResources = state.roomResourceMap[roomId] || [];
-
-        const conflicts = selectedResourceIds.filter(id => !availableResources.includes(id));
-
-        if (conflicts.length > 0) {
-            showConflictError(conflicts);
-            return true;
-        }
-
-        return false;
-    };
-
-    /**
-     * Get IDs of all selected resources.
-     *
-     * @return {Array} Array of resource IDs
-     */
-    const getSelectedResourceIds = function() {
-        const selected = [];
-        $(SELECTORS.RESOURCE_CHECKBOX + ':checked').each(function() {
-            const resourceId = getResourceIdFromElement($(this));
-            if (resourceId) {
-                selected.push(resourceId);
-            }
-        });
-        return selected;
-    };
-
-    /**
-     * Show conflict error notification.
-     *
-     * Displays a Moodle error notification and highlights conflicting resources.
-     *
-     * @param {Array} conflictingIds Array of conflicting resource IDs
-     */
-    const showConflictError = function(conflictingIds) {
-        Str.get_string('booking:resource_room_conflict', 'mod_bookit').then(function(message) {
-            Notification.addNotification({
-                message: message,
-                type: 'error',
-            });
-
-            // Highlight conflicting resources.
-            conflictingIds.forEach(function(id) {
-                $('[name="resource_selected_' + id + '"]')
-                    .closest(SELECTORS.RESOURCE_GROUP)
-                    .addClass(CSS.CONFLICT);
-            });
-
-            return true;
-        }).catch(Notification.exception);
-    };
-
-    /**
-     * Register event listeners.
-     *
-     * Sets up event listeners for room selection and resource checkbox changes.
-     * Uses event delegation for better performance and compatibility with dynamic content.
-     */
-    const registerEventListeners = function() {
-        // Listen to room selection changes.
-        $(document).on('change', SELECTORS.ROOM_SELECT, function() {
-            const roomId = parseInt($(this).val(), 10);
-            state.currentRoom = roomId;
-            filterResourcesByRoom(roomId);
-            checkForConflicts();
-        });
-
-        // Listen to resource checkbox changes.
-        $(document).on('change', SELECTORS.RESOURCE_CHECKBOX, function() {
-            // Clear conflict styling.
-            $(this).closest(SELECTORS.RESOURCE_GROUP).removeClass(CSS.CONFLICT);
-
-            // Check for new conflicts.
-            if (state.currentRoom) {
-                checkForConflicts();
-            }
-        });
-    };
-
-    /**
-     * Initialize the module.
-     *
-     * Sets up the module with room-resource mapping data and registers event listeners.
-     *
-     * @param {Object} roomResourceMapData Mapping of room IDs to resource IDs
-     * @param {Object} resourceRoomsData Mapping of resource IDs to room details
-     */
-    const init = function(roomResourceMapData, resourceRoomsData) {
-        Log.debug('[BookIt Resources] Initializing booking form resources filter');
-        Log.debug('[BookIt Resources] roomResourceMap:', roomResourceMapData);
-        Log.debug('[BookIt Resources] resourceRooms:', resourceRoomsData);
-
-        state.roomResourceMap = roomResourceMapData;
-        state.resourceRooms = resourceRoomsData;
-
-        // Wait for form to be ready (modal may not be loaded yet).
-        const initWhenReady = function() {
-            const roomSelect = $(SELECTORS.ROOM_SELECT);
-            if (roomSelect.length === 0) {
-                Log.debug('[BookIt Resources] Room select not found yet, waiting...');
-                setTimeout(initWhenReady, 100);
+        resourceGroups.forEach(group => {
+            const roomsJson = group.getAttribute('data-resource-rooms');
+            if (!roomsJson) {
+                hideResource(group);
                 return;
             }
 
-            Log.debug('[BookIt Resources] Room select found, setting up event handlers');
-
-            // Get current room if already selected.
-            const currentRoomId = parseInt(roomSelect.val(), 10);
-            if (currentRoomId) {
-                state.currentRoom = currentRoomId;
-                filterResourcesByRoom(currentRoomId);
+            try {
+                const rooms = JSON.parse(roomsJson);
+                if (Array.isArray(rooms) && rooms.includes(roomId)) {
+                    showResource(group);
+                } else {
+                    hideResource(group);
+                }
+            } catch (e) {
+                // Invalid JSON, hide the resource.
+                hideResource(group);
             }
+        });
 
-            // Register event listeners.
-            registerEventListeners();
+        // After filtering individual resources, update category visibility.
+        updateCategoryVisibility(modalRoot);
+    }
 
-            Log.debug('[BookIt Resources] Initialization complete');
-        };
+    /**
+     * Initialize resource filtering.
+     *
+     * @param {Element} modalRoot The modal root element containing the form
+     */
+    function init(modalRoot) {
+        if (!modalRoot) {
+            return;
+        }
 
-        // Start initialization check.
-        initWhenReady();
-    };
+        // Find the room select element.
+        const roomSelect = modalRoot.querySelector('select[name="roomid"]');
+        if (!roomSelect) {
+            return;
+        }
 
-    // Public API.
+        // Initially hide all resources (no room selected) and empty categories.
+        const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
+        resourceGroups.forEach(group => hideResource(group));
+        updateCategoryVisibility(modalRoot);
+
+        // Listen for room changes.
+        roomSelect.addEventListener('change', function() {
+            const selectedRoomId = this.value;
+            if (selectedRoomId) {
+                filterResourcesByRoom(modalRoot, selectedRoomId);
+            } else {
+                // No room selected - hide all resources and categories.
+                resourceGroups.forEach(group => hideResource(group));
+                updateCategoryVisibility(modalRoot);
+            }
+        });
+
+        // If a room is already selected, filter immediately.
+        if (roomSelect.value) {
+            filterResourcesByRoom(modalRoot, roomSelect.value);
+        }
+    }
+
     return {
-        init: init,
+        init: init
     };
 });
