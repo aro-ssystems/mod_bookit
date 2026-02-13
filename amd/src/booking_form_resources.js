@@ -74,14 +74,14 @@ function($, Log, Str, Notification) {
      * @param {Number} roomId The selected room ID (null if no room selected)
      */
     const filterResourcesByRoom = function(roomId) {
-        // Defensive check: ensure data is loaded.
-        if (!state.roomResourceMap) {
-            Log.debug('[BookIt Resources] roomResourceMap not yet loaded, skipping filter');
+        // Defensive check: ensure data is loaded and not just an empty object.
+        if (!state.roomResourceMap || !state.resourceRooms) {
+            Log.debug('[BookIt Resources] Data not yet loaded, skipping filter');
             return;
         }
 
         // Get all resources that have at least one room assignment.
-        const bookableResourceIds = state.resourceRooms ? Object.keys(state.resourceRooms).map(id => parseInt(id, 10)) : [];
+        const bookableResourceIds = Object.keys(state.resourceRooms).map(id => parseInt(id, 10));
 
         if (!roomId) {
             // No room selected - show only resources that have room assignments.
