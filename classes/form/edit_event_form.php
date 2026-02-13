@@ -61,7 +61,7 @@ class edit_event_form extends dynamic_form {
      * Define the form
      */
     public function definition(): void {
-        global $DB, $CFG;
+        global $DB, $CFG, $PAGE;
         $mform =& $this->_form;
 
         // Get the plugin config.
