@@ -76,12 +76,25 @@ function($, Log, Str, Notification) {
     const filterResourcesByRoom = function(roomId) {
         // Defensive check: ensure data is loaded and not just an empty object.
         if (!state.roomResourceMap || !state.resourceRooms) {
-            Log.debug('[BookIt Resources] Data not yet loaded, skipping filter');
+            Log.debug('[BookIt Resources] Data not yet loaded, hiding all resources');
+            // No valid data means no room assignments - hide everything.
+            $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
+                disableResource($(this));
+            });
             return;
         }
 
         // Get all resources that have at least one room assignment.
         const bookableResourceIds = Object.keys(state.resourceRooms).map(id => parseInt(id, 10));
+
+        // If no bookable resources exist (empty data), hide everything.
+        if (bookableResourceIds.length === 0) {
+            Log.debug('[BookIt Resources] No bookable resources found, hiding all');
+            $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
+                disableResource($(this));
+            });
+            return;
+        }
 
         if (!roomId) {
             // No room selected - show only resources that have room assignments.
