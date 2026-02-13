@@ -524,8 +524,8 @@ class resource_manager {
                 c.name as category_name,
                 c.sortorder as category_sortorder
             FROM {bookit_resource} r
-            LEFT JOIN {bookit_resource_categories} c ON c.id = r.categoryid
-            WHERE r.active = 1 AND c.active = 1
+            LEFT JOIN {bookit_resource_categories} c ON c.id = r.categoryid AND c.active = 1
+            WHERE r.active = 1
             ORDER BY c.sortorder ASC, r.sortorder ASC
         ";
 
