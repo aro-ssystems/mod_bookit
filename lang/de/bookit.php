@@ -361,6 +361,12 @@ $string['settings_roomcolorheading'] = 'Room colors';
 $string['settings_textcolor'] = 'Event text color';
 $string['settings_textcolor_desc'] = 'Set the text color of the event in the calendar view.';
 $string['settings_weekdaysvisible'] = 'Im Kalender angezeigte Wochentage';
+$string['settings_weekdaysvisible_desc'] = 'Wählen Sie aus, welche Wochentage im BookIt-Kalender erscheinen und für Ereignisse ausgewählt werden können.
+     <br><em>Standard: Montag, Dienstag, Mittwoch, Donnerstag, Freitag</em><br>
+     <span style="color:#b50000;">
+         Bitte beachten Sie, dass durch das Ausblenden von Wochentagen bereits gebuchte Ereignisse
+         an diesen Tagen nicht mehr angezeigt werden.
+     </span>';
 $string['shortname'] = 'Kurzname';
 $string['sort'] = 'Sortieren';
 $string['start'] = 'Anfang';

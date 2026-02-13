@@ -355,6 +355,8 @@ $string['settings_extratime_before_desc'] = 'Extra time in minutes which will be
 $string['settings_extratime_desc'] = 'Extra time which will be added automatically to each event to allow preparation and wrap-up works to be done.';
 $string['settings_general'] = 'General settings';
 $string['settings_master_checklist'] = 'Configure Master checklist';
+$string['settings_master_checklist_desc'] = 'The Master checklist can be used to map workflows for an event. You can configure worklflow categories, workflow items, applicable rooms and the roles responsible for the item.
+You can select a due date (optional) before or after the event and send notifications <i>Before due</i>, <i>When due</i>, <i>Reminder when overdue</i> and <i>When done</i>.';
 $string['settings_overview'] = 'BookIt settings';
 $string['settings_pdf_logo_custom'] = 'Custom PDF logo';
 $string['settings_pdf_logo_custom_desc'] = 'Upload a custom logo to be used in PDF checklists when "Custom logo" is selected above. Supported formats: PNG, JPG, JPEG. Optimal width: 200-400px.';
@@ -373,6 +375,13 @@ $string['settings_roomcolor_wcagcheck_desc'] = 'Contrast check for color <i>#{$a
 $string['settings_textcolor'] = 'Event text color';
 $string['settings_textcolor_desc'] = 'Set the text color of the event in the calendar view.';
 $string['settings_weekdaysvisible'] = 'Weekdays shown in calendar';
+$string['settings_weekdaysvisible_desc'] =
+        'Choose which weekdays appear in the BookIt calendar and may be selected for events.
+     <br><em>Default: Monday, Tuesday, Wednesday, Thursday, Friday</em><br>
+     <span style="color:#b50000;">
+         Please note that by hiding weekdays, events that have already been booked
+         on those days will no longer be displayed.
+     </span>';
 $string['shortname'] = 'Shortname';
 $string['sort'] = 'Sort';
 $string['start'] = 'Start';
