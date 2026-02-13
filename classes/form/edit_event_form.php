@@ -61,7 +61,7 @@ class edit_event_form extends dynamic_form {
      * Define the form
      */
     public function definition(): void {
-        global $DB, $CFG, $PAGE;
+        global $DB, $CFG;
         $mform =& $this->_form;
 
         // Get the plugin config.
@@ -71,16 +71,6 @@ class edit_event_form extends dynamic_form {
         $resourcesdata = resource_manager::get_active_resources_grouped();
         $roomresourcemap = resource_manager::get_room_resource_map();
         $resourcerooms = resource_manager::get_resource_rooms();
-
-        // Initialize JavaScript for room-based resource filtering.
-        $PAGE->requires->js_call_amd(
-            'mod_bookit/booking_form_resources',
-            'init',
-            [
-                $roomresourcemap,
-                $resourcerooms,
-            ]
-        );
 
         // Define variables.
         $context = $this->get_context_for_dynamic_submission();

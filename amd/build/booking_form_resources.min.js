@@ -98,29 +98,28 @@ function($, Log, Str, Notification) {
     /**
      * Enable a resource checkbox.
      *
-     * Removes disabled state and unavailable styling.
+     * Removes disabled state, shows the resource row, and removes conflict styling.
      *
      * @param {jQuery} checkbox The checkbox element
      */
     const enableResource = function(checkbox) {
         checkbox.prop('disabled', false);
         checkbox.closest(SELECTORS.RESOURCE_GROUP)
-            .removeClass(CSS.UNAVAILABLE)
+            .show()
             .removeClass(CSS.CONFLICT);
     };
 
     /**
      * Disable a resource checkbox.
      *
-     * Sets disabled state and adds unavailable styling.
+     * Sets disabled state and HIDES the entire resource row.
      * Does not uncheck if already checked (preserves selection for conflict detection).
      *
      * @param {jQuery} checkbox The checkbox element
      */
     const disableResource = function(checkbox) {
         checkbox.prop('disabled', true);
-        checkbox.closest(SELECTORS.RESOURCE_GROUP)
-            .addClass(CSS.UNAVAILABLE);
+        checkbox.closest(SELECTORS.RESOURCE_GROUP).hide();
     };
 
     /**
