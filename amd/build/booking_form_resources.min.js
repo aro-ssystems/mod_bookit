@@ -73,6 +73,12 @@ function($, Log, Str, Notification) {
      * @param {Number} roomId The selected room ID
      */
     const filterResourcesByRoom = function(roomId) {
+        // Defensive check: ensure data is loaded.
+        if (!state.roomResourceMap) {
+            Log.debug('[BookIt Resources] roomResourceMap not yet loaded, skipping filter');
+            return;
+        }
+
         if (!roomId) {
             // No room selected - enable all resources.
             enableAllResources();
@@ -250,20 +256,39 @@ function($, Log, Str, Notification) {
      * @param {Object} resourceRoomsData Mapping of resource IDs to room details
      */
     const init = function(roomResourceMapData, resourceRoomsData) {
+        Log.debug('[BookIt Resources] Initializing booking form resources filter');
+        Log.debug('[BookIt Resources] roomResourceMap:', roomResourceMapData);
+        Log.debug('[BookIt Resources] resourceRooms:', resourceRoomsData);
+
         state.roomResourceMap = roomResourceMapData;
         state.resourceRooms = resourceRoomsData;
 
-        // Get current room if already selected.
-        const currentRoomId = parseInt($(SELECTORS.ROOM_SELECT).val(), 10);
-        if (currentRoomId) {
-            state.currentRoom = currentRoomId;
-            filterResourcesByRoom(currentRoomId);
-        }
+        // Wait for form to be ready (modal may not be loaded yet).
+        const initWhenReady = function() {
+            const roomSelect = $(SELECTORS.ROOM_SELECT);
+            if (roomSelect.length === 0) {
+                Log.debug('[BookIt Resources] Room select not found yet, waiting...');
+                setTimeout(initWhenReady, 100);
+                return;
+            }
 
-        // Register event listeners.
-        registerEventListeners();
+            Log.debug('[BookIt Resources] Room select found, setting up event handlers');
 
-        Log.debug('mod_bookit/booking_form_resources: Initialized with room map', state.roomResourceMap);
+            // Get current room if already selected.
+            const currentRoomId = parseInt(roomSelect.val(), 10);
+            if (currentRoomId) {
+                state.currentRoom = currentRoomId;
+                filterResourcesByRoom(currentRoomId);
+            }
+
+            // Register event listeners.
+            registerEventListeners();
+
+            Log.debug('[BookIt Resources] Initialization complete');
+        };
+
+        // Start initialization check.
+        initWhenReady();
     };
 
     // Public API.
