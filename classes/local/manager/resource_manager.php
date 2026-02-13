@@ -489,4 +489,136 @@ class resource_manager {
             throw new \moodle_exception('sortorder_must_be_positive', 'mod_bookit');
         }
     }
+
+    // Booking Form Helper Methods.
+
+    /**
+     * Get active resources grouped by category for booking form.
+     *
+     * @return array Structured data for template [
+     *     [
+     *         'category' => ['id' => int, 'name' => string, 'sortorder' => int],
+     *         'resources' => [
+     *             ['id' => int, 'name' => string, 'description' => string, 'amount' => int,
+     *              'amountirrelevant' => bool, 'sortorder' => int],
+     *             ...
+     *         ]
+     *     ],
+     *     ...
+     * ]
+     * @throws dml_exception
+     */
+    public static function get_active_resources_grouped(): array {
+        global $DB;
+
+        $sql = "
+            SELECT
+                r.id as resource_id,
+                r.name as resource_name,
+                r.description as resource_description,
+                r.amount as resource_amount,
+                r.amountirrelevant as resource_amountirrelevant,
+                r.sortorder as resource_sortorder,
+                c.id as category_id,
+                c.name as category_name,
+                c.sortorder as category_sortorder
+            FROM {bookit_resource} r
+            LEFT JOIN {bookit_resource_categories} c ON c.id = r.categoryid
+            WHERE r.active = 1 AND c.active = 1
+            ORDER BY c.sortorder ASC, r.sortorder ASC
+        ";
+
+        $records = $DB->get_records_sql($sql);
+
+        $grouped = [];
+        foreach ($records as $record) {
+            $catid = $record->category_id;
+
+            if (!isset($grouped[$catid])) {
+                $grouped[$catid] = [
+                    'category' => [
+                        'id' => $catid,
+                        'name' => $record->category_name,
+                        'sortorder' => $record->category_sortorder,
+                    ],
+                    'resources' => [],
+                ];
+            }
+
+            $grouped[$catid]['resources'][] = [
+                'id' => $record->resource_id,
+                'name' => $record->resource_name,
+                'description' => $record->resource_description,
+                'amount' => $record->resource_amount,
+                'amountirrelevant' => (bool)$record->resource_amountirrelevant,
+                'sortorder' => $record->resource_sortorder,
+            ];
+        }
+
+        return array_values($grouped);
+    }
+
+    /**
+     * Get room-resource mapping for JavaScript filtering.
+     *
+     * @return array [room_id => [resource_id, resource_id, ...], ...]
+     * @throws dml_exception
+     */
+    public static function get_room_resource_map(): array {
+        global $DB;
+
+        $records = $DB->get_records('bookit_resource_room', null, '', 'roomid, resourceid');
+
+        $map = [];
+        foreach ($records as $record) {
+            if (!isset($map[$record->roomid])) {
+                $map[$record->roomid] = [];
+            }
+            $map[$record->roomid][] = (int)$record->resourceid;
+        }
+
+        return $map;
+    }
+
+    /**
+     * Get room details for each resource (for room icon display).
+     *
+     * @return array [resource_id => [['id' => int, 'name' => string, 'shortname' => string, 'color' => string], ...], ...]
+     * @throws dml_exception
+     */
+    public static function get_resource_rooms(): array {
+        global $DB;
+
+        $sql = "
+            SELECT
+                rr.resourceid,
+                ro.id as room_id,
+                ro.name as room_name,
+                ro.shortname as room_shortname,
+                ro.color as room_color
+            FROM {bookit_resource_room} rr
+            LEFT JOIN {bookit_room} ro ON ro.id = rr.roomid
+            ORDER BY rr.resourceid ASC, ro.name ASC
+        ";
+
+        $records = $DB->get_records_sql($sql);
+
+        $rooms = [];
+        foreach ($records as $record) {
+            $resid = $record->resourceid;
+
+            if (!isset($rooms[$resid])) {
+                $rooms[$resid] = [];
+            }
+
+            $rooms[$resid][] = [
+                'id' => $record->room_id,
+                'name' => $record->room_name,
+                'shortname' => $record->room_shortname,
+                'color' => $record->room_color,
+            ];
+        }
+
+        return $rooms;
+    }
 }
