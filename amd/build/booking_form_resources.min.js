@@ -67,10 +67,11 @@ function($, Log, Str, Notification) {
     /**
      * Filter resources based on selected room.
      *
-     * If no room is selected, all resources are enabled.
-     * If a room is selected, only resources available in that room are enabled.
+     * Resources with NO room assignments are always hidden (cannot be booked).
+     * If no room is selected, show only resources that have room assignments.
+     * If a room is selected, show only resources available in that room.
      *
-     * @param {Number} roomId The selected room ID
+     * @param {Number} roomId The selected room ID (null if no room selected)
      */
     const filterResourcesByRoom = function(roomId) {
         // Defensive check: ensure data is loaded.
@@ -79,12 +80,26 @@ function($, Log, Str, Notification) {
             return;
         }
 
+        // Get all resources that have at least one room assignment.
+        const bookableResourceIds = state.resourceRooms ? Object.keys(state.resourceRooms).map(id => parseInt(id, 10)) : [];
+
         if (!roomId) {
-            // No room selected - enable all resources.
-            enableAllResources();
+            // No room selected - show only resources that have room assignments.
+            $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
+                const checkbox = $(this);
+                const resourceId = getResourceIdFromElement(checkbox);
+
+                if (bookableResourceIds.includes(resourceId)) {
+                    enableResource(checkbox);
+                } else {
+                    // Resource has no room assignments - hide it.
+                    disableResource(checkbox);
+                }
+            });
             return;
         }
 
+        // Room selected - show only resources available in that specific room.
         const availableResources = state.roomResourceMap[roomId] || [];
 
         $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
@@ -95,7 +110,7 @@ function($, Log, Str, Notification) {
                 // Resource available in this room.
                 enableResource(checkbox);
             } else {
-                // Resource NOT available in this room.
+                // Resource NOT available in this room (or has no room assignments at all).
                 disableResource(checkbox);
             }
         });
@@ -126,15 +141,6 @@ function($, Log, Str, Notification) {
     const disableResource = function(checkbox) {
         checkbox.prop('disabled', true);
         checkbox.closest(SELECTORS.RESOURCE_GROUP).hide();
-    };
-
-    /**
-     * Enable all resources (when no room selected).
-     */
-    const enableAllResources = function() {
-        $(SELECTORS.RESOURCE_CHECKBOX).each(function() {
-            enableResource($(this));
-        });
     };
 
     /**
