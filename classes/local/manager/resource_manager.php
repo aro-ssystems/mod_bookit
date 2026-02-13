@@ -561,28 +561,85 @@ class resource_manager {
     /**
      * Get room-resource mapping for JavaScript filtering.
      *
-     * NOTE: Resource-room relationships not yet implemented in schema.
-     * This method returns empty array for now.
+     * Returns mapping from room ID to array of resource IDs available in that room.
+     * Uses the roomids JSON field from bookit_resource table.
      *
      * @return array [room_id => [resource_id, resource_id, ...], ...]
      * @throws dml_exception
      */
     public static function get_room_resource_map(): array {
-        // MDL-15781 TODO: Implement when bookit_resource_room table is added to schema.
-        return [];
+        global $DB;
+
+        $resources = $DB->get_records('bookit_resource', ['active' => 1], '', 'id, roomids');
+
+        $map = [];
+        foreach ($resources as $resource) {
+            if (empty($resource->roomids)) {
+                continue;
+            }
+
+            $roomids = json_decode($resource->roomids, true);
+            if (!is_array($roomids)) {
+                continue;
+            }
+
+            foreach ($roomids as $roomid) {
+                if (!isset($map[$roomid])) {
+                    $map[$roomid] = [];
+                }
+                $map[$roomid][] = (int)$resource->id;
+            }
+        }
+
+        return $map;
     }
 
     /**
      * Get room details for each resource (for room icon display).
      *
-     * NOTE: Resource-room relationships not yet implemented in schema.
-     * This method returns empty array for now.
+     * Returns mapping from resource ID to array of room objects with id, name, shortname, color.
+     * Uses the roomids JSON field from bookit_resource table.
      *
      * @return array [resource_id => [['id' => int, 'name' => string, 'shortname' => string, 'color' => string], ...], ...]
      * @throws dml_exception
      */
     public static function get_resource_rooms(): array {
-        // MDL-15781 TODO: Implement when bookit_resource_room table is added to schema.
-        return [];
+        global $DB;
+
+        $resources = $DB->get_records('bookit_resource', ['active' => 1], '', 'id, roomids');
+
+        // Get all active rooms.
+        $rooms = $DB->get_records('bookit_room', ['active' => 1], '', 'id, name, shortname, eventcolor');
+        $roomsbyid = [];
+        foreach ($rooms as $room) {
+            $roomsbyid[$room->id] = [
+                'id' => (int)$room->id,
+                'name' => $room->name,
+                'shortname' => $room->shortname,
+                'color' => $room->eventcolor,
+            ];
+        }
+
+        $map = [];
+        foreach ($resources as $resource) {
+            $map[$resource->id] = [];
+
+            if (empty($resource->roomids)) {
+                continue;
+            }
+
+            $roomids = json_decode($resource->roomids, true);
+            if (!is_array($roomids)) {
+                continue;
+            }
+
+            foreach ($roomids as $roomid) {
+                if (isset($roomsbyid[$roomid])) {
+                    $map[$resource->id][] = $roomsbyid[$roomid];
+                }
+            }
+        }
+
+        return $map;
     }
 }
