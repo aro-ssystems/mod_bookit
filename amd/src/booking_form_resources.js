@@ -36,7 +36,7 @@ function($, Log, Str, Notification) {
     const SELECTORS = {
         ROOM_SELECT: 'select[name="roomid"]',
         RESOURCE_CHECKBOX: '[name^="resource_selected_"]',
-        RESOURCE_GROUP: '[id^="resourcegroup_"]',
+        RESOURCE_GROUP: '[id*="resourcegroup_"]',
         RESOURCE_AMOUNT: '[name^="resource_amount_"]',
         CATEGORY_HEADER: '[id^="header_cat_"]',
     };
@@ -182,6 +182,11 @@ function($, Log, Str, Notification) {
     const checkForConflicts = function() {
         const roomId = parseInt($(SELECTORS.ROOM_SELECT).val(), 10);
         if (!roomId) {
+            return false;
+        }
+
+        // Defensive check: if data not loaded yet, no conflicts possible.
+        if (!state.roomResourceMap) {
             return false;
         }
 
