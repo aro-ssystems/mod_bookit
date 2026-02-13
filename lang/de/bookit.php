@@ -24,7 +24,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
 $string['active_weekplan'] = 'Aktiver Wochenplan';
 $string['add_blocker'] = 'Blocker hinzufügen';
 $string['addbooking'] = 'Termin buchen';
@@ -37,6 +36,17 @@ $string['backtooverview'] = 'Zurück zur Übersicht';
 $string['before_due'] = 'Vor Fälligkeit';
 $string['before_due_date'] = 'Vor Fälligkeitsdatum';
 $string['before_event'] = 'Vor der Prüfung';
+$string['booking:resource_amount'] = 'Anzahl';
+$string['booking:resource_amount_invalid'] = 'Angeforderte Anzahl ({$a->requested}) überschreitet verfügbare Anzahl ({$a->available})';
+$string['booking:resource_amount_too_low'] = 'Anzahl muss mindestens 1 sein';
+$string['booking:resource_max'] = 'Max: {$a}';
+$string['booking:resource_room_conflict'] = 'Der gewählte Raum stellt nicht alle gebuchten Ressourcen zur Verfügung. Nutzen Sie die Raumübersicht, um einen Überblick über die Räume und die jeweiligen verfügbaren Ressourcen zu erhalten.';
+$string['booking:resource_selected'] = 'Ausgewählt';
+$string['booking:resource_unavailable'] = 'Nicht verfügbar im ausgewählten Raum';
+$string['booking:resources_booked'] = 'Gebuchte Ressourcen';
+// Buchungsformular - Ressourcen-Bereich.
+$string['booking:resources_header'] = 'Ressourcen';
+$string['booking:resources_info'] = 'Wählen Sie die Ressourcen aus, die Sie für diese Buchung benötigen.';
 $string['bookit:addevent'] = 'Add an event';
 $string['bookit:addinstance'] = 'BookIt Instanz hinzufügen';
 $string['bookit:addresource'] = 'Add a resource';
@@ -82,51 +92,6 @@ $string['csvfile'] = 'CSV-Datei';
 $string['csvfile_help'] = 'Wählen Sie eine CSV-Datei mit Checklisten-Daten zum Import aus. Die Datei sollte die Spalten enthalten: category_name, item_name, item_description, order_index.';
 $string['customtemplate'] = 'Nachricht';
 $string['customtemplate_help'] = 'Die benutzerdefinierte Nachrichtenvorlage für die Benachrichtigung. ';
-$string['customtemplatedefaultmessage'] = 'Lorem ipsum dolor sit amet ###RECIPIENT###,'
-. '<p>Consectetur adipiscing elit. ###CHECKLISTCATEGORY### ullamcorper etiam sit. ###CHECKLISTITEM### vulputate '
-. 'velit esse. ###ITEMDUETIME### suscipit in posuere. ###ITEMSTATUS### mollis dolor.</p>'
-. '<p>Non ###SEMESTERTERM###, commodo luctus ###EVENTTITLE###. Elit libero, ###DEPARTMENT### euismod ###ROOM### '
-. 'semper. ###EVENTSTART### quis blandit turpis. ###EVENTDURATION### risus auctor, ###TOTALDURATION### in.</p>'
-. '<p>Curabitur blandit tempus ###COURSETEMPLATE###, sollicitudin ###PERSONINCHARGE###. Nullam quis risus eget '
-. '###OTHEREXAMINERS### congue leo. ###NUMBEROFPARTICIPANTS### sagittis ###BOOKINGPERSON### integer ###BOOKINGSTATUS###.</p>'
-. '<p>Nulla vitae elit libero,<br>'
-. 'Cras justo odio.</p>';
-$string['customtemplatedefaultmessage_before_due'] = 'Lorem ipsum ante ###RECIPIENT###,'
-. '<p>Consectetur adipiscing elit. ###CHECKLISTCATEGORY### vitae cursus ###CHECKLISTITEM### consequat '
-. 'magna. ###ITEMDUETIME### pellentesque habitant morbi. ###ITEMSTATUS### tristique senectus netus.</p>'
-. '<p>Mauris ###SEMESTERTERM### eleifend ###EVENTTITLE###. Sed ###DEPARTMENT### fermentum ###ROOM### '
-. 'tempor. ###EVENTSTART### blandit aliquam etiam. ###EVENTDURATION### enim facilisis ###TOTALDURATION### gravida.</p>'
-. '<p>Ultricies integer ###COURSETEMPLATE###, quis ###PERSONINCHARGE###. Vivamus ###OTHEREXAMINERS### '
-. 'arcu felis ###NUMBEROFPARTICIPANTS### bibendum ###BOOKINGPERSON### ut ###BOOKINGSTATUS### placerat.</p>'
-. '<p>Ante tempus imperdiet,<br>'
-. 'Duis autem vel.</p>';
-$string['customtemplatedefaultmessage_overdue'] = 'Lorem ipsum serius ###RECIPIENT###,'
-. '<p>Gravida quis ###CHECKLISTCATEGORY### blandit turpis ###CHECKLISTITEM### cursus in '
-. 'hac. ###ITEMDUETIME### habitasse platea dictumst. ###ITEMSTATUS### vestibulum rhoncus est.</p>'
-. '<p>Pellentesque ###SEMESTERTERM### eu ###EVENTTITLE###. Tincidunt ###DEPARTMENT### praesent ###ROOM### '
-. 'semper. ###EVENTSTART### feugiat nisl pretium. ###EVENTDURATION### fusce ut ###TOTALDURATION### placerat.</p>'
-. '<p>Orci eu ###COURSETEMPLATE### lobortis ###PERSONINCHARGE###. Elementum ###OTHEREXAMINERS### '
-. 'pulvinar etiam ###NUMBEROFPARTICIPANTS### non ###BOOKINGPERSON### enim ###BOOKINGSTATUS### praesent.</p>'
-. '<p>Elementum curabitur vitae,<br>'
-. 'Nunc congue nisi.</p>';
-$string['customtemplatedefaultmessage_when_done'] = 'Lorem ipsum factum ###RECIPIENT###,'
-. '<p>Faucibus ornare ###CHECKLISTCATEGORY### suspendisse ###CHECKLISTITEM### sed nisi '
-. 'lacus. ###ITEMDUETIME### sed viverra ipsum. ###ITEMSTATUS### nunc aliquet bibendum.</p>'
-. '<p>Enim ###SEMESTERTERM### neque ###EVENTTITLE###. Volutpat ###DEPARTMENT### consequat ###ROOM### '
-. 'mauris. ###EVENTSTART### nunc congue nisi. ###EVENTDURATION### vitae ###TOTALDURATION### suscipit tellus.</p>'
-. '<p>Mauris ###COURSETEMPLATE### augue ###PERSONINCHARGE###. Interdum ###OTHEREXAMINERS### '
-. 'et malesuada ###NUMBEROFPARTICIPANTS### fames ###BOOKINGPERSON### ac ###BOOKINGSTATUS### turpis.</p>'
-. '<p>Egestas congue quisque,<br>'
-. 'Egestas diam in.</p>';
-$string['customtemplatedefaultmessage_when_due'] = 'Lorem ipsum hodie ###RECIPIENT###,'
-. '<p>Pellentesque habitant ###CHECKLISTCATEGORY### morbi tristique ###CHECKLISTITEM### senectus et '
-. 'netus. ###ITEMDUETIME### malesuada fames ac. ###ITEMSTATUS### turpis egestas pretium.</p>'
-. '<p>Aenean ###SEMESTERTERM### euismod ###EVENTTITLE###. Elementum ###DEPARTMENT### tempus ###ROOM### '
-. 'egestas. ###EVENTSTART### sed viverra tellus. ###EVENTDURATION### in hac ###TOTALDURATION### habitasse.</p>'
-. '<p>Platea dictumst ###COURSETEMPLATE### vestibulum ###PERSONINCHARGE###. Rhoncus ###OTHEREXAMINERS### '
-. 'mattis rhoncus ###NUMBEROFPARTICIPANTS### urna ###BOOKINGPERSON### neque ###BOOKINGSTATUS### viverra.</p>'
-. '<p>Justo nec ultrices,<br>'
-. 'Dui sapien eget.</p>';
 $string['define_institutions'] = 'Institutionen definieren';
 $string['duedate'] = 'Fälligkeitsdatum';
 $string['duedate_after_event'] = 'Nach Veranstaltung';
@@ -149,6 +114,7 @@ $string['editchecklistitem'] = 'Checklisten-Element bearbeiten';
 $string['end'] = 'Ende';
 $string['end_before_start'] = 'Der Endzeitpunkt muss nach dem Anfangszeitpunkt liegen!';
 $string['end_of_period'] = 'Ende des Zeitraums';
+$string['error:resource_not_found'] = 'Ressource nicht gefunden';
 $string['error_amount_required'] = 'Anzahl ist erforderlich, wenn nicht als mengenneutral markiert.';
 $string['error_category_name_exists'] = 'Eine Kategorie mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen.';
 $string['error_category_not_found'] = 'Die ausgewählte Kategorie existiert nicht.';
@@ -396,12 +362,6 @@ $string['settings_roomcolorheading'] = 'Room colors';
 $string['settings_textcolor'] = 'Event text color';
 $string['settings_textcolor_desc'] = 'Set the text color of the event in the calendar view.';
 $string['settings_weekdaysvisible'] = 'Im Kalender angezeigte Wochentage';
-$string['settings_weekdaysvisible_desc'] = 'Wählen Sie aus, welche Wochentage im BookIt-Kalender erscheinen und für Ereignisse ausgewählt werden können.
-     <br><em>Standard: Montag, Dienstag, Mittwoch, Donnerstag, Freitag</em><br>
-     <span style="color:#b50000;">
-         Bitte beachten Sie, dass durch das Ausblenden von Wochentagen bereits gebuchte Ereignisse
-         an diesen Tagen nicht mehr angezeigt werden.
-     </span>';
 $string['shortname'] = 'Kurzname';
 $string['sort'] = 'Sortieren';
 $string['start'] = 'Anfang';
@@ -415,13 +375,6 @@ $string['tools'] = 'Werkzeuge';
 $string['weekplan'] = 'Wochenplan';
 $string['weekplan_assignment_overlaps'] = 'Der eingegebene Zeitraum überschneidet sich mit einer bereits bestehenden Wochenplan-Zuweisung.';
 $string['weekplan_assignments'] = 'Wochenplan-Zuweisungen';
-$string['weekplan_help'] = 'Hier können Sie Wochenpläne definieren. Jede Zeile sollte mit einem abgekürzten Wochentag beginnen, gefolgt von einer Liste kommagetrennt Zeitslots.<br>
-Dies sind Beispiele für gültige Zeilen:
-<pre>
-Di 8-11:30, 14:00-17
-Mi 09-16
-Do 07:45-10:00,10-12,13-15
-</pre>';
 $string['weekplan_room'] = 'Wochenplan-Zuweisungen zu Räumen';
 $string['weekplans'] = 'Wochenpläne';
 $string['when_done'] = 'Wenn erledigt';
