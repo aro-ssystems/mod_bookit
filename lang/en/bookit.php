@@ -138,6 +138,7 @@ $string['edit_room'] = 'Edit room';
 $string['edit_room_data'] = 'Edit room data';
 $string['edit_weekplan'] = 'Edit week plan';
 $string['edit_weekplan_assignment'] = 'Edit weekplan assignment';
+$string['editchecklistitem'] = 'Edit Checklist Item';
 $string['end'] = 'End';
 $string['end_before_start'] = 'The end date has to be after the start date!';
 $string['end_before_start_in_timeperiod_x'] = 'The end time was before the start time in time period "{$a}".';

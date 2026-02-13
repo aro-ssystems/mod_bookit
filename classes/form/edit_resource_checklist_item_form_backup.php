@@ -28,6 +28,7 @@ namespace mod_bookit\form;
 use core_form\dynamic_form;
 use context;
 use context_system;
+use mod_bookit\local\manager\resource_checklist_manager;
 use moodle_url;
 
 /**
@@ -86,14 +87,29 @@ class edit_resource_checklist_item_form extends dynamic_form {
      * @return array Result data
      */
     public function process_dynamic_submission(): array {
+        global $USER;
+
         $data = $this->get_data();
 
-        // For now, just return success without saving.
-        return [
-            'success' => true,
-            'action' => 'placeholder',
-            'message' => 'Form submitted successfully (placeholder)',
-        ];
+        if ($data->action === 'delete') {
+            resource_checklist_manager::delete_checklist_item($data->id);
+            return ['success' => true, 'action' => 'deleted'];
+        }
+
+        // Save checklist item.
+        $item = resource_checklist_manager::get_checklist_item_by_id($data->id);
+        $item->set_sortorder($data->sortorder);
+        $item->set_active($data->active ?? false);
+        $item->set_duedate($data->duedate ?? null);
+        $item->set_duedatetype($data->duedatetype ?? null);
+        $item->set_beforedueid($data->beforedueid ?? null);
+        $item->set_whendueid($data->whendueid ?? null);
+        $item->set_overdueid($data->overdueid ?? null);
+        $item->set_whendoneid($data->whendoneid ?? null);
+
+        resource_checklist_manager::update_checklist_item($item, $USER->id);
+
+        return ['success' => true, 'action' => 'updated'];
     }
 
     /**
@@ -104,9 +120,17 @@ class edit_resource_checklist_item_form extends dynamic_form {
     protected function get_default_data(): object {
         $data = parent::get_default_data();
 
-        // For placeholder, just set some defaults.
         if (!empty($data->id)) {
-            $data->active = 1;
+            $item = resource_checklist_manager::get_checklist_item_by_id($data->id);
+            $data->resourceid = $item->get_resourceid();
+            $data->sortorder = $item->get_sortorder();
+            $data->active = $item->get_active();
+            $data->duedate = $item->get_duedate();
+            $data->duedatetype = $item->get_duedatetype();
+            $data->beforedueid = $item->get_beforedueid();
+            $data->whendueid = $item->get_whendueid();
+            $data->overdueid = $item->get_overdueid();
+            $data->whendoneid = $item->get_whendoneid();
         }
 
         return $data;
@@ -140,23 +164,11 @@ class edit_resource_checklist_item_form extends dynamic_form {
             $data = (object)$data;
         }
 
+        // Convert duedate from timestamp to date array if it exists.
+        if (!empty($data->duedate)) {
+            $data->duedate = $data->duedate;
+        }
+
         parent::set_data($data);
-    }
-
-    /**
-     * Set data for dynamic submission.
-     *
-     * This method is called when the form is loaded dynamically.
-     */
-    public function set_data_for_dynamic_submission(): void {
-        $id = $this->optional_param('id', null, PARAM_INT);
-
-        $data = (object) [
-            'id' => $id ?? 0,
-            'action' => 'put',
-            'active' => 1,
-        ];
-
-        $this->set_data($data);
     }
 }

@@ -133,6 +133,7 @@ $string['edit_room'] = 'Raum bearbeiten';
 $string['edit_room_data'] = 'Raumdaten bearbeiten';
 $string['edit_weekplan'] = 'Wochenplan bearbeiten';
 $string['edit_weekplan_assignment'] = 'Wochenplan-Zuweisung bearbeiten';
+$string['editchecklistitem'] = 'Checklisten-Element bearbeiten';
 $string['end'] = 'Ende';
 $string['end_before_start'] = 'Der Endzeitpunkt muss nach dem Anfangszeitpunkt liegen!';
 $string['end_of_period'] = 'Ende des Zeitraums';
