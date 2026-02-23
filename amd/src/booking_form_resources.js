@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define([], function() {
+define(['core/notification', 'core/str'], function(Notification, Str) {
     'use strict';
 
     /**
@@ -85,6 +85,51 @@ define([], function() {
         categoryGroups.forEach(fieldset => {
             fieldset.style.display = '';
         });
+    }
+
+    /**
+     * Check for resource-room conflicts and show alert if any, then filter.
+     *
+     * Scenario 2: If resources are already checked and the newly selected room
+     * does not support all of them, show a Moodle alert notification.
+     *
+     * @param {Element} modalRoot The modal root element
+     * @param {string} selectedRoomId The newly selected room ID
+     * @param {NodeList} resourceGroups All resource group elements
+     */
+    async function checkConflictAndFilter(modalRoot, selectedRoomId, resourceGroups) {
+        const roomId = parseInt(selectedRoomId, 10);
+
+        // Collect all currently checked resource checkboxes.
+        const checkedGroups = Array.from(resourceGroups).filter(group => {
+            const checkbox = group;
+            return checkbox.type === 'checkbox' && checkbox.checked;
+        });
+
+        window.console.log('[booking_form_resources] Checked resources before room change:', checkedGroups.length);
+
+        // Check if any checked resource is not available in the new room.
+        const hasConflict = checkedGroups.some(group => {
+            const roomsJson = group.getAttribute('data-resource-rooms');
+            if (!roomsJson) {
+                return true;
+            }
+            try {
+                const rooms = JSON.parse(roomsJson);
+                return !(Array.isArray(rooms) && rooms.includes(roomId));
+            } catch (e) {
+                return true;
+            }
+        });
+
+        if (hasConflict) {
+            window.console.log('[booking_form_resources] Conflict detected for room:', roomId);
+            const title = await Str.get_string('error', 'core');
+            const message = await Str.get_string('booking:resource_room_conflict', 'mod_bookit');
+            await Notification.alert(title, message);
+        }
+
+        filterResourcesByRoom(modalRoot, selectedRoomId);
     }
 
     /**
@@ -167,7 +212,7 @@ define([], function() {
             window.console.log('[booking_form_resources] Room changed to:', selectedRoomId);
 
             if (selectedRoomId) {
-                filterResourcesByRoom(modalRoot, selectedRoomId);
+                checkConflictAndFilter(modalRoot, selectedRoomId, resourceGroups);
             } else {
                 // No room selected - disable all resources.
                 window.console.log('[booking_form_resources] No room selected, disabling all resources');
