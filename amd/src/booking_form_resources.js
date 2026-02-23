@@ -26,21 +26,42 @@ define([], function() {
     'use strict';
 
     /**
-     * Show a resource group.
+     * Get the row container for a resource checkbox element.
      *
-     * @param {Element} groupElement The resource group element
+     * @param {Element} groupElement The resource checkbox element
+     * @return {Element} The fitem row div or the element itself as fallback
      */
-    function showResource(groupElement) {
-        groupElement.style.display = '';
+    function getResourceRow(groupElement) {
+        return groupElement.closest('div[id*="fgroup_id_"]') || groupElement;
     }
 
     /**
-     * Hide a resource group.
+     * Enable a resource group (room is available).
      *
-     * @param {Element} groupElement The resource group element
+     * @param {Element} groupElement The resource checkbox element
      */
-    function hideResource(groupElement) {
-        groupElement.style.display = 'none';
+    function enableResource(groupElement) {
+        const row = getResourceRow(groupElement);
+        row.classList.remove('bookit-resource-disabled');
+        row.querySelectorAll('input').forEach(input => {
+            input.disabled = false;
+        });
+    }
+
+    /**
+     * Disable and grey out a resource group (room not available).
+     *
+     * @param {Element} groupElement The resource checkbox element
+     */
+    function disableResource(groupElement) {
+        const row = getResourceRow(groupElement);
+        row.classList.add('bookit-resource-disabled');
+        row.querySelectorAll('input').forEach(input => {
+            input.disabled = true;
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            }
+        });
     }
 
     /**
@@ -49,6 +70,8 @@ define([], function() {
      * @param {Element} modalRoot The modal root element
      */
     function updateCategoryVisibility(modalRoot) {
+        window.console.log('[booking_form_resources] updateCategoryVisibility() called');
+
         if (!modalRoot) {
             return;
         }
@@ -56,25 +79,11 @@ define([], function() {
         // Find all resource category fieldsets (groups).
         // Category fieldsets have IDs like "id_header_cat_1_*", "id_header_cat_2_*", etc.
         const categoryGroups = modalRoot.querySelectorAll('fieldset[id*="id_header_cat_"]');
+        window.console.log('[booking_form_resources] Found', categoryGroups.length, 'category groups');
 
+        // Categories are always visible - resources within are enabled or disabled.
         categoryGroups.forEach(fieldset => {
-            // Check if this category has any visible resources.
-            const resourceCheckboxes = fieldset.querySelectorAll('[data-resource-rooms]');
-            let hasVisibleResource = false;
-
-            resourceCheckboxes.forEach(checkbox => {
-                const display = window.getComputedStyle(checkbox).display;
-                if (display !== 'none') {
-                    hasVisibleResource = true;
-                }
-            });
-
-            // Hide the entire category if no resources are visible.
-            if (hasVisibleResource) {
-                fieldset.style.display = '';
-            } else {
-                fieldset.style.display = 'none';
-            }
+            fieldset.style.display = '';
         });
     }
 
@@ -85,6 +94,8 @@ define([], function() {
      * @param {number|string} selectedRoomId The selected room ID
      */
     function filterResourcesByRoom(modalRoot, selectedRoomId) {
+        window.console.log('[booking_form_resources] filterResourcesByRoom() called for room:', selectedRoomId);
+
         if (!modalRoot) {
             return;
         }
@@ -93,24 +104,28 @@ define([], function() {
 
         // Find all resource groups with data-resource-rooms attribute.
         const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
+        window.console.log('[booking_form_resources] Filtering', resourceGroups.length, 'resource groups for room ID:', roomId);
 
         resourceGroups.forEach(group => {
             const roomsJson = group.getAttribute('data-resource-rooms');
             if (!roomsJson) {
-                hideResource(group);
+                disableResource(group);
                 return;
             }
 
             try {
                 const rooms = JSON.parse(roomsJson);
-                if (Array.isArray(rooms) && rooms.includes(roomId)) {
-                    showResource(group);
+                const isAvailable = Array.isArray(rooms) && rooms.includes(roomId);
+                window.console.log('[booking_form_resources] Resource rooms:', rooms, 'contains', roomId, ':', isAvailable);
+
+                if (isAvailable) {
+                    enableResource(group);
                 } else {
-                    hideResource(group);
+                    disableResource(group);
                 }
             } catch (e) {
-                // Invalid JSON, hide the resource.
-                hideResource(group);
+                window.console.log('[booking_form_resources] Invalid JSON for resource:', roomsJson, e);
+                disableResource(group);
             }
         });
 
@@ -124,35 +139,46 @@ define([], function() {
      * @param {Element} modalRoot The modal root element containing the form
      */
     function init(modalRoot) {
+        window.console.log('[booking_form_resources] init() called with modalRoot:', modalRoot);
+
         if (!modalRoot) {
+            window.console.log('[booking_form_resources] No modalRoot provided, exiting');
             return;
         }
 
         // Find the room select element.
         const roomSelect = modalRoot.querySelector('select[name="roomid"]');
+        window.console.log('[booking_form_resources] Room select element:', roomSelect);
+
         if (!roomSelect) {
+            window.console.log('[booking_form_resources] Room select not found, exiting');
             return;
         }
 
-        // Initially hide all resources (no room selected) and empty categories.
+        // Initially disable all resources (no room selected yet).
         const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
-        resourceGroups.forEach(group => hideResource(group));
+        window.console.log('[booking_form_resources] Found', resourceGroups.length, 'resource groups');
+        resourceGroups.forEach(group => disableResource(group));
         updateCategoryVisibility(modalRoot);
 
         // Listen for room changes.
         roomSelect.addEventListener('change', function() {
             const selectedRoomId = this.value;
+            window.console.log('[booking_form_resources] Room changed to:', selectedRoomId);
+
             if (selectedRoomId) {
                 filterResourcesByRoom(modalRoot, selectedRoomId);
             } else {
-                // No room selected - hide all resources and categories.
-                resourceGroups.forEach(group => hideResource(group));
+                // No room selected - disable all resources.
+                window.console.log('[booking_form_resources] No room selected, disabling all resources');
+                resourceGroups.forEach(group => disableResource(group));
                 updateCategoryVisibility(modalRoot);
             }
         });
 
         // If a room is already selected, filter immediately.
         if (roomSelect.value) {
+            window.console.log('[booking_form_resources] Room already selected:', roomSelect.value);
             filterResourcesByRoom(modalRoot, roomSelect.value);
         }
     }

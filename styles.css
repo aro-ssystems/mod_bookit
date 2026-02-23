@@ -212,3 +212,9 @@
     font-weight: bold;
     margin-right: 0.25rem;
 }
+
+/* Booking form: resource disabled (not available for selected room) */
+.bookit-resource-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}

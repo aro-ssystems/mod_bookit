@@ -67,10 +67,6 @@ class edit_event_form extends dynamic_form {
         // Get the plugin config.
         $config = get_config('mod_bookit');
 
-        // Get active resources grouped by category for booking form.
-        $resourcesdata = resource_manager::get_active_resources_grouped();
-        $resourcerooms = resource_manager::get_resource_rooms();
-
         // Define variables.
         $context = $this->get_context_for_dynamic_submission();
         $caneditinternal = has_capability('mod/bookit:editinternal', $context);
@@ -379,9 +375,6 @@ class edit_event_form extends dynamic_form {
         $mform->hideIf('internalnotes', 'editinternal', 'neq');
         $mform->addHelpButton('internalnotes', 'event_internalnotes', 'mod_bookit');
 
-        // Add resources section.
-        $this->add_resources_fields($mform, $resourcesdata);
-
         // Handle time selection.
         if (isset($_REQUEST['timeclicked']) && is_array($_REQUEST['timeclicked'])) {
                 // Fallback, when API not reachable.
@@ -461,6 +454,12 @@ class edit_event_form extends dynamic_form {
 
             $starttimeel->loadArray($possiblestarttimes);
             $mform->setDefault('starttime', $selectedtime);
+
+        // Get active resources grouped by category for booking form.
+        $resourcesdata = resource_manager::get_active_resources_grouped();
+
+        // Add resources section.
+        $this->add_resources_fields($mform, $resourcesdata);
     }
 
     /**
