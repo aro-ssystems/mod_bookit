@@ -425,6 +425,7 @@ $string['tools'] = 'Werkzeuge';
 $string['weekplan'] = 'Wochenplan';
 $string['weekplan_assignment_overlaps'] = 'Der eingegebene Zeitraum überschneidet sich mit einer bereits bestehenden Wochenplan-Zuweisung.';
 $string['weekplan_assignments'] = 'Wochenplan-Zuweisungen';
+$string['weekplan_help'] = 'Der Wochenplan definiert die verfügbaren Zeitslots und Raumzuweisungen für dieses Semester.';
 $string['weekplan_room'] = 'Wochenplan-Zuweisungen zu Räumen';
 $string['weekplans'] = 'Wochenpläne';
 $string['when_done'] = 'Wenn erledigt';

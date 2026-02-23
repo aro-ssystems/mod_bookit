@@ -199,11 +199,11 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         }
 
         // Listen for room changes.
-        roomSelect.addEventListener('change', function() {
+        roomSelect.addEventListener('change', async function() {
             const selectedRoomId = this.value;
 
             if (selectedRoomId) {
-                checkConflictAndFilter(modalRoot, selectedRoomId, resourceGroups);
+                await checkConflictAndFilter(modalRoot, selectedRoomId, resourceGroups);
             } else {
                 // No room selected - disable all resources.
                 resourceGroups.forEach(group => disableResource(group));

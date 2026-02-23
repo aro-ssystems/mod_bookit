@@ -500,12 +500,13 @@ class resource_manager {
      *         'category' => ['id' => int, 'name' => string, 'sortorder' => int],
      *         'resources' => [
      *             ['id' => int, 'name' => string, 'description' => string, 'amount' => int,
-     *              'amountirrelevant' => bool, 'sortorder' => int],
+     *              'amountirrelevant' => bool, 'sortorder' => int, 'roomids' => string|null],
      *             ...
      *         ]
      *     ],
      *     ...
      * ]
+     * roomids is a JSON-encoded array of room IDs, or null/empty if available in all rooms.
      * @throws dml_exception
      */
     public static function get_active_resources_grouped(): array {

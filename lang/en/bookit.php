@@ -440,6 +440,7 @@ $string['tools'] = 'Tools';
 $string['weekplan'] = 'Weekplan';
 $string['weekplan_assignment_overlaps'] = 'The entered period is overlapping an already existing weekplan assignment.';
 $string['weekplan_assignments'] = 'Weekplan assignments';
+$string['weekplan_help'] = 'The week plan defines the available time slots and room assignments for this semester.';
 $string['weekplan_room'] = 'Weekplan assignments to rooms';
 $string['weekplans'] = 'Week plans';
 $string['when_done'] = 'When done';
