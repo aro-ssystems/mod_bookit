@@ -524,21 +524,15 @@ class resource_manager {
                 c.name as category_name,
                 c.sortorder as category_sortorder
             FROM {bookit_resource} r
-            LEFT JOIN {bookit_resource_categories} c ON c.id = r.categoryid AND c.active = 1
-            WHERE r.active = 1
+            JOIN {bookit_resource_categories} c ON c.id = r.categoryid
+            WHERE r.active = 1 AND c.active = 1
             ORDER BY c.sortorder ASC, r.sortorder ASC
         ";
 
         $records = $DB->get_records_sql($sql);
 
-        debugging('get_active_resources_grouped: Found ' . count($records) . ' records', DEBUG_DEVELOPER);
-
         $grouped = [];
         foreach ($records as $record) {
-            debugging(
-                "Record: catid={$record->category_id}, resid={$record->resource_id}, resname={$record->resource_name}",
-                DEBUG_DEVELOPER
-            );
             $catid = $record->category_id;
 
             if (!isset($grouped[$catid])) {
@@ -563,7 +557,6 @@ class resource_manager {
             ];
         }
 
-        debugging('get_active_resources_grouped: Returning ' . count($grouped) . ' category groups', DEBUG_DEVELOPER);
         return array_values($grouped);
     }
 

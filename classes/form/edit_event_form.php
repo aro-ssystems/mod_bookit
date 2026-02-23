@@ -452,9 +452,6 @@ class edit_event_form extends dynamic_form {
             $mform->setDefault('starttime', $selectedtime);
         }
 
-            $starttimeel->loadArray($possiblestarttimes);
-            $mform->setDefault('starttime', $selectedtime);
-
         // Get active resources grouped by category for booking form.
         $resourcesdata = resource_manager::get_active_resources_grouped();
 
@@ -727,39 +724,34 @@ class edit_event_form extends dynamic_form {
 
             // Add resources in this category.
             foreach ($resources as $resource) {
-                // Parse roomids JSON.
+                // Parse roomids JSON. Empty means available in all rooms.
                 $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
                 $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
-
-                // Skip resources with no room assignments (hide completely).
-                if (empty($roomidsarray)) {
-                    continue;
-                }
 
                 $groupelements = [];
 
                 // Checkbox for resource selection.
                 $groupelements[] = $mform->createElement(
                     'advcheckbox',
-                    'resource_selected_' . $resource['id'],
+                    'checkbox_' . $resource['id'],
                     '',
                     $resource['name'] . ($resource['description'] ? ' (' . $resource['description'] . ')' : ''),
                     ['group' => 1],
                     [0, 1]
                 );
-                $mform->disabledIf('resource_selected_' . $resource['id'], 'editevent', 'neq');
+                $mform->disabledIf('checkbox_' . $resource['id'], 'editevent', 'neq');
 
                 // Amount field (only if not amount irrelevant).
                 if (!$resource['amountirrelevant']) {
                     $groupelements[] = $mform->createElement(
                         'text',
-                        'resource_amount_' . $resource['id'],
+                        'resource_' . $resource['id'],
                         get_string('booking:resource_amount', 'mod_bookit'),
                         ['size' => '4']
                     );
-                    $mform->setType('resource_amount_' . $resource['id'], PARAM_INT);
-                    $mform->disabledIf('resource_amount_' . $resource['id'], 'resource_selected_' . $resource['id']);
-                    $mform->setDefault('resource_amount_' . $resource['id'], 1);
+                    $mform->setType('resource_' . $resource['id'], PARAM_INT);
+                    $mform->disabledIf('resource_' . $resource['id'], 'checkbox_' . $resource['id']);
+                    $mform->setDefault('resource_' . $resource['id'], 1);
 
                     // Add max amount as static text.
                     $groupelements[] = $mform->createElement(

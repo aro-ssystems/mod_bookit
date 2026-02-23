@@ -38,14 +38,22 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
     /**
      * Enable a resource group (room is available).
      *
+     * Only re-enables the controlling checkbox; dependent fields remain
+     * governed by MoodleQuickForm's disabledIf logic.
+     *
      * @param {Element} groupElement The resource checkbox element
      */
     function enableResource(groupElement) {
         const row = getResourceRow(groupElement);
         row.classList.remove('bookit-resource-disabled');
-        row.querySelectorAll('input').forEach(input => {
-            input.disabled = false;
-        });
+        if (groupElement && groupElement.tagName === 'INPUT') {
+            groupElement.disabled = false;
+        } else {
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (checkbox) {
+                checkbox.disabled = false;
+            }
+        }
     }
 
     /**
@@ -70,18 +78,12 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
      * @param {Element} modalRoot The modal root element
      */
     function updateCategoryVisibility(modalRoot) {
-        window.console.log('[booking_form_resources] updateCategoryVisibility() called');
-
         if (!modalRoot) {
             return;
         }
 
-        // Find all resource category fieldsets (groups).
-        // Category fieldsets have IDs like "id_header_cat_1_*", "id_header_cat_2_*", etc.
-        const categoryGroups = modalRoot.querySelectorAll('fieldset[id*="id_header_cat_"]');
-        window.console.log('[booking_form_resources] Found', categoryGroups.length, 'category groups');
-
         // Categories are always visible - resources within are enabled or disabled.
+        const categoryGroups = modalRoot.querySelectorAll('fieldset[id*="id_header_cat_"]');
         categoryGroups.forEach(fieldset => {
             fieldset.style.display = '';
         });
@@ -106,24 +108,25 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
             return checkbox.type === 'checkbox' && checkbox.checked;
         });
 
-        window.console.log('[booking_form_resources] Checked resources before room change:', checkedGroups.length);
-
         // Check if any checked resource is not available in the new room.
+        // An empty rooms array means the resource is available in all rooms (no conflict).
         const hasConflict = checkedGroups.some(group => {
             const roomsJson = group.getAttribute('data-resource-rooms');
             if (!roomsJson) {
-                return true;
+                return false;
             }
             try {
                 const rooms = JSON.parse(roomsJson);
-                return !(Array.isArray(rooms) && rooms.includes(roomId));
+                if (!Array.isArray(rooms) || rooms.length === 0) {
+                    return false; // Available in all rooms.
+                }
+                return !rooms.includes(roomId);
             } catch (e) {
-                return true;
+                return false;
             }
         });
 
         if (hasConflict) {
-            window.console.log('[booking_form_resources] Conflict detected for room:', roomId);
             const title = await Str.get_string('error', 'core');
             const message = await Str.get_string('booking:resource_room_conflict', 'mod_bookit');
             await Notification.alert(title, message);
@@ -139,8 +142,6 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
      * @param {number|string} selectedRoomId The selected room ID
      */
     function filterResourcesByRoom(modalRoot, selectedRoomId) {
-        window.console.log('[booking_form_resources] filterResourcesByRoom() called for room:', selectedRoomId);
-
         if (!modalRoot) {
             return;
         }
@@ -149,19 +150,13 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
 
         // Find all resource groups with data-resource-rooms attribute.
         const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
-        window.console.log('[booking_form_resources] Filtering', resourceGroups.length, 'resource groups for room ID:', roomId);
 
         resourceGroups.forEach(group => {
             const roomsJson = group.getAttribute('data-resource-rooms');
-            if (!roomsJson) {
-                disableResource(group);
-                return;
-            }
-
             try {
-                const rooms = JSON.parse(roomsJson);
-                const isAvailable = Array.isArray(rooms) && rooms.includes(roomId);
-                window.console.log('[booking_form_resources] Resource rooms:', rooms, 'contains', roomId, ':', isAvailable);
+                const rooms = JSON.parse(roomsJson || '[]');
+                // Empty rooms array means available in all rooms.
+                const isAvailable = !Array.isArray(rooms) || rooms.length === 0 || rooms.includes(roomId);
 
                 if (isAvailable) {
                     enableResource(group);
@@ -169,7 +164,6 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
                     disableResource(group);
                 }
             } catch (e) {
-                window.console.log('[booking_form_resources] Invalid JSON for resource:', roomsJson, e);
                 disableResource(group);
             }
         });
@@ -184,46 +178,41 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
      * @param {Element} modalRoot The modal root element containing the form
      */
     function init(modalRoot) {
-        window.console.log('[booking_form_resources] init() called with modalRoot:', modalRoot);
-
         if (!modalRoot) {
-            window.console.log('[booking_form_resources] No modalRoot provided, exiting');
             return;
         }
 
         // Find the room select element.
         const roomSelect = modalRoot.querySelector('select[name="roomid"]');
-        window.console.log('[booking_form_resources] Room select element:', roomSelect);
 
         if (!roomSelect) {
-            window.console.log('[booking_form_resources] Room select not found, exiting');
             return;
         }
 
-        // Initially disable all resources (no room selected yet).
+        // Collect all resource groups.
         const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
-        window.console.log('[booking_form_resources] Found', resourceGroups.length, 'resource groups');
-        resourceGroups.forEach(group => disableResource(group));
-        updateCategoryVisibility(modalRoot);
+
+        // If no room is selected yet, disable all resources initially.
+        if (!roomSelect.value) {
+            resourceGroups.forEach(group => disableResource(group));
+            updateCategoryVisibility(modalRoot);
+        }
 
         // Listen for room changes.
         roomSelect.addEventListener('change', function() {
             const selectedRoomId = this.value;
-            window.console.log('[booking_form_resources] Room changed to:', selectedRoomId);
 
             if (selectedRoomId) {
                 checkConflictAndFilter(modalRoot, selectedRoomId, resourceGroups);
             } else {
                 // No room selected - disable all resources.
-                window.console.log('[booking_form_resources] No room selected, disabling all resources');
                 resourceGroups.forEach(group => disableResource(group));
                 updateCategoryVisibility(modalRoot);
             }
         });
 
-        // If a room is already selected, filter immediately.
+        // If a room is already selected, filter immediately without wiping existing selections.
         if (roomSelect.value) {
-            window.console.log('[booking_form_resources] Room already selected:', roomSelect.value);
             filterResourcesByRoom(modalRoot, roomSelect.value);
         }
     }
