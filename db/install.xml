@@ -315,7 +315,7 @@
     <TABLE NAME="bookit_notification_slots" COMMENT="Stores notification settings for checklist items">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="checklistitemid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Reference to the checklist item"/>
+        <FIELD NAME="checklistitemid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Reference to the masterchecklist item (null for resource checklist items)"/>
         <FIELD NAME="type" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Type of notification"/>
         <FIELD NAME="roleids" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON-encoded list of role IDs to notify"/>
         <FIELD NAME="duedaysoffset" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Due days relative to the event date"/>
@@ -328,7 +328,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="checklistitemid" TYPE="foreign" FIELDS="checklistitemid" REFTABLE="bookit_checklist_item" REFFIELDS="id"/>
+        <KEY NAME="checklistitemid" TYPE="foreign-nullable" FIELDS="checklistitemid" REFTABLE="bookit_checklist_item" REFFIELDS="id"/>
         <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>

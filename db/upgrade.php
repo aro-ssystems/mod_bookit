@@ -110,5 +110,25 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, $newversion, 'bookit');
     }
 
+    $newversion = 2025511309;
+
+    if ($oldversion < $newversion) {
+        $table = new xmldb_table('bookit_notification_slots');
+
+        // Drop the FK constraint on checklistitemid first (required before changing nullability).
+        $key = new xmldb_key('checklistitemid', XMLDB_KEY_FOREIGN, ['checklistitemid'], 'bookit_checklist_item', ['id']);
+        if ($dbman->find_key_name($table, $key)) {
+            $dbman->drop_key($table, $key);
+        }
+
+        // Make checklistitemid nullable (resource checklist items set it to NULL).
+        $field = new xmldb_field('checklistitemid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'id');
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->change_field_notnull($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, $newversion, 'bookit');
+    }
+
     return true;
 }
