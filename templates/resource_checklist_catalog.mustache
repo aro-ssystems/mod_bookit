@@ -38,6 +38,8 @@
         <thead>
             <tr>
                 <th>{{#str}}name, core{{/str}}</th>
+                <th style="width: 90px;" class="text-center">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                <th>{{#str}}resources:rooms, mod_bookit{{/str}}</th>
                 <th style="width: 150px;">{{#str}}resources:duedate, mod_bookit{{/str}}</th>
                 <th style="width: 100px;" class="text-center">{{#str}}status, core{{/str}}</th>
                 <th style="width: 100px;" class="text-center">{{#str}}actions, core{{/str}}</th>
@@ -50,7 +52,7 @@
                data-category-description="{{description}}"
                data-category-sortorder="{{sortorder}}">
             <tr class="table-active bg-light border-bottom" data-region="resource-checklist-category-row">
-                <td colspan="4" class="font-weight-bold text-dark py-3">
+                <td colspan="6" class="font-weight-bold text-dark py-3">
                     <span data-field="category-name">{{{name}}}</span>
                 </td>
             </tr>
@@ -65,12 +67,21 @@
                 data-item-sortorder="{{sortorder}}"
                 data-item-active="{{active}}"
                 data-item-duedate="{{duedate}}"
-                data-item-duedatetype="{{duedatetype}}">
+                data-item-duedatetype="{{duedatetype}}"
+                data-item-rooms="{{rooms}}">
                 <td class="py-2">
                     <span data-field="item-name">{{{name}}}</span>
                     {{#description}}
                     <small class="text-muted d-block" data-field="item-description">{{{description}}}</small>
                     {{/description}}
+                </td>
+                <td class="text-center py-2" data-field="item-amount">
+                    {{#amountirrelevant}}-{{/amountirrelevant}}
+                    {{^amountirrelevant}}{{amount}}{{/amountirrelevant}}
+                </td>
+                <td class="py-2" data-field="item-rooms">
+                    {{#hasrooms}}<small>{{rooms}}</small>{{/hasrooms}}
+                    {{^hasrooms}}<small class="text-muted">-</small>{{/hasrooms}}
                 </td>
                 <td class="py-2" data-field="item-duedate">
                     {{#duedate}}{{duedate}}{{/duedate}}

@@ -52,8 +52,11 @@ class resource_checklist_catalog implements renderable, templatable {
         // Get all categories.
         $categories = resource_manager::get_all_categories();
 
-        // Get all checklist items with resource data joined.
-        $checklistitems = resource_checklist_manager::get_all_checklist_items();
+        // Get all rooms as [id => name] for lookup.
+        $allrooms = resource_manager::get_rooms();
+
+        // Get all checklist items with resource data joined (includes r.roomids).
+        $checklistitems = resource_checklist_manager::get_all_checklist_items_with_rooms();
 
         // Group checklist items by category.
         $itemsbycategory = [];
@@ -82,12 +85,33 @@ class resource_checklist_catalog implements renderable, templatable {
                     $itemdata->name = format_string($item->name);
                     $itemdata->description = format_text($item->description ?? '', FORMAT_HTML);
                     $itemdata->categoryid = $item->categoryid;
-                    $itemdata->amount = $item->amount;
+                    $itemdata->amount = $item->amountirrelevant ? null : (int)$item->amount;
                     $itemdata->amountirrelevant = (bool)$item->amountirrelevant;
                     $itemdata->sortorder = $item->sortorder;
                     $itemdata->active = (bool)$item->active;
-                    $itemdata->duedate = $item->duedate ?? null;
+
+                    // Format duedate for display.
+                    if (!empty($item->duedate)) {
+                        $itemdata->duedate = userdate((int)$item->duedate, get_string('strftimedatefullshort', 'langconfig'));
+                    } else {
+                        $itemdata->duedate = null;
+                    }
                     $itemdata->duedatetype = $item->duedatetype ?? null;
+
+                    // Resolve room names from JSON roomids on resource.
+                    $roomnames = [];
+                    if (!empty($item->roomids)) {
+                        $roomids = json_decode($item->roomids, true);
+                        if (is_array($roomids)) {
+                            foreach ($roomids as $roomid) {
+                                if (isset($allrooms[(int)$roomid])) {
+                                    $roomnames[] = $allrooms[(int)$roomid];
+                                }
+                            }
+                        }
+                    }
+                    $itemdata->rooms = implode(', ', $roomnames);
+                    $itemdata->hasrooms = !empty($roomnames);
 
                     $categorydata->items[] = $itemdata;
                 }

@@ -61,6 +61,32 @@ class resource_checklist_manager {
     }
 
     /**
+     * Get all checklist items with resource data including roomids.
+     *
+     * @param bool $activeonly Only return active items.
+     * @return array
+     * @throws \dml_exception
+     */
+    public static function get_all_checklist_items_with_rooms(bool $activeonly = false): array {
+        global $DB;
+
+        $conditions = $activeonly ? 'WHERE rc.active = 1' : '';
+
+        $sql = "SELECT rc.id, rc.resourceid, rc.duedate, rc.duedatetype,
+                       rc.sortorder, rc.active, rc.beforedueid, rc.whendueid,
+                       rc.overdueid, rc.whendoneid,
+                       r.name, r.description, r.categoryid, r.amount,
+                       r.amountirrelevant, r.active as resource_active,
+                       r.roomids
+                FROM {bookit_resource_checklist} rc
+                JOIN {bookit_resource} r ON r.id = rc.resourceid
+                $conditions
+                ORDER BY rc.sortorder ASC";
+
+        return $DB->get_records_sql($sql);
+    }
+
+    /**
      * Get checklist item by ID.
      *
      * @param int $id Checklist item ID
