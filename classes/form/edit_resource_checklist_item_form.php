@@ -108,6 +108,16 @@ class edit_resource_checklist_item_form extends dynamic_form {
 
         $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
         $this->definition_notification_section($allroles);
+
+        // Recipient is always service team — freeze each select with the service team role.
+        $serviceteamroleid = $this->get_serviceteam_role_id();
+        if ($serviceteamroleid) {
+            foreach (\mod_bookit\local\entity\bookit_notification_type::cases() as $case) {
+                $fieldname = $case->value . '_recipient';
+                $mform->setConstant($fieldname, [(string)$serviceteamroleid]);
+                $mform->hardFreeze($fieldname);
+            }
+        }
     }
 
     /**
@@ -316,14 +326,6 @@ class edit_resource_checklist_item_form extends dynamic_form {
         }
 
         resource_checklist_manager::save_checklist_item($item, $USER->id);
-
-        // Service team is always responsible — inject roleids for all notification cases.
-        $serviceteamroleid = $this->get_serviceteam_role_id();
-        if ($serviceteamroleid) {
-            foreach (\mod_bookit\local\entity\bookit_notification_type::cases() as $case) {
-                $data[$case->value . '_recipient'] = [(string)$serviceteamroleid];
-            }
-        }
 
         $this->save_notification_slots($data, $id);
 

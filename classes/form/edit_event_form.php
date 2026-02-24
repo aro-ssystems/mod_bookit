@@ -807,7 +807,7 @@ class edit_event_form extends dynamic_form {
                     $tooltiptext = implode(' | ', $tooltipparts);
                     $infoicon = '<i class="fa fa-info-circle text-info ms-1"'
                         . ' data-bs-toggle="tooltip" data-bs-placement="top"'
-                        . ' title="' . $tooltiptext . '"></i>';
+                        . ' title="' . s($tooltiptext) . '"></i>';
                     $groupelements[] = $mform->createElement('static', 'info_' . $resource['id'], '', $infoicon);
                 }
 

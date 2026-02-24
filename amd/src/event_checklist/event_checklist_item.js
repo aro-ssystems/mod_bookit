@@ -26,7 +26,7 @@
  */
 
 import {BaseComponent} from 'core/reactive';
-import Ajax from 'core/ajax';
+import ModalForm from 'core_form/modalform';
 import {get_strings as getStrings} from 'core/str';
 
 /** CSS badge classes per status */
@@ -92,23 +92,25 @@ export default class EventChecklistItem extends BaseComponent {
         select.disabled = true;
 
         try {
-            await Ajax.call([{
-                methodname: 'mod_bookit_update_event_resource_status',
+            const form = new ModalForm({
+                formClass: 'mod_bookit\\form\\update_event_resource_status_form',
                 args: {
                     cmid:       this.cmid,
                     eventid:    this.eventid,
                     resourceid: parseInt(this.element.dataset.itemResourceid),
                     status:     newStatus,
                 },
-            }])[0];
+            });
+            await form.submitFormAjax();
 
             // Update reactive state.
             this.reactive.dispatch('updateStatus', {id: this.itemId, status: newStatus});
 
         } catch (e) {
-            // Revert on error.
+            // Revert on error and log for debugging.
             select.value = previousStatus;
             this.element.dataset.itemStatus = previousStatus;
+            window.console.error('Event resource status update failed:', e);
         } finally {
             select.disabled = false;
         }
