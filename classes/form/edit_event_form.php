@@ -461,7 +461,10 @@ class edit_event_form extends dynamic_form {
             if ($eventrec && (int)$eventrec->bookingstatus >= 2) {
                 $bookingcompleted = true;
                 foreach (resource_manager::get_resources_of_event($eventid) as $br) {
-                    $bookedresources[(int)$br->resourceid] = (int)$br->amount;
+                    $bookedresources[(int)$br->resourceid] = [
+                        'amount' => (int)$br->amount,
+                        'status' => (string)($br->status ?? 'requested'),
+                    ];
                 }
             }
         }
@@ -721,13 +724,9 @@ class edit_event_form extends dynamic_form {
      *
      * @param \MoodleQuickForm $mform The form instance
      * @param array $resourcesdata Grouped resources data from resource_manager
-     * @return void
-     */
-    /**
-     * @param \MoodleQuickForm $mform
-     * @param array $resourcesdata
      * @param bool $bookingcompleted When true, only booked resources are shown (read-only).
-     * @param array $bookedresources Map of resourceid => amount for completed bookings.
+     * @param array $bookedresources Map of resourceid => ['amount' => int, 'status' => string].
+     * @return void
      */
     private function add_resources_fields(
         \MoodleQuickForm $mform,
@@ -754,6 +753,28 @@ class edit_event_form extends dynamic_form {
             foreach ($resources as $resource) {
                 // When booking is completed, only show resources that were booked.
                 if ($bookingcompleted && !array_key_exists($resource['id'], $bookedresources)) {
+                    continue;
+                }
+
+                // For completed bookings: show read-only status badge + amount.
+                if ($bookingcompleted) {
+                    $bookedinfo = $bookedresources[$resource['id']];
+                    $bookedamount = $bookedinfo['amount'];
+                    $bookedstatus = $bookedinfo['status'];
+                    $statusclassmap = [
+                        'requested' => 'badge-secondary',
+                        'confirmed' => 'badge-success',
+                        'inprogress' => 'badge-primary',
+                        'rejected' => 'badge-danger',
+                    ];
+                    $badgeclass = 'badge ' . ($statusclassmap[$bookedstatus] ?? 'badge-secondary');
+                    $statuslabel = get_string('resource_status_' . $bookedstatus, 'mod_bookit');
+                    $statichtml = '<span class="' . $badgeclass . '">' . $statuslabel . '</span>';
+                    if (!$resource['amountirrelevant']) {
+                        $statichtml .= ' &nbsp;' . get_string('booking:resource_amount', 'mod_bookit')
+                            . ': <strong>' . $bookedamount . '</strong>';
+                    }
+                    $mform->addElement('static', 'resourcestatus_' . $resource['id'], $resource['name'], $statichtml);
                     continue;
                 }
 
@@ -834,15 +855,6 @@ class edit_event_form extends dynamic_form {
                     [' '],
                     false
                 );
-
-                // For completed bookings: pre-fill with booked values and freeze.
-                if ($bookingcompleted) {
-                    $mform->setDefault('checkbox_' . $resource['id'], 1);
-                    if (!$resource['amountirrelevant']) {
-                        $mform->setDefault('resource_' . $resource['id'], $bookedresources[$resource['id']] ?? 1);
-                    }
-                    $mform->freeze('resourcegroup_' . $resource['id']);
-                }
             }
         }
     }

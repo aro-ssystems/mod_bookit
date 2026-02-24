@@ -237,9 +237,10 @@ class resource_checklist_manager {
     public static function create_checklist_for_resource(int $resourceid, int $userid): int {
         global $DB;
 
-        // Check if already exists.
-        if ($DB->record_exists('bookit_resource_checklist', ['resourceid' => $resourceid])) {
-            throw new \coding_exception('Checklist entry already exists for resource ' . $resourceid);
+        // Return existing record ID if already exists (idempotent).
+        $existing = $DB->get_field('bookit_resource_checklist', 'id', ['resourceid' => $resourceid]);
+        if ($existing) {
+            return (int)$existing;
         }
 
         // Get max sortorder.
