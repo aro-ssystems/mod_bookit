@@ -714,6 +714,9 @@ class edit_event_form extends dynamic_form {
             return;
         }
 
+        // Load room data for room icons (shortname + color per resource).
+        $resourcerooms = resource_manager::get_resource_rooms();
+
         foreach ($resourcesdata as $categorygroup) {
             $category = $categorygroup['category'];
             $resources = $categorygroup['resources'];
@@ -730,16 +733,45 @@ class edit_event_form extends dynamic_form {
 
                 $groupelements = [];
 
-                // Checkbox for resource selection.
+                // Checkbox for resource selection (name only, description moved to info icon).
                 $groupelements[] = $mform->createElement(
                     'advcheckbox',
                     'checkbox_' . $resource['id'],
                     '',
-                    $resource['name'] . ($resource['description'] ? ' (' . $resource['description'] . ')' : ''),
+                    $resource['name'],
                     ['group' => 1],
                     [0, 1]
                 );
                 $mform->disabledIf('checkbox_' . $resource['id'], 'editevent', 'neq');
+
+                // Info icon with tooltip showing description and max amount.
+                $tooltipparts = [];
+                if (!empty($resource['description'])) {
+                    $tooltipparts[] = s($resource['description']);
+                }
+                if (!$resource['amountirrelevant'] && $resource['amount'] > 0) {
+                    $tooltipparts[] = get_string('booking:resource_max', 'mod_bookit', $resource['amount']);
+                }
+                if (!empty($tooltipparts)) {
+                    $tooltiptext = implode(' | ', $tooltipparts);
+                    $infoicon = '<i class="fa fa-info-circle text-info ms-1"'
+                        . ' data-bs-toggle="tooltip" data-bs-placement="top"'
+                        . ' title="' . $tooltiptext . '"></i>';
+                    $groupelements[] = $mform->createElement('static', 'info_' . $resource['id'], '', $infoicon);
+                }
+
+                // Room icons: small colored badges with room shortname.
+                $rooms = $resourcerooms[$resource['id']] ?? [];
+                if (!empty($rooms)) {
+                    $roomhtml = '';
+                    foreach ($rooms as $room) {
+                        $shortname = s($room['shortname'] ?? $room['name']);
+                        $color = s($room['color']);
+                        $roomhtml .= '<span class="badge ms-1" style="background-color:' . $color . ';color:#fff;"'
+                            . ' title="' . s($room['name']) . '">' . $shortname . '</span>';
+                    }
+                    $groupelements[] = $mform->createElement('static', 'rooms_' . $resource['id'], '', $roomhtml);
+                }
 
                 // Amount field (only if not amount irrelevant).
                 if (!$resource['amountirrelevant']) {
