@@ -31,8 +31,6 @@ use core_form\dynamic_form;
 use mod_bookit\local\manager\event_resource_manager;
 use moodle_url;
 
-defined('MOODLE_INTERNAL') || die;
-
 /**
  * Dynamic form for updating event resource status.
  *
@@ -41,8 +39,6 @@ defined('MOODLE_INTERNAL') || die;
  * a custom external API endpoint.
  */
 class update_event_resource_status_form extends dynamic_form {
-
-    /** @var string[] Allowed status values */
     const VALID_STATUSES = ['requested', 'confirmed', 'inprogress', 'rejected'];
 
     /**
