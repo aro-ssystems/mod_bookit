@@ -197,8 +197,7 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
                 labelCol.classList.add('d-none');
             }
             if (contentCol) {
-                contentCol.classList.remove('col-md-9');
-                contentCol.classList.add('col-12', 'ps-2');
+                contentCol.classList.add('offset-md-3');
             }
         });
 
