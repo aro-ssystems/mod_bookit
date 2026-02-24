@@ -25,6 +25,7 @@
 
 namespace mod_bookit\output;
 
+use mod_bookit\local\manager\checklist_manager;
 use mod_bookit\local\manager\resource_checklist_manager;
 use mod_bookit\local\manager\resource_manager;
 use renderer_base;
@@ -52,8 +53,13 @@ class resource_checklist_catalog implements renderable, templatable {
         // Get all categories.
         $categories = resource_manager::get_all_categories();
 
-        // Get all rooms as [id => name] for lookup.
-        $allrooms = resource_manager::get_rooms();
+        // Get all rooms as [id => room record with color] for lookup.
+        $allrooms = checklist_manager::get_bookit_rooms();
+        // Index by id for fast lookup.
+        $roomsbyid = [];
+        foreach ($allrooms as $room) {
+            $roomsbyid[(int)$room->id] = $room;
+        }
 
         // Get all checklist items with resource data joined (includes r.roomids).
         $checklistitems = resource_checklist_manager::get_all_checklist_items_with_rooms();
@@ -98,19 +104,28 @@ class resource_checklist_catalog implements renderable, templatable {
                     }
                     $itemdata->duedatetype = $item->duedatetype ?? null;
 
-                    // Resolve room names from JSON roomids on resource.
+                    // Resolve room names with color from JSON roomids on resource.
                     $roomnames = [];
+                    $roomnamesplain = [];
                     if (!empty($item->roomids)) {
                         $roomids = json_decode($item->roomids, true);
                         if (is_array($roomids)) {
                             foreach ($roomids as $roomid) {
-                                if (isset($allrooms[(int)$roomid])) {
-                                    $roomnames[] = $allrooms[(int)$roomid];
+                                if (isset($roomsbyid[(int)$roomid])) {
+                                    $room = $roomsbyid[(int)$roomid];
+                                    $roomnames[] = [
+                                        'roomid'     => $room->id,
+                                        'roomname'   => $room->name,
+                                        'eventcolor' => $room->eventcolor ?? '#6c757d',
+                                        'textclass'  => $room->textclass ?? 'text-light',
+                                    ];
+                                    $roomnamesplain[] = $room->name;
                                 }
                             }
                         }
                     }
-                    $itemdata->rooms = implode(', ', $roomnames);
+                    $itemdata->roomnames = $roomnames;
+                    $itemdata->rooms = implode(', ', $roomnamesplain);
                     $itemdata->hasrooms = !empty($roomnames);
 
                     $categorydata->items[] = $itemdata;
