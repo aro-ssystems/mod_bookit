@@ -170,6 +170,33 @@ class event_resource_manager {
     }
 
     /**
+     * Update the status of an event resource.
+     *
+     * @param int $eventid Event ID
+     * @param int $resourceid Resource ID
+     * @param string $status New status
+     * @return bool Success
+     * @throws dml_exception
+     */
+    public static function update_status(int $eventid, int $resourceid, string $status): bool {
+        global $DB;
+
+        $record = $DB->get_record('bookit_event_resource', [
+            'eventid'    => $eventid,
+            'resourceid' => $resourceid,
+        ]);
+
+        if (!$record) {
+            return false;
+        }
+
+        $record->status       = $status;
+        $record->timemodified = time();
+
+        return $DB->update_record('bookit_event_resource', $record);
+    }
+
+    /**
      * Remove a resource from an event.
      *
      * @param int $eventid Event ID

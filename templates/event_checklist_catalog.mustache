@@ -1,0 +1,117 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/event_checklist_catalog
+    Event checklist catalog template
+
+    Context variables:
+    * eventid   - Event ID
+    * cmid      - Course module ID
+    * canmanage - 1 if user can manage status, 0 otherwise
+    * contextid - Context ID
+    * eventname - Event title
+    * starttime - Formatted start time string
+    * endtime   - Formatted end time string
+    * categories - Array of category objects, each with items array
+    * hasresources - Boolean: any resources assigned?
+
+    Example context (json):
+    {
+        "eventid": 1,
+        "cmid": 4,
+        "canmanage": 1,
+        "contextid": 1,
+        "eventname": "Test Event",
+        "starttime": "24 Feb 2026, 10:00",
+        "endtime": "24 Feb 2026, 12:00",
+        "hasresources": true,
+        "categories": [
+            {
+                "id": 1,
+                "name": "Technik",
+                "items": [
+                    {
+                        "id": 1,
+                        "resourceid": 1,
+                        "resourcename": "Beamer",
+                        "categoryid": 1,
+                        "amount": 2,
+                        "status": "requested",
+                        "duedate": "20 Feb 2026",
+                        "canmanage": 1,
+                        "isrequested": true,
+                        "isconfirmed": false,
+                        "isinprogress": false,
+                        "isrejected": false
+                    }
+                ]
+            }
+        ]
+    }
+}}
+<div id="mod-bookit-event-checklist-container"
+     class="mod-bookit-event-checklist-container"
+     data-region="event-checklist-container"
+     data-eventid="{{eventid}}"
+     data-cmid="{{cmid}}"
+     data-canmanage="{{canmanage}}"
+     data-contextid="{{contextid}}">
+
+    <div class="event-checklist-event-details mb-4">
+        <h4>{{#str}}event_details, mod_bookit{{/str}}</h4>
+        <p><strong>{{#str}}event_name, mod_bookit{{/str}}:</strong> {{{eventname}}}</p>
+        {{#starttime}}
+        <p><strong>{{#str}}starttime, mod_bookit{{/str}}:</strong> {{starttime}}</p>
+        {{/starttime}}
+        {{#endtime}}
+        <p><strong>{{#str}}endtime, mod_bookit{{/str}}:</strong> {{endtime}}</p>
+        {{/endtime}}
+    </div>
+
+    {{#hasresources}}
+    <h4>{{#str}}resources_checklist, mod_bookit{{/str}}</h4>
+    <table class="table table-hover" id="event-checklist-table">
+        <thead>
+            <tr>
+                <th>{{#str}}resource, mod_bookit{{/str}}</th>
+                <th style="width: 80px;">{{#str}}booking:resource_amount, mod_bookit{{/str}}</th>
+                <th style="width: 140px;">{{#str}}duedate, mod_bookit{{/str}}</th>
+                <th style="width: 160px;">{{#str}}resource_status, mod_bookit{{/str}}</th>
+            </tr>
+        </thead>
+        {{#categories}}
+        <tbody data-region="event-checklist-category"
+               data-categoryid="{{id}}">
+            {{#name}}
+            <tr class="table-active bg-light border-bottom">
+                <td colspan="4" class="font-weight-bold text-dark py-2">{{name}}</td>
+            </tr>
+            {{/name}}
+            {{#items}}
+            {{> mod_bookit/event_checklist_item_row }}
+            {{/items}}
+        </tbody>
+        {{/categories}}
+    </table>
+    {{/hasresources}}
+    {{^hasresources}}
+    <div class="alert alert-info">
+        {{#str}}event_checklist_no_resources, mod_bookit{{/str}}
+    </div>
+    {{/hasresources}}
+
+</div>

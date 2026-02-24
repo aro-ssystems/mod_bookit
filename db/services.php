@@ -37,4 +37,10 @@ $functions = [
         'type'        => 'read',
         'ajax'        => true,
     ],
+    'mod_bookit_update_event_resource_status' => [
+        'classname'   => 'mod_bookit\external\update_event_resource_status',
+        'description' => 'Updates the status of a booked resource for an event.',
+        'type'        => 'write',
+        'ajax'        => true,
+    ],
 ];
