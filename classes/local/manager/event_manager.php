@@ -209,7 +209,7 @@ class event_manager {
                 e.usermodified,
                 MIN(r.name) AS room
             FROM {bookit_event} e
-            LEFT JOIN {bookit_event_resources} er
+            LEFT JOIN {bookit_event_resource} er
                    ON er.eventid = e.id
             LEFT JOIN {bookit_resource} r
                    ON r.id = er.resourceid

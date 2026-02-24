@@ -44,7 +44,7 @@ class examiner_event_repository {
                        e.starttime,
                        r.name AS room
                   FROM {bookit_event} e
-             LEFT JOIN {bookit_event_resources} er ON er.eventid = e.id
+             LEFT JOIN {bookit_event_resource} er ON er.eventid = e.id
              LEFT JOIN {bookit_resource}        r  ON r.id       = er.resourceid
                  WHERE e.personinchargeid = ?
               GROUP BY e.id";
