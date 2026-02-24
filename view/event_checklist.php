@@ -44,6 +44,22 @@ if (!$canview) {
     require_capability('mod/bookit:view', $context);
 }
 
+$canmanage = has_capability('mod/bookit:managebasics', $context);
+
+// Handle POST: update resource status.
+if ($canmanage && data_submitted() && confirm_sesskey()) {
+    $resourceid = optional_param('resourceid', 0, PARAM_INT);
+    $newstatus = optional_param('newstatus', '', PARAM_ALPHA);
+    $validstatuses = ['requested', 'confirmed', 'inprogress', 'rejected'];
+    if ($resourceid && in_array($newstatus, $validstatuses)) {
+        $DB->set_field('bookit_event_resource', 'status', $newstatus, [
+            'eventid' => $eventid,
+            'resourceid' => $resourceid,
+        ]);
+    }
+    redirect(new moodle_url('/mod/bookit/view/event_checklist.php', ['id' => $cmid, 'eventid' => $eventid]));
+}
+
 $PAGE->set_url(new moodle_url('/mod/bookit/view/event_checklist.php', ['id' => $cmid, 'eventid' => $eventid]));
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('incourse');
@@ -79,7 +95,7 @@ if (empty($eventresources)) {
     $table = new html_table();
     $table->head = [
         get_string('resource', 'mod_bookit'),
-        get_string('quantity', 'mod_bookit'),
+        get_string('booking:resource_amount', 'mod_bookit'),
         get_string('resource_status', 'mod_bookit'),
         get_string('duedate', 'mod_bookit'),
         get_string('status', 'core'),
@@ -88,7 +104,7 @@ if (empty($eventresources)) {
 
     foreach ($eventresources as $eventresource) {
         $resourceid = $eventresource->get_resourceid();
-        $quantity = $eventresource->get_quantity();
+        $quantity = $eventresource->get_amount();
         $resourcestatus = $eventresource->get_status();
 
         $resource = $DB->get_record('bookit_resource', ['id' => $resourceid]);
@@ -109,20 +125,43 @@ if (empty($eventresources)) {
             ]);
         }
 
-        // Resource status badge.
-        $statusclass = 'badge badge-secondary';
-        if ($resourcestatus === 'confirmed') {
-            $statusclass = 'badge badge-success';
-        } else if ($resourcestatus === 'inprogress') {
-            $statusclass = 'badge badge-primary';
-        } else if ($resourcestatus === 'rejected') {
-            $statusclass = 'badge badge-danger';
+        // Resource status: editable dropdown for managers, badge for others.
+        if ($canmanage) {
+            $statusoptions = [
+                'requested' => get_string('resource_status_requested', 'mod_bookit'),
+                'confirmed' => get_string('resource_status_confirmed', 'mod_bookit'),
+                'inprogress' => get_string('resource_status_inprogress', 'mod_bookit'),
+                'rejected' => get_string('resource_status_rejected', 'mod_bookit'),
+            ];
+            $pageurl = new moodle_url('/mod/bookit/view/event_checklist.php', [
+                'id' => $cmid,
+                'eventid' => $eventid,
+                'sesskey' => sesskey(),
+                'resourceid' => $resourceid,
+            ]);
+            $selecthtml = '<form method="post" action="' . $pageurl->out(false) . '">';
+            $selecthtml .= '<select name="newstatus" onchange="this.form.submit()" class="custom-select custom-select-sm">';
+            foreach ($statusoptions as $val => $label) {
+                $selected = ($resourcestatus === $val) ? ' selected' : '';
+                $selecthtml .= '<option value="' . $val . '"' . $selected . '>' . $label . '</option>';
+            }
+            $selecthtml .= '</select></form>';
+            $resourcestatusbadge = $selecthtml;
+        } else {
+            $statusclass = 'badge badge-secondary';
+            if ($resourcestatus === 'confirmed') {
+                $statusclass = 'badge badge-success';
+            } else if ($resourcestatus === 'inprogress') {
+                $statusclass = 'badge badge-primary';
+            } else if ($resourcestatus === 'rejected') {
+                $statusclass = 'badge badge-danger';
+            }
+            $resourcestatusbadge = html_writer::tag(
+                'span',
+                get_string('resource_status_' . $resourcestatus, 'mod_bookit'),
+                ['class' => $statusclass]
+            );
         }
-        $resourcestatusbadge = html_writer::tag(
-            'span',
-            get_string('resource_status_' . $resourcestatus, 'mod_bookit'),
-            ['class' => $statusclass]
-        );
 
         $row = new html_table_row();
         $row->cells = [
