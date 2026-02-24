@@ -452,11 +452,25 @@ class edit_event_form extends dynamic_form {
             $mform->setDefault('starttime', $selectedtime);
         }
 
+        // Check if booking is completed (status >= 2: Accepted/Canceled/Rejected).
+        $eventid = $this->optional_param('id', null, PARAM_INT);
+        $bookingcompleted = false;
+        $bookedresources = [];
+        if (!empty($eventid)) {
+            $eventrec = $DB->get_record('bookit_event', ['id' => $eventid], 'bookingstatus');
+            if ($eventrec && (int)$eventrec->bookingstatus >= 2) {
+                $bookingcompleted = true;
+                foreach (resource_manager::get_resources_of_event($eventid) as $br) {
+                    $bookedresources[(int)$br->resourceid] = (int)$br->amount;
+                }
+            }
+        }
+
         // Get active resources grouped by category for booking form.
         $resourcesdata = resource_manager::get_active_resources_grouped();
 
         // Add resources section.
-        $this->add_resources_fields($mform, $resourcesdata);
+        $this->add_resources_fields($mform, $resourcesdata, $bookingcompleted, $bookedresources);
     }
 
     /**
@@ -709,7 +723,18 @@ class edit_event_form extends dynamic_form {
      * @param array $resourcesdata Grouped resources data from resource_manager
      * @return void
      */
-    private function add_resources_fields(\MoodleQuickForm $mform, array $resourcesdata): void {
+    /**
+     * @param \MoodleQuickForm $mform
+     * @param array $resourcesdata
+     * @param bool $bookingcompleted When true, only booked resources are shown (read-only).
+     * @param array $bookedresources Map of resourceid => amount for completed bookings.
+     */
+    private function add_resources_fields(
+        \MoodleQuickForm $mform,
+        array $resourcesdata,
+        bool $bookingcompleted = false,
+        array $bookedresources = []
+    ): void {
         if (empty($resourcesdata)) {
             return;
         }
@@ -727,6 +752,11 @@ class edit_event_form extends dynamic_form {
 
             // Add resources in this category.
             foreach ($resources as $resource) {
+                // When booking is completed, only show resources that were booked.
+                if ($bookingcompleted && !array_key_exists($resource['id'], $bookedresources)) {
+                    continue;
+                }
+
                 // Parse roomids JSON. Empty means available in all rooms.
                 $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
                 $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
@@ -804,6 +834,15 @@ class edit_event_form extends dynamic_form {
                     [' '],
                     false
                 );
+
+                // For completed bookings: pre-fill with booked values and freeze.
+                if ($bookingcompleted) {
+                    $mform->setDefault('checkbox_' . $resource['id'], 1);
+                    if (!$resource['amountirrelevant']) {
+                        $mform->setDefault('resource_' . $resource['id'], $bookedresources[$resource['id']] ?? 1);
+                    }
+                    $mform->freeze('resourcegroup_' . $resource['id']);
+                }
             }
         }
     }

@@ -131,7 +131,7 @@ class bookit_event {
         global $DB;
         $record = $DB->get_record('bookit_event', ['id' => $id], '*', MUST_EXIST);
 
-        $mappings = $DB->get_records('bookit_event_resources', ['eventid' => $record->id]);
+        $mappings = $DB->get_records('bookit_event_resource', ['eventid' => $record->id]);
         $map = [];
         foreach ($mappings as $mapping) {
             $map[] = (object)[
@@ -208,16 +208,21 @@ class bookit_event {
 
         if (!empty($this->id)) {
             $DB->update_record('bookit_event', $data);
-            $DB->delete_records('bookit_event_resources', ['eventid' => $this->id]);
+            $DB->delete_records('bookit_event_resource', ['eventid' => $this->id]);
         } else {
             $this->id = $DB->insert_record('bookit_event', $data);
         }
 
+        $time = time();
         foreach ($mappings as $mapping) {
-            $DB->insert_record('bookit_event_resources', [
-                    'eventid'    => $this->id,
-                    'resourceid' => $mapping->resourceid,
-                    'amount'     => $mapping->amount,
+            $DB->insert_record('bookit_event_resource', [
+                    'eventid'      => $this->id,
+                    'resourceid'   => $mapping->resourceid,
+                    'amount'       => $mapping->amount,
+                    'status'       => 'requested',
+                    'usermodified' => $this->usermodified,
+                    'timecreated'  => $time,
+                    'timemodified' => $time,
             ]);
         }
     }

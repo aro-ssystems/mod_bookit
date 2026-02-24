@@ -83,5 +83,32 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
 
         upgrade_mod_savepoint(true, $newversion, 'bookit');
     }
+
+    $newversion = 2025511307;
+
+    if ($oldversion < $newversion) {
+        $table = new xmldb_table('bookit_event_resource');
+
+        // Rename quantity to amount if it still exists under old name.
+        $oldfield = new xmldb_field('quantity', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '1');
+        if ($dbman->field_exists($table, $oldfield)) {
+            $dbman->rename_field($table, $oldfield, 'amount');
+        }
+
+        // Migrate data from old table if it exists.
+        $oldtable = new xmldb_table('bookit_event_resources');
+        if ($dbman->table_exists($oldtable)) {
+            $DB->execute("
+                INSERT INTO {bookit_event_resource} (eventid, resourceid, amount, status, usermodified, timecreated, timemodified)
+                SELECT eventid, resourceid, amount, 'requested', usermodified, timecreated, timemodified
+                FROM {bookit_event_resources}
+                ON CONFLICT (eventid, resourceid) DO NOTHING
+            ");
+            $dbman->drop_table($oldtable);
+        }
+
+        upgrade_mod_savepoint(true, $newversion, 'bookit');
+    }
+
     return true;
 }
