@@ -189,6 +189,19 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
             return;
         }
 
+        // Make resource rows full-width and left-aligned using Bootstrap classes.
+        modalRoot.querySelectorAll('[id^="fgroup_id_resourcegroup_"]').forEach(row => {
+            const labelCol = row.querySelector('.col-md-3');
+            const contentCol = row.querySelector('.col-md-9');
+            if (labelCol) {
+                labelCol.classList.add('d-none');
+            }
+            if (contentCol) {
+                contentCol.classList.remove('col-md-9');
+                contentCol.classList.add('col-12', 'ps-2');
+            }
+        });
+
         // Collect all resource groups.
         const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
 

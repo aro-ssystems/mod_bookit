@@ -218,13 +218,3 @@
     opacity: 0.4;
     pointer-events: none;
 }
-
-/* Booking form: resource rows span full width, left-aligned like rest of form */
-[id^="fgroup_id_resourcegroup_"] > .col-md-3 {
-    display: none !important;
-}
-[id^="fgroup_id_resourcegroup_"] > .col-md-9 {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    padding-left: 15px !important;
-}
