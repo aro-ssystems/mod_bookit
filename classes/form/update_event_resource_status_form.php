@@ -39,6 +39,11 @@ use moodle_url;
  * a custom external API endpoint.
  */
 class update_event_resource_status_form extends dynamic_form {
+    /**
+     * Allowed status values for event resource.
+     *
+     * @var string[]
+     */
     const VALID_STATUSES = ['requested', 'confirmed', 'inprogress', 'rejected'];
 
     /**
