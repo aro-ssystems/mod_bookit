@@ -321,8 +321,9 @@ class edit_resource_checklist_item_form extends dynamic_form {
             $item->set_duedate(null);
         } else {
             $item->set_duedatetype($duedatetype);
-            $offsetdays = (int)($data['duedaysoffset']['number'] ?? 0);
-            $item->set_duedate($offsetdays * DAYSECS);
+            // Duration exportValue() returns total seconds as integer, not array.
+            $offsetseconds = (int)($data['duedaysoffset'] ?? 0);
+            $item->set_duedate($offsetseconds);
         }
 
         resource_checklist_manager::save_checklist_item($item, $USER->id);
@@ -364,8 +365,9 @@ class edit_resource_checklist_item_form extends dynamic_form {
 
         $duedatetype = $data['duedatetype'] ?? 'none';
         if ($duedatetype !== 'none') {
-            $offset = (int)($data['duedaysoffset']['number'] ?? 0);
-            if ($offset <= 0) {
+            // Duration exportValue() returns total seconds as integer, not array.
+            $offsetseconds = (int)($data['duedaysoffset'] ?? 0);
+            if ($offsetseconds <= 0) {
                 $errors['duedaysoffset'] = get_string('err_numeric', 'form');
             }
         }
