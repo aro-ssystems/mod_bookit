@@ -733,12 +733,12 @@ class edit_event_form extends dynamic_form {
 
                 $groupelements = [];
 
-                // Checkbox for resource selection (name only, description moved to info icon).
+                // Checkbox for resource selection (no text – name is used as group label).
                 $groupelements[] = $mform->createElement(
                     'advcheckbox',
                     'checkbox_' . $resource['id'],
                     '',
-                    $resource['name'],
+                    '',
                     ['group' => 1],
                     [0, 1]
                 );
@@ -800,7 +800,7 @@ class edit_event_form extends dynamic_form {
                 $mform->addGroup(
                     $groupelements,
                     'resourcegroup_' . $resource['id'],
-                    '',
+                    $resource['name'],
                     [' '],
                     false
                 );
