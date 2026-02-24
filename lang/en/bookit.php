@@ -24,20 +24,29 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
 $string['active_weekplan'] = 'Active weekplan';
 $string['add_blocker'] = 'Add blocker';
 $string['addbooking'] = 'Request booking';
 $string['afterexam'] = 'After event';
 $string['allfaculties'] = 'All faculties';
-$string['allrooms']     = 'All rooms';
-$string['allstatuses']  = 'All statuses';
+$string['allrooms'] = 'All rooms';
+$string['allstatuses'] = 'All statuses';
 $string['back_to_event'] = 'Back to Event';
 $string['backtooverview'] = 'Back to overview';
 $string['basic'] = 'Basic';
 $string['before_due'] = 'Before due';
 $string['before_due_date'] = 'Before due date';
 $string['before_event'] = 'Before event';
+$string['booking:resource_amount'] = 'Amount';
+$string['booking:resource_amount_invalid'] = 'Requested amount ({$a->requested}) exceeds available amount ({$a->available})';
+$string['booking:resource_amount_too_low'] = 'Amount must be at least 1';
+$string['booking:resource_max'] = 'Max: {$a}';
+$string['booking:resource_room_conflict'] = 'The selected room does not provide all booked resources. Use the room overview to get an overview of rooms and their available resources.';
+$string['booking:resource_selected'] = 'Selected';
+$string['booking:resource_unavailable'] = 'Not available in selected room';
+$string['booking:resources_booked'] = 'Booked Resources';
+$string['booking:resources_header'] = 'Resources';
+$string['booking:resources_info'] = 'Select the resources you need for this booking.';
 $string['bookit:addevent'] = 'Add an event';
 $string['bookit:addinstance'] = 'Add BookIt instance';
 $string['bookit:addresource'] = 'Add a resource';
@@ -52,8 +61,8 @@ $string['bookit:viewalldetailsofevent'] = 'View all details of event';
 $string['bookit:viewalldetailsofownevent'] = 'View all details of own event';
 $string['bookit:viewownoverview'] = 'View own events overview';
 $string['bookitfieldset'] = 'PLACEHOLDER';
-$string['calendar']          = 'Calendar';
-$string['calendar_desc']     = 'General calendar & booking behaviour';
+$string['calendar'] = 'Calendar';
+$string['calendar_desc'] = 'General calendar & booking behaviour';
 $string['category_created'] = 'Category created successfully';
 $string['category_deleted'] = 'Category deleted successfully';
 $string['category_name'] = 'Category name';
@@ -77,7 +86,7 @@ $string['checklistitemname_help'] = 'The text content of the checklist item whic
 $string['checklistitemnotfound'] = 'Checklist item not found';
 $string['checklistitemsuccess'] = 'Checklist item created successfully.';
 $string['checklistitemupdatesuccess'] = 'Checklist item updated successfully.';
-$string['chooseevent']  = 'Please select at least one event.';
+$string['chooseevent'] = 'Please select at least one event.';
 $string['color'] = 'Color';
 $string['could_not_parse_line'] = 'Could not parse line.';
 $string['could_not_parse_time_period_x'] = 'Could not parse time period "{$a}".';
@@ -155,6 +164,7 @@ $string['end'] = 'End';
 $string['end_before_start'] = 'The end date has to be after the start date!';
 $string['end_before_start_in_timeperiod_x'] = 'The end time was before the start time in time period "{$a}".';
 $string['end_of_period'] = 'End of period';
+$string['error:resource_not_found'] = 'Resource not found';
 $string['error_amount_required'] = 'Amount is required when not marked as amount irrelevant.';
 $string['error_category_name_exists'] = 'A category with this name already exists. Please choose a different name.';
 $string['error_category_not_found'] = 'The selected category does not exist.';
@@ -271,7 +281,7 @@ $string['no_slot_available'] = '<span class="text-danger">No slot available for 
 $string['no_weekplan_defined'] = '<span class="text-danger">No weekplan defined for that day and room.</span>';
 $string['nocontent'] = 'No master checklist categories found. Create the first category!';
 $string['noduedate'] = 'No due date';
-$string['noevents']     = 'No events in current view.';
+$string['noevents'] = 'No events in current view.';
 $string['nofileselected'] = 'No file selected for import';
 $string['normal_slot'] = 'Normal slot';
 $string['notification_time'] = 'Time';
@@ -279,8 +289,8 @@ $string['notification_time_help'] = 'The time offset in days in relation the exa
 $string['notifications'] = 'Notifications';
 $string['overdue'] = 'Reminder when overdue';
 $string['overdue_date'] = 'After overdue date';
-$string['overview']        = 'My booked events';
-$string['overview_help']   = 'Shows every event for which you are listed as examiner.';
+$string['overview'] = 'My booked events';
+$string['overview_help'] = 'Shows every event for which you are listed as examiner.';
 $string['overwrite_extratimeafter'] = 'Overwrite global extratimeafter setting?';
 $string['overwrite_extratimebefore'] = 'Overwrite global extratimebefore setting?';
 $string['pdf_format'] = 'PDF (Portable Document Format)';
@@ -303,7 +313,7 @@ $string['resource_status_inprogress'] = 'In Progress';
 $string['resource_status_rejected'] = 'Rejected';
 $string['resource_status_requested'] = 'Requested';
 $string['resourcenotfound'] = 'Resource not found';
-$string['resources']         = 'Resources';
+$string['resources'] = 'Resources';
 $string['resources:active'] = 'Active';
 $string['resources:active_help'] = 'Only active resources are available for booking.';
 $string['resources:add_category'] = 'Add Category';
@@ -352,7 +362,7 @@ $string['resources:rooms'] = 'Rooms';
 $string['resources:rooms_help'] = 'Select rooms where this resource is available. Leave empty if the resource is available in all rooms.';
 $string['resources:view_checklist'] = 'View Checklist';
 $string['resources_checklist'] = 'Resources Checklist';
-$string['resources_desc']    = 'Rooms, resource colours & availability';
+$string['resources_desc'] = 'Rooms, resource colours & availability';
 $string['responsibility'] = 'Responsibility';
 $string['role'] = 'Role';
 $string['role_help'] = 'These roles will be assigned to the checklist item and will be responsible for the execution. Multiple roles can be selected by holding CTRL.';
@@ -421,7 +431,7 @@ $string['shortname'] = 'Shortname';
 $string['sort'] = 'Sort';
 $string['start'] = 'Start';
 $string['start_of_period'] = 'Start of period';
-$string['status']          = 'Status';
+$string['status'] = 'Status';
 $string['summer_semester'] = 'Summer Term';
 $string['time'] = 'Time';
 $string['time_help'] = "If the due date for the checklist item is 'before' or 'after', this setting defines how many days before or after the exam the checklist item should be completed.";
@@ -430,13 +440,7 @@ $string['tools'] = 'Tools';
 $string['weekplan'] = 'Weekplan';
 $string['weekplan_assignment_overlaps'] = 'The entered period is overlapping an already existing weekplan assignment.';
 $string['weekplan_assignments'] = 'Weekplan assignments';
-$string['weekplan_help'] = 'Here, you can define week plans. Each line should start with a abbreviated day of the week, followed by a list of comma separated timeslots.<br>
-These are examples for valid lines:
-<pre>
-Di 8-11:30, 14:00-17
-Mi 09-16
-Do 07:45-10:00,10-12,13-15
-</pre>';
+$string['weekplan_help'] = 'The week plan defines the available time slots and room assignments for this semester.';
 $string['weekplan_room'] = 'Weekplan assignments to rooms';
 $string['weekplans'] = 'Week plans';
 $string['when_done'] = 'When done';

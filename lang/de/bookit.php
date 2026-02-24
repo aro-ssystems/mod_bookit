@@ -24,7 +24,6 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
 $string['active_weekplan'] = 'Aktiver Wochenplan';
 $string['add_blocker'] = 'Blocker hinzufügen';
 $string['addbooking'] = 'Termin buchen';
@@ -37,6 +36,16 @@ $string['backtooverview'] = 'Zurück zur Übersicht';
 $string['before_due'] = 'Vor Fälligkeit';
 $string['before_due_date'] = 'Vor Fälligkeitsdatum';
 $string['before_event'] = 'Vor der Prüfung';
+$string['booking:resource_amount'] = 'Anzahl';
+$string['booking:resource_amount_invalid'] = 'Angeforderte Anzahl ({$a->requested}) überschreitet verfügbare Anzahl ({$a->available})';
+$string['booking:resource_amount_too_low'] = 'Anzahl muss mindestens 1 sein';
+$string['booking:resource_max'] = 'Max: {$a}';
+$string['booking:resource_room_conflict'] = 'Der gewählte Raum stellt nicht alle gebuchten Ressourcen zur Verfügung. Nutzen Sie die Raumübersicht, um einen Überblick über die Räume und die jeweiligen verfügbaren Ressourcen zu erhalten.';
+$string['booking:resource_selected'] = 'Ausgewählt';
+$string['booking:resource_unavailable'] = 'Nicht verfügbar im ausgewählten Raum';
+$string['booking:resources_booked'] = 'Gebuchte Ressourcen';
+$string['booking:resources_header'] = 'Ressourcen';
+$string['booking:resources_info'] = 'Wählen Sie die Ressourcen aus, die Sie für diese Buchung benötigen.';
 $string['bookit:addevent'] = 'Add an event';
 $string['bookit:addinstance'] = 'BookIt Instanz hinzufügen';
 $string['bookit:addresource'] = 'Add a resource';
@@ -149,6 +158,7 @@ $string['editchecklistitem'] = 'Checklisten-Element bearbeiten';
 $string['end'] = 'Ende';
 $string['end_before_start'] = 'Der Endzeitpunkt muss nach dem Anfangszeitpunkt liegen!';
 $string['end_of_period'] = 'Ende des Zeitraums';
+$string['error:resource_not_found'] = 'Ressource nicht gefunden';
 $string['error_amount_required'] = 'Anzahl ist erforderlich, wenn nicht als mengenneutral markiert.';
 $string['error_category_name_exists'] = 'Eine Kategorie mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen.';
 $string['error_category_not_found'] = 'Die ausgewählte Kategorie existiert nicht.';
@@ -415,13 +425,7 @@ $string['tools'] = 'Werkzeuge';
 $string['weekplan'] = 'Wochenplan';
 $string['weekplan_assignment_overlaps'] = 'Der eingegebene Zeitraum überschneidet sich mit einer bereits bestehenden Wochenplan-Zuweisung.';
 $string['weekplan_assignments'] = 'Wochenplan-Zuweisungen';
-$string['weekplan_help'] = 'Hier können Sie Wochenpläne definieren. Jede Zeile sollte mit einem abgekürzten Wochentag beginnen, gefolgt von einer Liste kommagetrennt Zeitslots.<br>
-Dies sind Beispiele für gültige Zeilen:
-<pre>
-Di 8-11:30, 14:00-17
-Mi 09-16
-Do 07:45-10:00,10-12,13-15
-</pre>';
+$string['weekplan_help'] = 'Der Wochenplan definiert die verfügbaren Zeitslots und Raumzuweisungen für dieses Semester.';
 $string['weekplan_room'] = 'Wochenplan-Zuweisungen zu Räumen';
 $string['weekplans'] = 'Wochenpläne';
 $string['when_done'] = 'Wenn erledigt';

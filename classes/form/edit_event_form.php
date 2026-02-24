@@ -61,14 +61,11 @@ class edit_event_form extends dynamic_form {
      * Define the form
      */
     public function definition(): void {
-        global $DB, $CFG;
+        global $DB, $CFG, $PAGE;
         $mform =& $this->_form;
 
         // Get the plugin config.
         $config = get_config('mod_bookit');
-
-        // Get the ressources.
-        $catresourceslist = resource_manager::get_resources();
 
         // Define variables.
         $context = $this->get_context_for_dynamic_submission();
@@ -378,125 +375,88 @@ class edit_event_form extends dynamic_form {
         $mform->hideIf('internalnotes', 'editinternal', 'neq');
         $mform->addHelpButton('internalnotes', 'event_internalnotes', 'mod_bookit');
 
-        // Add the additional resources.
-        foreach ($catresourceslist as $category => $c) {
-            if ($category === 'Rooms') {
-                continue;
-            }
-            $mform->addElement('header', 'header_' . $c['category_id'], $category);
-            $mform->setExpanded('header_' . $c['category_id'], true);
-
-            foreach ($c['resources'] as $rid => $v) {
-                $groupelements = [];
-                $groupelements[] =
-                        $mform->createElement(
-                            'advcheckbox',
-                            'checkbox_' . $rid,
-                            '',
-                            $v['name'],
-                            ['group' => 1],
-                            [0, !0] // Array of values associated with the checked/unchecked state of the checkbox.
-                        );
-                $mform->disabledIf('checkbox_' . $rid, 'editevent', 'neq');
-
-                $groupelements[] =
-                        $mform->createElement(
-                            'text',
-                            'resource_' . $rid,
-                            get_string('resource_amount', 'mod_bookit'),
-                            ['size' => '4']
-                        );
-                $mform->setType('resource_' . $rid, PARAM_INT);
-                $mform->disabledIf('resource_' . $rid, 'checkbox_' . $rid);
-
-                $mform->addGroup(
-                    $groupelements,
-                    'resourcegroup',
-                    get_string('please_select_and_enter', 'mod_bookit'),
-                    ['<br>'],
-                    false
-                );
-            }
-
-            if (isset($_REQUEST['timeclicked']) && is_array($_REQUEST['timeclicked'])) {
+        // Handle time selection.
+        if (isset($_REQUEST['timeclicked']) && is_array($_REQUEST['timeclicked'])) {
                 // Fallback, when API not reachable.
                 $timeclicked = optional_param_array('timeclicked', null, PARAM_RAW);
                 $timeclicked = is_array($timeclicked) ? ($timeclicked[0] ?? null) : $timeclicked;
-            } else {
-                $timeclicked = $this->optional_param('timeclicked', null, PARAM_TEXT);
-            }
+        } else {
+            $timeclicked = $this->optional_param('timeclicked', null, PARAM_TEXT);
+        }
             // Merge 28.01: Added default.
             $possiblestarttimes = [];
             $selectedtime = null;
             $timeclickedstamp = null;
             $startdate = null;
 
-            if ($timeclicked && $roomoptions) {
-                $timeclicked = new \DateTimeImmutable($timeclicked);
-                $timeclickedstamp = $timeclicked->getTimestamp();
-                $startdate = $timeclicked->setTime(0, 0);
-                $this->_form->setDefault('startdate', $timeclicked->getTimestamp());
+        if ($timeclicked && $roomoptions) {
+            $timeclicked = new \DateTimeImmutable($timeclicked);
+            $timeclickedstamp = $timeclicked->getTimestamp();
+            $startdate = $timeclicked->setTime(0, 0);
+            $this->_form->setDefault('startdate', $timeclicked->getTimestamp());
 
-                [$possiblestarttimes, ] = get_possible_starttimes::list_possible_starttimes(
-                    \DateTime::createFromImmutable($startdate),
-                    $eventdefaultduration,
-                    array_key_first($roomoptions),
-                );
+            [$possiblestarttimes, ] = get_possible_starttimes::list_possible_starttimes(
+                \DateTime::createFromImmutable($startdate),
+                $eventdefaultduration,
+                array_key_first($roomoptions),
+            );
 
-                $smallestdiff = 1e9;
-                $selectedtime = null;
+            $smallestdiff = 1e9;
+            $selectedtime = null;
 
-                foreach ($possiblestarttimes as $possiblestarttime => $str) {
-                    if (abs($possiblestarttime - $timeclickedstamp) < $smallestdiff) {
-                        $smallestdiff = abs($possiblestarttime - $timeclickedstamp);
-                        $selectedtime = $possiblestarttime;
-                    }
+            foreach ($possiblestarttimes as $possiblestarttime => $str) {
+                if (abs($possiblestarttime - $timeclickedstamp) < $smallestdiff) {
+                    $smallestdiff = abs($possiblestarttime - $timeclickedstamp);
+                    $selectedtime = $possiblestarttime;
                 }
             }
+        }
             // Merge 28.01: fallback to "old behaviour" (15-min grid) if new possible_starttimes failed.
-            if (empty($possiblestarttimes) || !is_array($possiblestarttimes)) {
-                if ($startdate instanceof \DateTimeImmutable) {
-                    $baseday = $startdate;
-                } else if ($timeclicked) {
-                    try {
-                        $baseday = (new \DateTimeImmutable($timeclicked))->setTime(0, 0);
-                    } catch (\Exception $e) {
-                        $baseday = (new \DateTimeImmutable('now'))->setTime(0, 0);
-                    }
-                } else {
+        if (empty($possiblestarttimes) || !is_array($possiblestarttimes)) {
+            if ($startdate instanceof \DateTimeImmutable) {
+                $baseday = $startdate;
+            } else if ($timeclicked) {
+                try {
+                    $baseday = (new \DateTimeImmutable($timeclicked))->setTime(0, 0);
+                } catch (\Exception $e) {
                     $baseday = (new \DateTimeImmutable('now'))->setTime(0, 0);
                 }
-
-                // Build "old style" 15-min slots for that day.
-                $startts = $baseday->getTimestamp();
-                for ($m = 0; $m < 24 * 60; $m += 15) {
-                    $ts = $startts + ($m * 60);
-                    $possiblestarttimes[$ts] = userdate($ts, get_string('strftimetime', 'langconfig'));
-                }
-
-                // Pick default: closest to click if we have it, else first slot.
-                if ($timeclickedstamp !== null) {
-                    $selectedtime = $timeclickedstamp;
-                } else {
-                    $selectedtime = array_key_first($possiblestarttimes);
-                }
+            } else {
+                $baseday = (new \DateTimeImmutable('now'))->setTime(0, 0);
             }
+
+            // Build "old style" 15-min slots for that day.
+            $startts = $baseday->getTimestamp();
+            for ($m = 0; $m < 24 * 60; $m += 15) {
+                $ts = $startts + ($m * 60);
+                $possiblestarttimes[$ts] = userdate($ts, get_string('strftimetime', 'langconfig'));
+            }
+
+            // Pick default: closest to click if we have it, else first slot.
+            if ($timeclickedstamp !== null) {
+                $selectedtime = $timeclickedstamp;
+            } else {
+                $selectedtime = array_key_first($possiblestarttimes);
+            }
+        }
 
             /** @var \MoodleQuickForm_select $starttimeel */
             $starttimeel = $mform->getElement('starttime');
             $starttimeel->removeOptions();
 
             // Merge 28.01: Quick Fix Attempt. Needs deeper investigation.
-            if (!empty($possiblestarttimes)) {
-                $starttimeel->loadArray($possiblestarttimes);
-            }
-            if ($selectedtime !== null) {
-                $mform->setDefault('starttime', $selectedtime);
-            }
-
+        if (!empty($possiblestarttimes)) {
             $starttimeel->loadArray($possiblestarttimes);
+        }
+        if ($selectedtime !== null) {
             $mform->setDefault('starttime', $selectedtime);
         }
+
+        // Get active resources grouped by category for booking form.
+        $resourcesdata = resource_manager::get_active_resources_grouped();
+
+        // Add resources section.
+        $this->add_resources_fields($mform, $resourcesdata);
     }
 
     /**
@@ -740,5 +700,79 @@ class edit_event_form extends dynamic_form {
                 'cmid' => $this->optional_param('cmid', null, PARAM_INT),
         ];
         return new moodle_url('/mod/bookit/view.php', $params);
+    }
+
+    /**
+     * Add resources fields grouped by category.
+     *
+     * @param \MoodleQuickForm $mform The form instance
+     * @param array $resourcesdata Grouped resources data from resource_manager
+     * @return void
+     */
+    private function add_resources_fields(\MoodleQuickForm $mform, array $resourcesdata): void {
+        if (empty($resourcesdata)) {
+            return;
+        }
+
+        foreach ($resourcesdata as $categorygroup) {
+            $category = $categorygroup['category'];
+            $resources = $categorygroup['resources'];
+
+            // Add category header.
+            $mform->addElement('header', 'header_cat_' . $category['id'], $category['name']);
+            $mform->setExpanded('header_cat_' . $category['id'], true);
+
+            // Add resources in this category.
+            foreach ($resources as $resource) {
+                // Parse roomids JSON. Empty means available in all rooms.
+                $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
+                $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+
+                $groupelements = [];
+
+                // Checkbox for resource selection.
+                $groupelements[] = $mform->createElement(
+                    'advcheckbox',
+                    'checkbox_' . $resource['id'],
+                    '',
+                    $resource['name'] . ($resource['description'] ? ' (' . $resource['description'] . ')' : ''),
+                    ['group' => 1],
+                    [0, 1]
+                );
+                $mform->disabledIf('checkbox_' . $resource['id'], 'editevent', 'neq');
+
+                // Amount field (only if not amount irrelevant).
+                if (!$resource['amountirrelevant']) {
+                    $groupelements[] = $mform->createElement(
+                        'text',
+                        'resource_' . $resource['id'],
+                        get_string('booking:resource_amount', 'mod_bookit'),
+                        ['size' => '4']
+                    );
+                    $mform->setType('resource_' . $resource['id'], PARAM_INT);
+                    $mform->disabledIf('resource_' . $resource['id'], 'checkbox_' . $resource['id']);
+                    $mform->setDefault('resource_' . $resource['id'], 1);
+
+                    // Add max amount as static text.
+                    $groupelements[] = $mform->createElement(
+                        'static',
+                        'resource_max_' . $resource['id'],
+                        '',
+                        get_string('booking:resource_max', 'mod_bookit', $resource['amount'])
+                    );
+                }
+
+                // Set data attribute for room filtering on the checkbox element.
+                $groupelements[0]->updateAttributes(['data-resource-rooms' => json_encode($roomidsarray)]);
+
+                $mform->addGroup(
+                    $groupelements,
+                    'resourcegroup_' . $resource['id'],
+                    '',
+                    [' '],
+                    false
+                );
+            }
+        }
     }
 }

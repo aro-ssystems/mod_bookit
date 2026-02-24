@@ -655,6 +655,13 @@ class install_helper {
             }
         }
 
+        // Get available rooms for assignment.
+        $rooms = resource_manager::get_rooms();
+        $allroomids = [];
+        if (!empty($rooms)) {
+            $allroomids = array_keys($rooms);
+        }
+
         // Create resources.
         $resourcescreated = 0;
 
@@ -667,6 +674,24 @@ class install_helper {
 
             $sortorder = 1;
             foreach ($items as $itemdata) {
+                // Assign random subset of rooms to each resource (similar to checklist logic).
+                $roomids = [];
+                if (!empty($allroomids)) {
+                    $roomids = $allroomids;
+
+                    if (count($roomids) > 2) {
+                        $numtoremove = rand(1, 2);
+                        $keystoremove = array_rand($roomids, $numtoremove);
+                        if (!is_array($keystoremove)) {
+                            $keystoremove = [$keystoremove];
+                        }
+                        foreach ($keystoremove as $key) {
+                            unset($roomids[$key]);
+                        }
+                        $roomids = array_values($roomids);
+                    }
+                }
+
                 $resource = new bookit_resource(
                     null, // ID.
                     $itemdata['name'],
@@ -676,7 +701,7 @@ class install_helper {
                     $itemdata['amountirrelevant'],
                     $sortorder,
                     true, // Active.
-                    null, // Roomids.
+                    !empty($roomids) ? $roomids : null, // Roomids.
                     time(), // Timecreated.
                     time(), // Timemodified.
                     2 // Usermodified (admin).
@@ -686,7 +711,8 @@ class install_helper {
                 $resourcescreated++;
 
                 if ($verbose) {
-                    mtrace("  Resource: {$itemdata['name']} (ID: $resourceid, Amount: {$itemdata['amount']})");
+                    $roomsinfo = !empty($roomids) ? ' (Rooms: ' . count($roomids) . ')' : '';
+                    mtrace("  Resource: {$itemdata['name']} (ID: $resourceid, Amount: {$itemdata['amount']}{$roomsinfo})");
                 }
 
                 $sortorder++;

@@ -29,13 +29,17 @@ namespace mod_bookit\local\manager;
  * @package     mod_bookit
  * @copyright   2024 Melanie Treitinger, Ruhr-Universität Bochum <melanie.treitinger@ruhr-uni-bochum.de>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @deprecated Use resource_manager instead. This class contains hard-coded demo data.
  */
 class categories_manager {
     /**
      * Get categories.
+     *
      * @return array[]
+     * @deprecated Use resource_manager::get_active_resources_grouped() instead
      */
     public static function get_categories() {
+        debugging('categories_manager::get_categories() is deprecated. Use resource_manager instead.', DEBUG_DEVELOPER);
         return [
                 ['name' => 'Rooms',
                         'description' => 'Specific rooms for e-assessments',
