@@ -55,7 +55,7 @@ class resource_checklist_manager {
                 FROM {bookit_resource_checklist} rc
                 JOIN {bookit_resource} r ON r.id = rc.resourceid
                 $conditions
-                ORDER BY rc.sortorder ASC";
+                ORDER BY rc.sortorder ASC, r.name ASC";
 
         return $DB->get_records_sql($sql);
     }
@@ -81,7 +81,7 @@ class resource_checklist_manager {
                 FROM {bookit_resource_checklist} rc
                 JOIN {bookit_resource} r ON r.id = rc.resourceid
                 $conditions
-                ORDER BY rc.sortorder ASC";
+                ORDER BY rc.sortorder ASC, r.name ASC";
 
         return $DB->get_records_sql($sql);
     }
@@ -213,7 +213,7 @@ class resource_checklist_manager {
                 FROM {bookit_resource} r
                 LEFT JOIN {bookit_resource_checklist} rc ON rc.resourceid = r.id
                 WHERE rc.id IS NULL
-                ORDER BY r.sortorder ASC";
+                ORDER BY r.name ASC";
 
         $resources = $DB->get_records_sql($sql);
 
@@ -269,11 +269,36 @@ class resource_checklist_manager {
             return (int)$existing;
         }
 
-        // Get max sortorder.
-        $maxsortorder = $DB->get_field_sql(
-            "SELECT MAX(sortorder) FROM {bookit_resource_checklist}"
-        );
-        $sortorder = $maxsortorder ? $maxsortorder + 1 : 0;
+        // Find alphabetically correct sortorder based on resource name.
+        $resourcename = $DB->get_field('bookit_resource', 'name', ['id' => $resourceid]);
+        if ($resourcename === false) {
+            $resourcename = '';
+        }
+
+        // Get all existing checklist items with resource names, ordered alphabetically.
+        $existingsql = "SELECT rc.id, rc.sortorder, r.name
+                        FROM {bookit_resource_checklist} rc
+                        JOIN {bookit_resource} r ON r.id = rc.resourceid
+                        ORDER BY r.name ASC";
+        $existing = $DB->get_records_sql($existingsql);
+
+        if (empty($existing)) {
+            $sortorder = 0;
+        } else {
+            // Find position where new resource fits alphabetically.
+            $position = 0;
+            foreach ($existing as $entry) {
+                if (strcasecmp($resourcename, $entry->name) > 0) {
+                    $position++;
+                }
+            }
+            // Shift existing items at position and above to make room.
+            $DB->execute(
+                "UPDATE {bookit_resource_checklist} SET sortorder = sortorder + 1 WHERE sortorder >= ?",
+                [$position]
+            );
+            $sortorder = $position;
+        }
 
         $record = new \stdClass();
         $record->resourceid = $resourceid;

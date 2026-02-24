@@ -15,6 +15,7 @@ use mod_bookit\local\entity\bookit_notification_type;
 use mod_bookit\local\entity\bookit_notification_slot;
 use mod_bookit\local\entity\bookit_resource_checklist;
 use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\checklist_manager;
 
 /**
  * Dynamic form for editing a resource checklist item.
@@ -60,7 +61,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $mform->setType('sortorder', PARAM_INT);
 
         // Notification slots section.
-        $allroles = get_all_roles();
+        $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
         $this->definition_notification_section($allroles);
     }
 

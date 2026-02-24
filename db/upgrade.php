@@ -130,5 +130,23 @@ function xmldb_bookit_upgrade(int $oldversion): bool {
         upgrade_mod_savepoint(true, $newversion, 'bookit');
     }
 
+    $newversion = 2025511310;
+    if ($oldversion < $newversion) {
+        // Re-assign sortorders in bookit_resource_checklist alphabetically by resource name.
+        global $DB;
+        $sql = "SELECT rc.id, r.name
+                FROM {bookit_resource_checklist} rc
+                JOIN {bookit_resource} r ON r.id = rc.resourceid
+                ORDER BY r.name ASC";
+        $items = $DB->get_records_sql($sql);
+        $sortorder = 0;
+        foreach ($items as $item) {
+            $DB->set_field('bookit_resource_checklist', 'sortorder', $sortorder, ['id' => $item->id]);
+            $sortorder++;
+        }
+
+        upgrade_mod_savepoint(true, $newversion, 'bookit');
+    }
+
     return true;
 }
