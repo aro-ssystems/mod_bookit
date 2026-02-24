@@ -82,10 +82,18 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $duedateradio = [
             $mform->createElement('radio', 'duedatetype', '', get_string('noduedate', 'mod_bookit'), 'none'),
             $mform->createElement(
-                'radio', 'duedatetype', '', get_string('duedate_before_event', 'mod_bookit'), 'before_event'
+                'radio',
+                'duedatetype',
+                '',
+                get_string('duedate_before_event', 'mod_bookit'),
+                'before_event'
             ),
             $mform->createElement(
-                'radio', 'duedatetype', '', get_string('duedate_after_event', 'mod_bookit'), 'after_event'
+                'radio',
+                'duedatetype',
+                '',
+                get_string('duedate_after_event', 'mod_bookit'),
+                'after_event'
             ),
         ];
         $mform->addGroup($duedateradio, 'duedatetypegroup', get_string('duedate', 'mod_bookit'), null, false);
@@ -133,7 +141,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
         if (!$rcitem) {
             return null;
         }
-        $slotid = match($type) {
+        $slotid = match ($type) {
             'before_due' => $rcitem->get_beforedueid(),
             'when_due'   => $rcitem->get_whendueid(),
             'overdue'    => $rcitem->get_overdueid(),
@@ -245,17 +253,18 @@ class edit_resource_checklist_item_form extends dynamic_form {
 
         // Load notification slots by FK IDs stored on the item.
         $slots = [];
-        foreach ([
+        $slotids = [
             $item->get_beforedueid(),
             $item->get_whendueid(),
             $item->get_overdueid(),
             $item->get_whendoneid(),
-        ] as $slotid) {
+        ];
+        foreach ($slotids as $slotid) {
             if ($slotid !== null) {
                 try {
                     $slots[] = bookit_notification_slot::from_database($slotid);
                 } catch (\dml_exception $e) {
-                    // Slot not found, skip.
+                    debugging('Notification slot ' . $slotid . ' not found: ' . $e->getMessage(), DEBUG_DEVELOPER);
                 }
             }
         }
