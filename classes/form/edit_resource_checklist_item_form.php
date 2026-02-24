@@ -307,6 +307,15 @@ class edit_resource_checklist_item_form extends dynamic_form {
         }
 
         resource_checklist_manager::save_checklist_item($item, $USER->id);
+
+        // Service team is always responsible — inject roleids for all notification cases.
+        $serviceteamroleid = $this->get_serviceteam_role_id();
+        if ($serviceteamroleid) {
+            foreach (\mod_bookit\local\entity\bookit_notification_type::cases() as $case) {
+                $data[$case->value . '_recipient'] = [(string)$serviceteamroleid];
+            }
+        }
+
         $this->save_notification_slots($data, $id);
 
         // Reload after notifications saved (FK columns may have been updated).
@@ -365,6 +374,17 @@ class edit_resource_checklist_item_form extends dynamic_form {
                 $this->fix_duration_field($case->value . '_time');
             }
         }
+    }
+
+    /**
+     * Get the ID of the bookit_serviceteam role.
+     *
+     * @return int|null
+     */
+    private function get_serviceteam_role_id(): ?int {
+        global $DB;
+        $role = $DB->get_record('role', ['shortname' => 'bookit_serviceteam'], 'id');
+        return $role ? (int)$role->id : null;
     }
 
     /**
