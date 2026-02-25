@@ -100,9 +100,9 @@ class resource_checklist_catalog implements renderable, templatable {
                     if (!empty($item->duedate) && !empty($item->duedatetype) && $item->duedatetype !== 'none') {
                         $days = (int)round((int)$item->duedate / DAYSECS);
                         if ($item->duedatetype === 'before_event') {
-                            $itemdata->duedate = get_string('checklist:duedate_days_before', 'mod_bookit', $days);
+                            $itemdata->duedate = get_string('checklist_duedate_days_before', 'mod_bookit', $days);
                         } else if ($item->duedatetype === 'after_event') {
-                            $itemdata->duedate = get_string('checklist:duedate_days_after', 'mod_bookit', $days);
+                            $itemdata->duedate = get_string('checklist_duedate_days_after', 'mod_bookit', $days);
                         } else {
                             $itemdata->duedate = null;
                         }

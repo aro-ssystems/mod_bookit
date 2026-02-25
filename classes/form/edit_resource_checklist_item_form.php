@@ -340,9 +340,9 @@ class edit_resource_checklist_item_form extends dynamic_form {
         if (!empty($duedate) && !empty($duedatetype) && $duedatetype !== 'none') {
             $days = (int)round((int)$duedate / DAYSECS);
             if ($duedatetype === 'before_event') {
-                $duedatedisplay = get_string('checklist:duedate_days_before', 'mod_bookit', $days);
+                $duedatedisplay = get_string('checklist_duedate_days_before', 'mod_bookit', $days);
             } else if ($duedatetype === 'after_event') {
-                $duedatedisplay = get_string('checklist:duedate_days_after', 'mod_bookit', $days);
+                $duedatedisplay = get_string('checklist_duedate_days_after', 'mod_bookit', $days);
             }
         }
 
