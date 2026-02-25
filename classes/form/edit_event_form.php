@@ -745,6 +745,20 @@ class edit_event_form extends dynamic_form {
             $category = $categorygroup['category'];
             $resources = $categorygroup['resources'];
 
+            // For completed bookings: skip category entirely if none of its resources were booked.
+            if ($bookingcompleted) {
+                $hasbooked = false;
+                foreach ($resources as $resource) {
+                    if (array_key_exists($resource['id'], $bookedresources)) {
+                        $hasbooked = true;
+                        break;
+                    }
+                }
+                if (!$hasbooked) {
+                    continue;
+                }
+            }
+
             // Add category header.
             $mform->addElement('header', 'header_cat_' . $category['id'], $category['name']);
             $mform->setExpanded('header_cat_' . $category['id'], true);
