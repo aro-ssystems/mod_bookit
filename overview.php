@@ -210,7 +210,11 @@ foreach ($events as $ev) {
         'cmid' => (int)$cm->id,
         'checklistprogress' => '--',
         'checklistlabel' => get_string('checklist', 'mod_bookit'),
-        'checklisturl' => (new moodle_url('/mod/bookit/view/event_checklist.php', [
+        'checklisturl' => (new moodle_url('/mod/bookit/admin/master_checklist.php', [
+            'id' => 'master_checklist_items',
+        ]))->out(false),
+        'resourceschecklistlabel' => get_string('resources', 'mod_bookit'),
+        'resourceschecklisturl' => (new moodle_url('/mod/bookit/view/event_checklist.php', [
             'id' => $cm->id,
             'eventid' => (int)$ev->id,
         ]))->out(false),

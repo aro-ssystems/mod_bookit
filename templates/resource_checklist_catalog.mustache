@@ -31,7 +31,6 @@
     <div class="mb-3 d-flex justify-content-between align-items-center">
         <a href="{{config.wwwroot}}/mod/bookit/admin/resources.php"
            class="btn btn-secondary">
-            {{#pix}}t/left, core{{/pix}}
             {{#str}}resources:back_to_resources, mod_bookit{{/str}}
         </a>
     </div>
@@ -40,10 +39,10 @@
         <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
             <tr>
                 <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
-                <th scope="col" class="py-3 font-weight-bold" style="width: 90px;" class="text-center">{{#str}}resources:amount, mod_bookit{{/str}}</th>
-                <th scope="col" class="py-3 font-weight-bold">{{#str}}resources:rooms, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold text-center" style="width: 90px;">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold" style="width: 180px;">{{#str}}resources:rooms, mod_bookit{{/str}}</th>
                 <th scope="col" class="py-3 font-weight-bold" style="width: 150px;">{{#str}}resources:duedate, mod_bookit{{/str}}</th>
-                <th scope="col" class="py-3 font-weight-bold" style="width: 100px;" class="text-center">{{#str}}status, core{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold text-center" style="min-width: 110px; white-space: nowrap;">{{#str}}status, core{{/str}}</th>
                 <th scope="col" class="py-3 font-weight-bold text-center" style="width: 100px;">{{#str}}actions, core{{/str}}</th>
             </tr>
         </thead>

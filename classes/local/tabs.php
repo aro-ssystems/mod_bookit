@@ -88,18 +88,29 @@ class tabs {
             $tabrow[] = new tabobject(
                 'resources',
                 $targeturl,
-                get_string('resources:manage', 'mod_bookit')
+                get_string('resources', 'mod_bookit')
             );
         }
 
         if ($canmanagechecklists) {
-            // Tab to the master checklist page.
-            $targeturl = new moodle_url('/mod/bookit/admin/master_checklist.php', ['id' => 'master_checklist']);
-            $tabrow[] = new tabobject(
+            // Tab to the master checklist page (with sub-tabs for Checklist and Resource Checklist).
+            $targeturl = new moodle_url('/mod/bookit/admin/master_checklist.php', ['id' => 'master_checklist_items']);
+            $masterchecklisttab = new tabobject(
                 'master_checklist',
                 $targeturl,
                 get_string('master_checklist', 'mod_bookit')
             );
+            $masterchecklisttab->subtree[] = new tabobject(
+                'master_checklist_items',
+                new moodle_url('/mod/bookit/admin/master_checklist.php', ['id' => 'master_checklist_items']),
+                get_string('checklist', 'mod_bookit')
+            );
+            $masterchecklisttab->subtree[] = new tabobject(
+                'resource_checklist',
+                new moodle_url('/mod/bookit/admin/resource_checklist.php'),
+                get_string('resources:checklist', 'mod_bookit')
+            );
+            $tabrow[] = $masterchecklisttab;
 
             // Tab to the checklist settings page.
             $targeturl = new moodle_url('/mod/bookit/admin/checklist.php', ['id' => 'checklist']);
