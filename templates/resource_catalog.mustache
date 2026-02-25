@@ -73,13 +73,13 @@
         {{! Table View (Default) }}
         <div id="mod-bookit-resource-table-view" class="resource-view">
             <table class="table table-borderless table-hover bg-white rounded w-100"
-                   id="mod-bookit-resource-table" style="table-layout: fixed;">
+                   id="mod-bookit-resource-table">
                 <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
                     <tr>
                         <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
                         <th scope="col" class="py-3 font-weight-bold" style="width: 80px;">{{#str}}resources:amount, mod_bookit{{/str}}</th>
                         <th scope="col" class="py-3 font-weight-bold" style="width: 200px;">{{#str}}resources:rooms, mod_bookit{{/str}}</th>
-                        <th scope="col" class="py-3 font-weight-bold" style="width: 130px;">{{#str}}status, core{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold" style="min-width: 130px; white-space: nowrap;">{{#str}}status, core{{/str}}</th>
                         <th scope="col" class="py-3 font-weight-bold text-center" style="width: 80px;">{{#str}}actions, core{{/str}}</th>
                         <th scope="col" class="py-3 font-weight-bold text-center" style="width: 70px;">{{#str}}move, core{{/str}}</th>
                     </tr>
