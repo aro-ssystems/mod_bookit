@@ -36,6 +36,92 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
     }
 
     /**
+     * Show or clear an inline amount error below the given amount input.
+     *
+     * @param {Element} input The amount text input
+     * @param {string|null} message Error message, or null to clear
+     */
+    function setAmountError(input, message) {
+        const errorId = input.name + '_amount_error';
+        let errorEl = input.parentElement.querySelector('[data-amount-error]');
+        if (message) {
+            if (!errorEl) {
+                errorEl = document.createElement('span');
+                errorEl.dataset.amountError = '1';
+                errorEl.style.color = '#c0392b';
+                errorEl.style.display = 'block';
+                errorEl.style.fontSize = '0.875em';
+                input.after(errorEl);
+            }
+            errorEl.textContent = message;
+            input.setAttribute('aria-describedby', errorId);
+        } else if (errorEl) {
+            errorEl.remove();
+            input.removeAttribute('aria-describedby');
+        }
+    }
+
+    /**
+     * Validate the amount input against its data-resource-max attribute.
+     *
+     * @param {Element} input The amount text input
+     * @param {string} msgTooLow Localised "too low" message
+     * @param {string} msgTooHigh Localised "too high" message template
+     */
+    function validateAmountInput(input, msgTooLow, msgTooHigh) {
+        const maxAttr = input.getAttribute('data-resource-max');
+        if (maxAttr === null) {
+            return;
+        }
+        const max = parseInt(maxAttr, 10);
+        const val = parseInt(input.value, 10);
+
+        if (isNaN(val) || val < 1) {
+            setAmountError(input, msgTooLow);
+        } else if (max > 0 && val > max) {
+            setAmountError(input, msgTooHigh.replace('{requested}', val).replace('{available}', max));
+        } else {
+            setAmountError(input, null);
+        }
+    }
+
+    /**
+     * Attach amount validation listeners to all resource amount inputs in root.
+     *
+     * @param {Element} modalRoot The modal root element
+     */
+    async function initAmountValidation(modalRoot) {
+        const amountInputs = modalRoot.querySelectorAll('input[data-resource-max]');
+        if (!amountInputs.length) {
+            return;
+        }
+
+        const [msgTooLow, msgTooHigh] = await Promise.all([
+            Str.get_string('booking:resource_amount_too_low', 'mod_bookit'),
+            Str.get_string('booking:resource_amount_invalid', 'mod_bookit',
+                {requested: '{requested}', available: '{available}'}),
+        ]);
+
+        amountInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                validateAmountInput(input, msgTooLow, msgTooHigh);
+            });
+
+            // Clear error when checkbox is unchecked (amount field gets disabled).
+            const name = input.name; // Format: resource_[id]
+            const id = name.replace('resource_', '');
+            const checkbox = modalRoot.querySelector('input[name="checkbox_' + id + '"]');
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    if (!checkbox.checked) {
+                        setAmountError(input, null);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
      * Enable a resource group (room is available).
      *
      * Only re-enables the controlling checkbox; dependent fields remain
@@ -215,6 +301,9 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         if (roomSelect.value) {
             filterResourcesByRoom(modalRoot, roomSelect.value);
         }
+
+        // Initialize client-side amount validation.
+        initAmountValidation(modalRoot);
     }
 
     return {

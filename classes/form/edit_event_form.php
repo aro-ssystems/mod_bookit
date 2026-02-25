@@ -830,7 +830,7 @@ class edit_event_form extends dynamic_form {
                         'text',
                         'resource_' . $resource['id'],
                         get_string('booking:resource_amount', 'mod_bookit'),
-                        ['size' => '4']
+                        ['size' => '4', 'data-resource-max' => (int)$resource['amount']]
                     );
                     $mform->setType('resource_' . $resource['id'], PARAM_INT);
                     $mform->disabledIf('resource_' . $resource['id'], 'checkbox_' . $resource['id']);
@@ -857,5 +857,41 @@ class edit_event_form extends dynamic_form {
                 );
             }
         }
+    }
+
+    /**
+     * Server-side validation: check resource amounts are within allowed range.
+     *
+     * @param array $data Form data
+     * @param array $files Uploaded files
+     * @return array Validation errors
+     */
+    public function validation($data, $files): array {
+        $errors = parent::validation($data, $files);
+
+        foreach (resource_manager::get_active_resources_grouped() as $categorygroup) {
+            foreach ($categorygroup['resources'] as $resource) {
+                $id = $resource['id'];
+                if (empty($data['checkbox_' . $id]) || $resource['amountirrelevant']) {
+                    continue;
+                }
+                $requested = (int)($data['resource_' . $id] ?? 0);
+                $maxamount = (int)$resource['amount'];
+                if ($requested < 1) {
+                    $errors['resourcegroup_' . $id] = get_string(
+                        'booking:resource_amount_too_low',
+                        'mod_bookit'
+                    );
+                } else if ($maxamount > 0 && $requested > $maxamount) {
+                    $errors['resourcegroup_' . $id] = get_string(
+                        'booking:resource_amount_invalid',
+                        'mod_bookit',
+                        (object)['requested' => $requested, 'available' => $maxamount]
+                    );
+                }
+            }
+        }
+
+        return $errors;
     }
 }
