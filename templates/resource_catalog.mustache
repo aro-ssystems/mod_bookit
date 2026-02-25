@@ -63,12 +63,13 @@
                 <a href="{{config.wwwroot}}/mod/bookit/admin/resource_checklist.php"
                    class="btn btn-secondary">
                     {{#str}}resources:view_checklist, mod_bookit{{/str}}
+                    {{#pix}}t/right, core{{/pix}}
                 </a>
             </div>
         </div>
 
         {{! Room filter - rendered by roomfilter form element }}
-        <div class="mb-3">{{{roomfilter}}}</div>
+        {{{roomfilter}}}
 
         {{! Table View (Default) }}
         <div id="mod-bookit-resource-table-view" class="resource-view">
