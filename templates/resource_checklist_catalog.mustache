@@ -22,11 +22,13 @@
     * contextid - Context ID
     * categories - Array of categories with items
 }}
-<div id="mod-bookit-resource-checklist-container"
-     class="mod-bookit-resource-checklist-container"
-     data-contextid="{{contextid}}">
+<div class="d-flex justify-content-center">
+    <div class="justify-content-center d-flex">
+        <div class="mod-bookit-resource-checklist-container mt-4 pr-5 mr-5" style="min-width: 784px;"
+             id="mod-bookit-resource-checklist-container"
+             data-contextid="{{contextid}}">
 
-    <div class="mb-3">
+    <div class="mb-3 d-flex justify-content-between align-items-center">
         <a href="{{config.wwwroot}}/mod/bookit/admin/resources.php"
            class="btn btn-secondary">
             {{#pix}}t/left, core{{/pix}}
@@ -34,13 +36,15 @@
         </a>
     </div>
 
-    <table class="table table-hover" id="resource-checklist-table-view">
-        <thead>
+    <table class="table table-borderless table-hover bg-white rounded w-100" id="resource-checklist-table-view">
+        <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
             <tr>
-                <th>{{#str}}name, core{{/str}}</th>
-                <th style="width: 150px;">{{#str}}resources:duedate, mod_bookit{{/str}}</th>
-                <th style="width: 100px;" class="text-center">{{#str}}status, core{{/str}}</th>
-                <th style="width: 100px;" class="text-center">{{#str}}actions, core{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold" style="width: 90px;" class="text-center">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold">{{#str}}resources:rooms, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold" style="width: 150px;">{{#str}}resources:duedate, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold" style="width: 100px;" class="text-center">{{#str}}status, core{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold text-center" style="width: 100px;">{{#str}}actions, core{{/str}}</th>
             </tr>
         </thead>
         {{#categories}}
@@ -50,7 +54,7 @@
                data-category-description="{{description}}"
                data-category-sortorder="{{sortorder}}">
             <tr class="table-active bg-light border-bottom" data-region="resource-checklist-category-row">
-                <td colspan="4" class="font-weight-bold text-dark py-3">
+                <td colspan="6" class="font-weight-bold text-dark py-3">
                     <span data-field="category-name">{{{name}}}</span>
                 </td>
             </tr>
@@ -65,18 +69,36 @@
                 data-item-sortorder="{{sortorder}}"
                 data-item-active="{{active}}"
                 data-item-duedate="{{duedate}}"
-                data-item-duedatetype="{{duedatetype}}">
-                <td class="py-2">
-                    <span data-field="item-name">{{{name}}}</span>
+                data-item-duedatetype="{{duedatetype}}"
+                data-item-rooms="{{rooms}}">
+                <td class="align-middle py-3 pl-4">
+                    <span class="font-weight-medium" data-field="item-name">{{name}}</span>
                     {{#description}}
-                    <small class="text-muted d-block" data-field="item-description">{{{description}}}</small>
+                    <br><small class="text-muted" data-field="item-description">{{{description}}}</small>
                     {{/description}}
                 </td>
-                <td class="py-2" data-field="item-duedate">
-                    {{#duedate}}{{duedate}}{{/duedate}}
-                    {{^duedate}}-{{/duedate}}
+                <td class="align-middle py-3" data-field="item-amount">
+                    {{#amountirrelevant}}
+                        <span class="badge badge-secondary">{{#str}}resources:amount_unlimited, mod_bookit{{/str}}</span>
+                    {{/amountirrelevant}}
+                    {{^amountirrelevant}}
+                        <span class="badge badge-info">{{amount}}x</span>
+                    {{/amountirrelevant}}
                 </td>
-                <td class="text-center py-2">
+                <td class="align-middle py-3" data-field="item-rooms">
+                    <div class="d-flex flex-wrap align-items-center">
+                        {{#roomnames}}
+                            <span class="badge {{textclass}} mr-1 mb-1"
+                                  style="opacity: 0.8; background-color: {{eventcolor}};">{{roomname}}</span>
+                        {{/roomnames}}
+                        {{^hasrooms}}<small class="text-muted">-</small>{{/hasrooms}}
+                    </div>
+                </td>
+                <td class="align-middle py-3" data-field="item-duedate">
+                    {{#duedate}}{{duedate}}{{/duedate}}
+                    {{^duedate}}<small class="text-muted">-</small>{{/duedate}}
+                </td>
+                <td class="align-middle py-3">
                     {{#active}}
                         <span class="badge badge-success">{{#str}}active, core{{/str}}</span>
                     {{/active}}
@@ -84,10 +106,10 @@
                         <span class="badge badge-secondary">{{#str}}inactive, core{{/str}}</span>
                     {{/active}}
                 </td>
-                <td class="text-center py-2">
+                <td class="align-middle py-3 text-center">
                     <button type="button"
                             id="edit-item-{{id}}"
-                            class="btn btn-sm btn-light rounded-pill"
+                            class="btn btn-sm btn-light rounded-pill pl-3 text-dark"
                             value="{{id}}"
                             data-action="edit-item">
                         {{#pix}}i/edit, core{{/pix}}
@@ -97,5 +119,16 @@
             {{/items}}
         </tbody>
         {{/categories}}
+        {{^categories}}
+        <tbody>
+            <tr>
+                <td colspan="6" class="text-center text-muted py-5">
+                    {{#str}}resources:no_categories, mod_bookit{{/str}}
+                </td>
+            </tr>
+        </tbody>
+        {{/categories}}
     </table>
+        </div>
+    </div>
 </div>

@@ -452,11 +452,28 @@ class edit_event_form extends dynamic_form {
             $mform->setDefault('starttime', $selectedtime);
         }
 
+        // Check if booking is completed (status >= 2: Accepted/Canceled/Rejected).
+        $eventid = $this->optional_param('id', null, PARAM_INT);
+        $bookingcompleted = false;
+        $bookedresources = [];
+        if (!empty($eventid)) {
+            $eventrec = $DB->get_record('bookit_event', ['id' => $eventid], 'bookingstatus');
+            if ($eventrec && (int)$eventrec->bookingstatus >= 2) {
+                $bookingcompleted = true;
+                foreach (resource_manager::get_resources_of_event($eventid) as $br) {
+                    $bookedresources[(int)$br->resourceid] = [
+                        'amount' => (int)$br->amount,
+                        'status' => (string)($br->status ?? 'requested'),
+                    ];
+                }
+            }
+        }
+
         // Get active resources grouped by category for booking form.
         $resourcesdata = resource_manager::get_active_resources_grouped();
 
         // Add resources section.
-        $this->add_resources_fields($mform, $resourcesdata);
+        $this->add_resources_fields($mform, $resourcesdata, $bookingcompleted, $bookedresources);
     }
 
     /**
@@ -707,16 +724,40 @@ class edit_event_form extends dynamic_form {
      *
      * @param \MoodleQuickForm $mform The form instance
      * @param array $resourcesdata Grouped resources data from resource_manager
+     * @param bool $bookingcompleted When true, only booked resources are shown (read-only).
+     * @param array $bookedresources Map of resourceid => ['amount' => int, 'status' => string].
      * @return void
      */
-    private function add_resources_fields(\MoodleQuickForm $mform, array $resourcesdata): void {
+    private function add_resources_fields(
+        \MoodleQuickForm $mform,
+        array $resourcesdata,
+        bool $bookingcompleted = false,
+        array $bookedresources = []
+    ): void {
         if (empty($resourcesdata)) {
             return;
         }
 
+        // Load room data for room icons (shortname + color per resource).
+        $resourcerooms = resource_manager::get_resource_rooms();
+
         foreach ($resourcesdata as $categorygroup) {
             $category = $categorygroup['category'];
             $resources = $categorygroup['resources'];
+
+            // For completed bookings: skip category entirely if none of its resources were booked.
+            if ($bookingcompleted) {
+                $hasbooked = false;
+                foreach ($resources as $resource) {
+                    if (array_key_exists($resource['id'], $bookedresources)) {
+                        $hasbooked = true;
+                        break;
+                    }
+                }
+                if (!$hasbooked) {
+                    continue;
+                }
+            }
 
             // Add category header.
             $mform->addElement('header', 'header_cat_' . $category['id'], $category['name']);
@@ -724,22 +765,78 @@ class edit_event_form extends dynamic_form {
 
             // Add resources in this category.
             foreach ($resources as $resource) {
+                // When booking is completed, only show resources that were booked.
+                if ($bookingcompleted && !array_key_exists($resource['id'], $bookedresources)) {
+                    continue;
+                }
+
+                // For completed bookings: show read-only status badge + amount.
+                if ($bookingcompleted) {
+                    $bookedinfo = $bookedresources[$resource['id']];
+                    $bookedamount = $bookedinfo['amount'];
+                    $bookedstatus = $bookedinfo['status'];
+                    $statusclassmap = [
+                        'requested' => 'badge-secondary',
+                        'confirmed' => 'badge-success',
+                        'inprogress' => 'badge-primary',
+                        'rejected' => 'badge-danger',
+                    ];
+                    $badgeclass = 'badge ' . ($statusclassmap[$bookedstatus] ?? 'badge-secondary');
+                    $statuslabel = get_string('resource_status_' . $bookedstatus, 'mod_bookit');
+                    $statichtml = '<span class="' . $badgeclass . '">' . $statuslabel . '</span>';
+                    if (!$resource['amountirrelevant']) {
+                        $statichtml .= ' &nbsp;' . get_string('booking:resource_amount', 'mod_bookit')
+                            . ': <strong>' . $bookedamount . '</strong>';
+                    }
+                    $mform->addElement('static', 'resourcestatus_' . $resource['id'], $resource['name'], $statichtml);
+                    continue;
+                }
+
                 // Parse roomids JSON. Empty means available in all rooms.
                 $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
                 $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
 
                 $groupelements = [];
 
-                // Checkbox for resource selection.
+                // Checkbox for resource selection (no text – name is used as group label).
                 $groupelements[] = $mform->createElement(
                     'advcheckbox',
                     'checkbox_' . $resource['id'],
                     '',
-                    $resource['name'] . ($resource['description'] ? ' (' . $resource['description'] . ')' : ''),
+                    '',
                     ['group' => 1],
                     [0, 1]
                 );
                 $mform->disabledIf('checkbox_' . $resource['id'], 'editevent', 'neq');
+
+                // Info icon with tooltip showing description and max amount.
+                $tooltipparts = [];
+                if (!empty($resource['description'])) {
+                    $tooltipparts[] = s($resource['description']);
+                }
+                if (!$resource['amountirrelevant'] && $resource['amount'] > 0) {
+                    $tooltipparts[] = get_string('booking:resource_max', 'mod_bookit', $resource['amount']);
+                }
+                if (!empty($tooltipparts)) {
+                    $tooltiptext = implode(' | ', $tooltipparts);
+                    $infoicon = '<i class="fa fa-info-circle text-info ms-1"'
+                        . ' data-bs-toggle="tooltip" data-bs-placement="top"'
+                        . ' title="' . s($tooltiptext) . '"></i>';
+                    $groupelements[] = $mform->createElement('static', 'info_' . $resource['id'], '', $infoicon);
+                }
+
+                // Room icons: small colored badges with room shortname.
+                $rooms = $resourcerooms[$resource['id']] ?? [];
+                if (!empty($rooms)) {
+                    $roomhtml = '';
+                    foreach ($rooms as $room) {
+                        $shortname = s($room['shortname'] ?? $room['name']);
+                        $color = s($room['color']);
+                        $roomhtml .= '<span class="badge ms-1" style="background-color:' . $color . ';color:#fff;"'
+                            . ' title="' . s($room['name']) . '">' . $shortname . '</span>';
+                    }
+                    $groupelements[] = $mform->createElement('static', 'rooms_' . $resource['id'], '', $roomhtml);
+                }
 
                 // Amount field (only if not amount irrelevant).
                 if (!$resource['amountirrelevant']) {
@@ -747,7 +844,7 @@ class edit_event_form extends dynamic_form {
                         'text',
                         'resource_' . $resource['id'],
                         get_string('booking:resource_amount', 'mod_bookit'),
-                        ['size' => '4']
+                        ['size' => '4', 'data-resource-max' => (int)$resource['amount']]
                     );
                     $mform->setType('resource_' . $resource['id'], PARAM_INT);
                     $mform->disabledIf('resource_' . $resource['id'], 'checkbox_' . $resource['id']);
@@ -768,11 +865,47 @@ class edit_event_form extends dynamic_form {
                 $mform->addGroup(
                     $groupelements,
                     'resourcegroup_' . $resource['id'],
-                    '',
+                    $resource['name'],
                     [' '],
                     false
                 );
             }
         }
+    }
+
+    /**
+     * Server-side validation: check resource amounts are within allowed range.
+     *
+     * @param array $data Form data
+     * @param array $files Uploaded files
+     * @return array Validation errors
+     */
+    public function validation($data, $files): array {
+        $errors = parent::validation($data, $files);
+
+        foreach (resource_manager::get_active_resources_grouped() as $categorygroup) {
+            foreach ($categorygroup['resources'] as $resource) {
+                $id = $resource['id'];
+                if (empty($data['checkbox_' . $id]) || $resource['amountirrelevant']) {
+                    continue;
+                }
+                $requested = (int)($data['resource_' . $id] ?? 0);
+                $maxamount = (int)$resource['amount'];
+                if ($requested < 1) {
+                    $errors['resourcegroup_' . $id] = get_string(
+                        'booking:resource_amount_too_low',
+                        'mod_bookit'
+                    );
+                } else if ($maxamount > 0 && $requested > $maxamount) {
+                    $errors['resourcegroup_' . $id] = get_string(
+                        'booking:resource_amount_invalid',
+                        'mod_bookit',
+                        (object)['requested' => $requested, 'available' => $maxamount]
+                    );
+                }
+            }
+        }
+
+        return $errors;
     }
 }

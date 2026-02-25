@@ -752,7 +752,7 @@ export default class extends BaseComponent {
         }
 
         return resourceRooms.some(roomId =>
-            this.selectedRooms.has(roomId)
+            this.selectedRooms.has(String(roomId))
         );
     }
 }

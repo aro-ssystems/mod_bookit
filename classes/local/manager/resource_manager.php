@@ -26,6 +26,7 @@ namespace mod_bookit\local\manager;
 use dml_exception;
 use mod_bookit\local\entity\bookit_resource;
 use mod_bookit\local\entity\bookit_resource_categories;
+use mod_bookit\local\manager\resource_checklist_manager;
 
 /**
  * Resource manager class.
@@ -44,8 +45,8 @@ class resource_manager {
     public static function get_resources_of_event(int $eventid) {
         global $DB;
         $resources = $DB->get_records_sql('
-            SELECT er.resourceid, er.amount, r.name, r.categoryid
-            FROM {bookit_resource} r JOIN {bookit_event_resources} er ON er.resourceid = r.id
+            SELECT er.resourceid, er.amount, er.status, r.name, r.categoryid
+            FROM {bookit_resource} r JOIN {bookit_event_resource} er ON er.resourceid = r.id
             WHERE er.eventid = :eventid', ['eventid' => $eventid]);
         return $resources;
     }
@@ -323,6 +324,8 @@ class resource_manager {
             $record->timecreated = time();
             $record->timemodified = time();
             $id = $DB->insert_record('bookit_resource', $record);
+            // Auto-generate checklist entry for new resource.
+            resource_checklist_manager::create_checklist_for_resource($id, $userid);
         } else {
             // Update existing resource.
             $record->id = $resource->get_id();

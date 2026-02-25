@@ -486,6 +486,7 @@ class install_helper {
         $rooms = [
             [
                 'name' => 'Lecture Hall A',
+                'shortname' => 'LH-A',
                 'description' => 'Large lecture hall with 200 seats, equipped with modern AV technology',
                 'eventcolor' => '#FF6B6B',
                 'active' => 1,
@@ -493,6 +494,7 @@ class install_helper {
             ],
             [
                 'name' => 'Seminar Room B',
+                'shortname' => 'SR-B',
                 'description' => 'Medium-sized seminar room for up to 50 students',
                 'eventcolor' => '#4ECDC4',
                 'active' => 1,
@@ -500,6 +502,7 @@ class install_helper {
             ],
             [
                 'name' => 'Computer Lab C',
+                'shortname' => 'CL-C',
                 'description' => 'Computer laboratory with 30 workstations',
                 'eventcolor' => '#45B7D1',
                 'active' => 1,
@@ -507,6 +510,7 @@ class install_helper {
             ],
             [
                 'name' => 'Conference Room D',
+                'shortname' => 'CR-D',
                 'description' => 'Small conference room for meetings and group work',
                 'eventcolor' => '#96CEB4',
                 'active' => 1,
@@ -518,6 +522,7 @@ class install_helper {
         foreach ($rooms as $roomdata) {
             $room = new \stdClass();
             $room->name = $roomdata['name'];
+            $room->shortname = $roomdata['shortname'];
             $room->description = $roomdata['description'];
             $room->eventcolor = $roomdata['eventcolor'];
             $room->active = $roomdata['active'];

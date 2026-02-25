@@ -102,7 +102,7 @@ class event_resource_manager {
      *
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
-     * @param int $quantity Quantity
+     * @param int $amount Amount
      * @param int $userid User ID
      * @param string $status Status
      * @return int Record ID
@@ -111,7 +111,7 @@ class event_resource_manager {
     public static function add_resource_to_event(
         int $eventid,
         int $resourceid,
-        int $quantity,
+        int $amount,
         int $userid,
         string $status = 'requested'
     ): int {
@@ -121,7 +121,7 @@ class event_resource_manager {
         $record = new \stdClass();
         $record->eventid = $eventid;
         $record->resourceid = $resourceid;
-        $record->quantity = $quantity;
+        $record->amount = $amount;
         $record->status = $status;
         $record->usermodified = $userid;
         $record->timecreated = $time;
@@ -131,20 +131,20 @@ class event_resource_manager {
     }
 
     /**
-     * Update resource quantity for an event.
+     * Update resource amount for an event.
      *
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
-     * @param int $quantity New quantity
+     * @param int $amount New amount
      * @param int $userid User ID
      * @param string|null $status Optional new status
      * @return bool Success
      * @throws dml_exception
      */
-    public static function update_resource_quantity(
+    public static function update_resource_amount(
         int $eventid,
         int $resourceid,
-        int $quantity,
+        int $amount,
         int $userid,
         ?string $status = null
     ): bool {
@@ -159,11 +159,38 @@ class event_resource_manager {
             return false;
         }
 
-        $record->quantity = $quantity;
+        $record->amount = $amount;
         if ($status !== null) {
             $record->status = $status;
         }
         $record->usermodified = $userid;
+        $record->timemodified = time();
+
+        return $DB->update_record('bookit_event_resource', $record);
+    }
+
+    /**
+     * Update the status of an event resource.
+     *
+     * @param int $eventid Event ID
+     * @param int $resourceid Resource ID
+     * @param string $status New status
+     * @return bool Success
+     * @throws dml_exception
+     */
+    public static function update_status(int $eventid, int $resourceid, string $status): bool {
+        global $DB;
+
+        $record = $DB->get_record('bookit_event_resource', [
+            'eventid'    => $eventid,
+            'resourceid' => $resourceid,
+        ]);
+
+        if (!$record) {
+            return false;
+        }
+
+        $record->status       = $status;
         $record->timemodified = time();
 
         return $DB->update_record('bookit_event_resource', $record);
@@ -210,7 +237,7 @@ class event_resource_manager {
             (int)$record->id,
             (int)$record->eventid,
             (int)$record->resourceid,
-            (int)($record->quantity ?? 1),
+            (int)($record->amount ?? 1),
             $record->status ?? 'requested',
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),

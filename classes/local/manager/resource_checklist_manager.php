@@ -55,7 +55,33 @@ class resource_checklist_manager {
                 FROM {bookit_resource_checklist} rc
                 JOIN {bookit_resource} r ON r.id = rc.resourceid
                 $conditions
-                ORDER BY rc.sortorder ASC";
+                ORDER BY rc.sortorder ASC, r.name ASC";
+
+        return $DB->get_records_sql($sql);
+    }
+
+    /**
+     * Get all checklist items with resource data including roomids.
+     *
+     * @param bool $activeonly Only return active items.
+     * @return array
+     * @throws \dml_exception
+     */
+    public static function get_all_checklist_items_with_rooms(bool $activeonly = false): array {
+        global $DB;
+
+        $conditions = $activeonly ? 'WHERE rc.active = 1' : '';
+
+        $sql = "SELECT rc.id, rc.resourceid, rc.duedate, rc.duedatetype,
+                       rc.sortorder, rc.active, rc.beforedueid, rc.whendueid,
+                       rc.overdueid, rc.whendoneid,
+                       r.name, r.description, r.categoryid, r.amount,
+                       r.amountirrelevant, r.active as resource_active,
+                       r.roomids
+                FROM {bookit_resource_checklist} rc
+                JOIN {bookit_resource} r ON r.id = rc.resourceid
+                $conditions
+                ORDER BY rc.sortorder ASC, r.name ASC";
 
         return $DB->get_records_sql($sql);
     }
@@ -187,7 +213,7 @@ class resource_checklist_manager {
                 FROM {bookit_resource} r
                 LEFT JOIN {bookit_resource_checklist} rc ON rc.resourceid = r.id
                 WHERE rc.id IS NULL
-                ORDER BY r.sortorder ASC";
+                ORDER BY r.name ASC";
 
         $resources = $DB->get_records_sql($sql);
 
@@ -237,16 +263,42 @@ class resource_checklist_manager {
     public static function create_checklist_for_resource(int $resourceid, int $userid): int {
         global $DB;
 
-        // Check if already exists.
-        if ($DB->record_exists('bookit_resource_checklist', ['resourceid' => $resourceid])) {
-            throw new \coding_exception('Checklist entry already exists for resource ' . $resourceid);
+        // Return existing record ID if already exists (idempotent).
+        $existing = $DB->get_field('bookit_resource_checklist', 'id', ['resourceid' => $resourceid]);
+        if ($existing) {
+            return (int)$existing;
         }
 
-        // Get max sortorder.
-        $maxsortorder = $DB->get_field_sql(
-            "SELECT MAX(sortorder) FROM {bookit_resource_checklist}"
-        );
-        $sortorder = $maxsortorder ? $maxsortorder + 1 : 0;
+        // Find alphabetically correct sortorder based on resource name.
+        $resourcename = $DB->get_field('bookit_resource', 'name', ['id' => $resourceid]);
+        if ($resourcename === false) {
+            $resourcename = '';
+        }
+
+        // Get all existing checklist items with resource names, ordered alphabetically.
+        $existingsql = "SELECT rc.id, rc.sortorder, r.name
+                        FROM {bookit_resource_checklist} rc
+                        JOIN {bookit_resource} r ON r.id = rc.resourceid
+                        ORDER BY r.name ASC";
+        $existing = $DB->get_records_sql($existingsql);
+
+        if (empty($existing)) {
+            $sortorder = 0;
+        } else {
+            // Find position where new resource fits alphabetically.
+            $position = 0;
+            foreach ($existing as $entry) {
+                if (strcasecmp($resourcename, $entry->name) > 0) {
+                    $position++;
+                }
+            }
+            // Shift existing items at position and above to make room.
+            $DB->execute(
+                "UPDATE {bookit_resource_checklist} SET sortorder = sortorder + 1 WHERE sortorder >= ?",
+                [$position]
+            );
+            $sortorder = $position;
+        }
 
         $record = new \stdClass();
         $record->resourceid = $resourceid;

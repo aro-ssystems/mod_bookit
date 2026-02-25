@@ -41,8 +41,8 @@ class bookit_event_resource {
     /** @var int Resource ID */
     private int $resourceid;
 
-    /** @var int Quantity of resource units used */
-    private int $quantity;
+    /** @var int Amount of resource units used */
+    private int $amount;
 
     /** @var string Status (requested, confirmed, inprogress, rejected) */
     private string $status;
@@ -62,7 +62,7 @@ class bookit_event_resource {
      * @param int|null $id Record ID
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
-     * @param int $quantity Quantity
+     * @param int $amount Amount
      * @param string $status Status
      * @param int $usermodified User ID
      * @param int $timecreated Creation timestamp
@@ -72,7 +72,7 @@ class bookit_event_resource {
         ?int $id = null,
         int $eventid = 0,
         int $resourceid = 0,
-        int $quantity = 1,
+        int $amount = 1,
         string $status = 'requested',
         int $usermodified = 0,
         int $timecreated = 0,
@@ -81,7 +81,7 @@ class bookit_event_resource {
         $this->id = $id;
         $this->eventid = $eventid;
         $this->resourceid = $resourceid;
-        $this->quantity = $quantity;
+        $this->amount = $amount;
         $this->status = $status;
         $this->usermodified = $usermodified;
         $this->timecreated = $timecreated;
@@ -143,21 +143,21 @@ class bookit_event_resource {
     }
 
     /**
-     * Get quantity.
+     * Get amount.
      *
      * @return int
      */
-    public function get_quantity(): int {
-        return $this->quantity;
+    public function get_amount(): int {
+        return $this->amount;
     }
 
     /**
-     * Set quantity.
+     * Set amount.
      *
-     * @param int $quantity
+     * @param int $amount
      */
-    public function set_quantity(int $quantity): void {
-        $this->quantity = $quantity;
+    public function set_amount(int $amount): void {
+        $this->amount = $amount;
     }
 
     /**
