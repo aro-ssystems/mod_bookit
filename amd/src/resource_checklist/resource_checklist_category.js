@@ -60,6 +60,17 @@ export default class extends BaseChecklistCategory {
     }
 
     /**
+     * Get custom watchers for resource checklist.
+     *
+     * @return {Array} Array of watcher definitions
+     */
+    _getCustomWatchers() {
+        return [
+            {watch: `checklistitems:updated`, handler: this._replaceRenderedItem},
+        ];
+    }
+
+    /**
      * Get item component class.
      *
      * @return {Class} Item component class

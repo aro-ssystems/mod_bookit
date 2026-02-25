@@ -52,4 +52,19 @@ export default class extends BaseChecklistItem {
             }
         };
     }
+
+    /**
+     * Update row with new item data from reactive state.
+     *
+     * @param {Object} itemData - Updated item data
+     */
+    _updateRow(itemData) {
+        super._updateRow(itemData);
+
+        // Update duedate display cell.
+        const duedateCell = this.element.querySelector('[data-field="item-duedate"]');
+        if (duedateCell) {
+            duedateCell.textContent = itemData.duedatedisplay || '-';
+        }
+    }
 }

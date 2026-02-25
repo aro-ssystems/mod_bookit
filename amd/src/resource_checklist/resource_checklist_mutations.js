@@ -48,6 +48,7 @@ export default class ResourceChecklistMutations extends BaseChecklistMutations {
             resourceid: fields.resourceid || 0,
             duedate: fields.duedate || null,
             duedatetype: fields.duedatetype || null,
+            duedatedisplay: fields.duedatedisplay || null,
             active: Boolean(fields.active ?? true),
             beforedueid: fields.beforedueid || null,
             whendueid: fields.whendueid || null,

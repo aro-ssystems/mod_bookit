@@ -334,21 +334,34 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $item = resource_checklist_manager::get_checklist_item($id);
         $resource = resource_manager::get_resource_by_id($item->get_resourceid());
 
+        $duedatedisplay = null;
+        $duedate = $item->get_duedate();
+        $duedatetype = $item->get_duedatetype();
+        if (!empty($duedate) && !empty($duedatetype) && $duedatetype !== 'none') {
+            $days = (int)round((int)$duedate / DAYSECS);
+            if ($duedatetype === 'before_event') {
+                $duedatedisplay = get_string('checklist:duedate_days_before', 'mod_bookit', $days);
+            } else if ($duedatetype === 'after_event') {
+                $duedatedisplay = get_string('checklist:duedate_days_after', 'mod_bookit', $days);
+            }
+        }
+
         return [[
             'action' => 'put',
             'name'   => 'checklistitems',
             'fields' => [
-                'id'          => $item->get_id(),
-                'name'        => $resource ? $resource->get_name() : '',
-                'sortorder'   => $item->get_sortorder(),
-                'resourceid'  => $item->get_resourceid(),
-                'duedate'     => $item->get_duedate(),
-                'duedatetype' => $item->get_duedatetype(),
-                'active'      => $item->is_active() ? 1 : 0,
-                'beforedueid' => $item->get_beforedueid(),
-                'whendueid'   => $item->get_whendueid(),
-                'overdueid'   => $item->get_overdueid(),
-                'whendoneid'  => $item->get_whendoneid(),
+                'id'             => $item->get_id(),
+                'name'           => $resource ? $resource->get_name() : '',
+                'sortorder'      => $item->get_sortorder(),
+                'resourceid'     => $item->get_resourceid(),
+                'duedate'        => $duedate,
+                'duedatetype'    => $duedatetype,
+                'duedatedisplay' => $duedatedisplay,
+                'active'         => $item->is_active() ? 1 : 0,
+                'beforedueid'    => $item->get_beforedueid(),
+                'whendueid'      => $item->get_whendueid(),
+                'overdueid'      => $item->get_overdueid(),
+                'whendoneid'     => $item->get_whendoneid(),
             ],
         ]];
     }
