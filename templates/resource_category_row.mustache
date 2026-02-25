@@ -43,6 +43,14 @@
     draggable="true">
 
     <td class="font-weight-bold text-dark py-3">
+        <button type="button"
+                class="btn btn-sm btn-link p-0 mr-2 text-dark"
+                data-action="toggle-category"
+                data-category-id="{{id}}"
+                aria-expanded="true"
+                title="Collapse/Expand">
+            {{#pix}}t/collapsed_empty, core{{/pix}}
+        </button>
         <span>{{{name}}}</span>
     </td>
 

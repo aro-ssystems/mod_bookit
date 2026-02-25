@@ -156,6 +156,7 @@ export default class extends BaseComponent {
         this._initializeCategoryComponents();
         this._attachEventListeners();
         this._initializeRoomFilter();
+        this._restoreCategoryCollapseState();
     }
 
     /**
@@ -412,6 +413,14 @@ export default class extends BaseComponent {
                     await this._handleToggleActive(toggle);
                 }
             });
+
+            // Collapse/expand category rows (event delegation).
+            tableView.addEventListener('click', (e) => {
+                const toggleBtn = e.target.closest('[data-action="toggle-category"]');
+                if (toggleBtn) {
+                    this._handleToggleCategory(toggleBtn);
+                }
+            });
         }
     }
 
@@ -514,6 +523,45 @@ export default class extends BaseComponent {
             checkbox.checked = !newActiveState;
             window.console.error('Toggle active error:', error);
         }
+    }
+
+    /**
+     * Handle collapse/expand of a category row.
+     *
+     * @param {HTMLElement} btn - The toggle button element
+     */
+    _handleToggleCategory(btn) {
+        const categoryId = btn.dataset.categoryId;
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        const itemRows = document.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
+
+        if (isExpanded) {
+            itemRows.forEach(row => row.classList.add('d-none'));
+            btn.setAttribute('aria-expanded', 'false');
+            localStorage.setItem(`bookit_cat_collapsed_${categoryId}`, '1');
+        } else {
+            itemRows.forEach(row => row.classList.remove('d-none'));
+            btn.setAttribute('aria-expanded', 'true');
+            localStorage.removeItem(`bookit_cat_collapsed_${categoryId}`);
+        }
+    }
+
+    /**
+     * Restore category collapse state from localStorage.
+     */
+    _restoreCategoryCollapseState() {
+        const categoryRows = document.querySelectorAll('[data-region="resource-category-row"]');
+        categoryRows.forEach(row => {
+            const categoryId = row.dataset.categoryid;
+            if (localStorage.getItem(`bookit_cat_collapsed_${categoryId}`)) {
+                const itemRows = document.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
+                itemRows.forEach(r => r.classList.add('d-none'));
+                const btn = row.querySelector('[data-action="toggle-category"]');
+                if (btn) {
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
     }
 
     /**

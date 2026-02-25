@@ -68,7 +68,17 @@ class resource_item_card implements renderable, templatable {
         $data->sortorder = $this->resource->get_sortorder();
         $data->active = $this->resource->is_active();
         $data->roomids = json_encode($this->resource->get_roomids() ?? []);
-        $data->roomnames = $this->get_room_names();
+        $allroomnames = $this->get_room_names();
+        $maxrooms = 3;
+        if (count($allroomnames) > $maxrooms) {
+            $data->hasmore = true;
+            $data->moreroomscount = count($allroomnames) - $maxrooms;
+            $data->allroomnames = implode(', ', array_column($allroomnames, 'roomname'));
+            $data->roomnames = array_slice($allroomnames, 0, $maxrooms);
+        } else {
+            $data->hasmore = false;
+            $data->roomnames = $allroomnames;
+        }
 
         return $data;
     }
@@ -99,6 +109,7 @@ class resource_item_card implements renderable, templatable {
                     'roomname' => format_string($room->name),
                     'eventcolor' => $eventcolor,
                     'textclass' => $textclass,
+                    'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
                 ];
             }
         }

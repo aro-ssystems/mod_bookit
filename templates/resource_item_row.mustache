@@ -75,14 +75,20 @@
     <td class="align-middle py-3" data-bookit-resource-tabledata-roomids-id="{{id}}">
         <div class="d-flex flex-wrap align-items-center">
             {{#roomnames}}
-                <span class="badge {{textclass}} mr-1 mb-1"
-                    style="opacity: 0.8;background-color: {{eventcolor}};"
+                <a href="{{roomurl}}"
+                    class="badge {{textclass}} mr-1 mb-1"
+                    style="opacity: 0.8; background-color: {{eventcolor}}; text-decoration: none;"
                     data-bookit-resource-tabledata-room-color="{{eventcolor}}"
                     data-bookit-resource-tabledata-room-textclass="{{textclass}}"
                     data-bookit-resource-tabledata-room-id="{{roomid}}"
                     data-bookit-resource-roomname="{{roomname}}"
-                    data-bookit-resource-tabledata-is-room-element>{{roomname}}</span>
+                    data-bookit-resource-tabledata-is-room-element>{{roomname}}</a>
             {{/roomnames}}
+            {{#hasmore}}
+                <span class="badge badge-light text-muted ml-1 mb-1"
+                    data-toggle="tooltip"
+                    title="{{allroomnames}}">+{{moreroomscount}}</span>
+            {{/hasmore}}
         </div>
     </td>
 
