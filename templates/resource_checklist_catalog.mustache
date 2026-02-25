@@ -36,14 +36,15 @@
         </a>
     </div>
 
-    <table class="table table-borderless table-hover bg-white rounded w-100" id="resource-checklist-table-view">
+    <table class="table table-borderless table-hover bg-white rounded w-100" id="resource-checklist-table-view"
+           style="table-layout: fixed;">
         <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
             <tr>
                 <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
-                <th scope="col" class="py-3 font-weight-bold" style="width: 90px;" class="text-center">{{#str}}resources:amount, mod_bookit{{/str}}</th>
-                <th scope="col" class="py-3 font-weight-bold">{{#str}}resources:rooms, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold text-center" style="width: 90px;">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold" style="width: 180px;">{{#str}}resources:rooms, mod_bookit{{/str}}</th>
                 <th scope="col" class="py-3 font-weight-bold" style="width: 150px;">{{#str}}resources:duedate, mod_bookit{{/str}}</th>
-                <th scope="col" class="py-3 font-weight-bold" style="width: 100px;" class="text-center">{{#str}}status, core{{/str}}</th>
+                <th scope="col" class="py-3 font-weight-bold text-center" style="width: 110px;">{{#str}}status, core{{/str}}</th>
                 <th scope="col" class="py-3 font-weight-bold text-center" style="width: 100px;">{{#str}}actions, core{{/str}}</th>
             </tr>
         </thead>
