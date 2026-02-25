@@ -63,13 +63,15 @@
         ]
     }
 }}
+<div class="d-flex justify-content-center">
 <div id="mod-bookit-event-checklist-container"
-     class="mod-bookit-event-checklist-container"
+     class="mod-bookit-event-checklist-container mt-4 pr-5 mr-5"
      data-region="event-checklist-container"
      data-eventid="{{eventid}}"
      data-cmid="{{cmid}}"
      data-canmanage="{{canmanage}}"
-     data-contextid="{{contextid}}">
+     data-contextid="{{contextid}}"
+     style="min-width: 784px;">
 
     <div class="card mb-4">
         <div class="card-body">
@@ -94,9 +96,7 @@
     </div>
 
     {{#hasresources}}
-    <div class="d-flex justify-content-center">
-        <div class="w-100" style="min-width: 600px;">
-            <table class="table table-borderless table-hover bg-white rounded w-100" id="event-checklist-table">
+    <table class="table table-borderless table-hover bg-white rounded w-100" id="event-checklist-table">
                 <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
                     <tr>
                         <th scope="col" class="py-3 font-weight-bold">{{#str}}resource, mod_bookit{{/str}}</th>
@@ -118,8 +118,6 @@
                 </tbody>
                 {{/categories}}
             </table>
-        </div>
-    </div>
     {{/hasresources}}
     {{^hasresources}}
     <div class="alert alert-info">
@@ -127,4 +125,5 @@
     </div>
     {{/hasresources}}
 
+</div>
 </div>
