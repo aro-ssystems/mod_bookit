@@ -88,7 +88,7 @@ class tabs {
             $tabrow[] = new tabobject(
                 'resources',
                 $targeturl,
-                get_string('resources:manage', 'mod_bookit')
+                get_string('resources', 'mod_bookit')
             );
         }
 
