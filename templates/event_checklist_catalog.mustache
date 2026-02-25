@@ -71,42 +71,55 @@
      data-canmanage="{{canmanage}}"
      data-contextid="{{contextid}}">
 
-    <div class="event-checklist-event-details mb-4">
-        <h4>{{#str}}event_details, mod_bookit{{/str}}</h4>
-        <p><strong>{{#str}}event_name, mod_bookit{{/str}}:</strong> {{{eventname}}}</p>
-        {{#starttime}}
-        <p><strong>{{#str}}starttime, mod_bookit{{/str}}:</strong> {{starttime}}</p>
-        {{/starttime}}
-        {{#endtime}}
-        <p><strong>{{#str}}endtime, mod_bookit{{/str}}:</strong> {{endtime}}</p>
-        {{/endtime}}
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">{{#str}}event_details, mod_bookit{{/str}}</h5>
+            <dl class="row mb-0">
+                <dt class="col-sm-3">{{#str}}event_name, mod_bookit{{/str}}</dt>
+                <dd class="col-sm-9">{{{eventname}}}</dd>
+                {{#starttime}}
+                <dt class="col-sm-3">{{#str}}starttime, mod_bookit{{/str}}</dt>
+                <dd class="col-sm-9">{{starttime}}</dd>
+                {{/starttime}}
+                {{#roomname}}
+                <dt class="col-sm-3">{{#str}}event_room, mod_bookit{{/str}}</dt>
+                <dd class="col-sm-9">{{roomname}}</dd>
+                {{/roomname}}
+                {{#bookingstatus}}
+                <dt class="col-sm-3">{{#str}}event_bookingstatus, mod_bookit{{/str}}</dt>
+                <dd class="col-sm-9">{{bookingstatus}}</dd>
+                {{/bookingstatus}}
+            </dl>
+        </div>
     </div>
 
     {{#hasresources}}
-    <h4>{{#str}}resources_checklist, mod_bookit{{/str}}</h4>
-    <table class="table table-hover" id="event-checklist-table">
-        <thead>
-            <tr>
-                <th>{{#str}}resource, mod_bookit{{/str}}</th>
-                <th style="width: 80px;">{{#str}}booking:resource_amount, mod_bookit{{/str}}</th>
-                <th style="width: 140px;">{{#str}}duedate, mod_bookit{{/str}}</th>
-                <th style="width: 160px;">{{#str}}resource_status, mod_bookit{{/str}}</th>
-            </tr>
-        </thead>
-        {{#categories}}
-        <tbody data-region="event-checklist-category"
-               data-categoryid="{{id}}">
-            {{#name}}
-            <tr class="table-active bg-light border-bottom">
-                <td colspan="4" class="font-weight-bold text-dark py-2">{{{name}}}</td>
-            </tr>
-            {{/name}}
-            {{#items}}
-            {{> mod_bookit/event_checklist_item_row }}
-            {{/items}}
-        </tbody>
-        {{/categories}}
-    </table>
+    <div class="d-flex justify-content-center">
+        <div class="w-100" style="min-width: 600px;">
+            <table class="table table-borderless table-hover bg-white rounded w-100" id="event-checklist-table">
+                <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
+                    <tr>
+                        <th scope="col" class="py-3 font-weight-bold">{{#str}}resource, mod_bookit{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold text-center" style="width: 90px;">{{#str}}resources:amount, mod_bookit{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold text-center" style="width: 90px;">{{#str}}event_checklist:booked_amount, mod_bookit{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold" style="width: 150px;">{{#str}}duedate, mod_bookit{{/str}}</th>
+                        <th scope="col" class="py-3 font-weight-bold" style="width: 180px;">{{#str}}resource_status, mod_bookit{{/str}}</th>
+                    </tr>
+                </thead>
+                {{#categories}}
+                <tbody data-region="event-checklist-category"
+                       data-categoryid="{{id}}">
+                    <tr class="table-active bg-light border-bottom" data-region="event-checklist-category-row">
+                        <td colspan="5" class="font-weight-bold text-dark py-3">{{{name}}}</td>
+                    </tr>
+                    {{#items}}
+                    {{> mod_bookit/event_checklist_item_row }}
+                    {{/items}}
+                </tbody>
+                {{/categories}}
+            </table>
+        </div>
+    </div>
     {{/hasresources}}
     {{^hasresources}}
     <div class="alert alert-info">

@@ -83,6 +83,24 @@ class event_checklist_catalog implements renderable, templatable {
         $data->starttime = !empty($this->event->starttime) ? userdate($this->event->starttime) : '';
         $data->endtime = !empty($this->event->endtime) ? userdate($this->event->endtime) : '';
 
+        // Room name.
+        $data->roomname = '';
+        if (!empty($this->event->roomid)) {
+            $room = $DB->get_record('bookit_room', ['id' => $this->event->roomid], 'name');
+            $data->roomname = $room ? format_string($room->name) : '';
+        }
+
+        // Booking status label.
+        $statusmap = [
+            0 => get_string('event_bookingstatus_0', 'mod_bookit'),
+            1 => get_string('event_bookingstatus_1', 'mod_bookit'),
+            2 => get_string('event_bookingstatus_2', 'mod_bookit'),
+            3 => get_string('event_bookingstatus_3', 'mod_bookit'),
+            4 => get_string('event_bookingstatus_4', 'mod_bookit'),
+        ];
+        $bookingstatus = (int)($this->event->bookingstatus ?? 0);
+        $data->bookingstatus = $statusmap[$bookingstatus] ?? '';
+
         $eventresources = event_resource_manager::get_resources_for_event($this->eventid);
 
         // Group items by category.
@@ -110,27 +128,44 @@ class event_checklist_catalog implements renderable, templatable {
                 ];
             }
 
+            // Compute due date from checklist item relative to event start time.
             $checklistitem = resource_checklist_manager::get_checklist_item_by_resource($er->get_resourceid());
             $duedate = '';
             if ($checklistitem && $checklistitem->get_duedate()) {
-                $duedate = userdate($checklistitem->get_duedate());
+                $duedatetype = $checklistitem->get_duedatetype();
+                $rawduedate = $checklistitem->get_duedate();
+                if ($duedatetype === 'before_event' && !empty($this->event->starttime)) {
+                    $duetimestamp = (int)$this->event->starttime - (int)$rawduedate;
+                    $duedate = userdate($duetimestamp);
+                } else if ($duedatetype === 'after_event' && !empty($this->event->endtime)) {
+                    $duetimestamp = (int)$this->event->endtime + (int)$rawduedate;
+                    $duedate = userdate($duetimestamp);
+                } else if ($rawduedate > 0) {
+                    $duedate = userdate($rawduedate);
+                }
             }
+
+            // Available amount from resource (max available).
+            $availableamount = (int)$resource->amount;
+            $amountirrelevant = (bool)$resource->amountirrelevant;
 
             $status = $er->get_status();
 
             $itemdata = new stdClass();
-            $itemdata->id         = $er->get_id();
-            $itemdata->resourceid = $er->get_resourceid();
-            $itemdata->resourcename = format_string($resource->name);
-            $itemdata->categoryid   = $categoryid;
-            $itemdata->amount       = $er->get_amount();
-            $itemdata->status       = $status;
-            $itemdata->duedate      = $duedate;
-            $itemdata->canmanage    = (int)$this->canmanage;
-            $itemdata->isrequested  = ($status === 'requested');
-            $itemdata->isconfirmed  = ($status === 'confirmed');
-            $itemdata->isinprogress = ($status === 'inprogress');
-            $itemdata->isrejected   = ($status === 'rejected');
+            $itemdata->id               = $er->get_id();
+            $itemdata->resourceid       = $er->get_resourceid();
+            $itemdata->resourcename     = format_string($resource->name);
+            $itemdata->categoryid       = $categoryid;
+            $itemdata->amount           = $er->get_amount();
+            $itemdata->availableamount  = $availableamount;
+            $itemdata->amountirrelevant = $amountirrelevant;
+            $itemdata->status           = $status;
+            $itemdata->duedate          = $duedate;
+            $itemdata->canmanage        = (int)$this->canmanage;
+            $itemdata->isrequested      = ($status === 'requested');
+            $itemdata->isconfirmed      = ($status === 'confirmed');
+            $itemdata->isinprogress     = ($status === 'inprogress');
+            $itemdata->isrejected       = ($status === 'rejected');
 
             $categoriesmap[$categoryid]['items'][] = $itemdata;
         }
