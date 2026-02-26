@@ -46,6 +46,9 @@ export default class {
             name: data.fields.name,
             description: data.fields.description,
             sortorder: data.fields.sortorder,
+            active: data.fields.active !== undefined
+                ? Boolean(data.fields.active)
+                : (state.categories.get(data.fields.id)?.active ?? true),
         });
 
         stateManager.setReadOnly(true);
@@ -97,6 +100,8 @@ export default class {
             amountirrelevant: data.fields.amountirrelevant,
             sortorder: data.fields.sortorder,
             active: Boolean(data.fields.active),
+            roomids: data.fields.roomids || [],
+            roomnames: data.fields.roomnames || [],
         });
 
         stateManager.setReadOnly(true);

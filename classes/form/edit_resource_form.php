@@ -191,6 +191,7 @@ class edit_resource_form extends dynamic_form {
                     'roomname' => format_string($room->name),
                     'eventcolor' => $eventcolor,
                     'textclass' => $textclass,
+                    'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
                 ];
             }
         }
@@ -279,7 +280,7 @@ class edit_resource_form extends dynamic_form {
         );
 
         // Save via manager.
-        global $USER;
+        global $USER, $DB;
         $savedid = resource_manager::save_resource($resource, $USER->id);
 
         // Reload resource to get full data including roomnames for display.
@@ -288,8 +289,8 @@ class edit_resource_form extends dynamic_form {
         // Get room names for display.
         $roomnames = $this->get_room_names($savedresource->get_roomids());
 
-        // Return reactive state update format.
-        return [
+        // Build reactive state update.
+        $updates = [
             [
                 'name' => 'items',
                 'action' => 'put',
@@ -307,6 +308,35 @@ class edit_resource_form extends dynamic_form {
                 ],
             ],
         ];
+
+        // Auto-deactivate category if all its resources are now inactive.
+        if (!$formdata->active) {
+            $categoryid = (int) $formdata->categoryid;
+            $activecount = $DB->count_records_select(
+                'bookit_resource',
+                'categoryid = ? AND active = 1',
+                [$categoryid]
+            );
+            if ($activecount === 0) {
+                $DB->set_field('bookit_resource_categories', 'active', 0, ['id' => $categoryid]);
+                $category = resource_manager::get_category($categoryid);
+                if ($category) {
+                    $updates[] = [
+                        'name' => 'categories',
+                        'action' => 'put',
+                        'fields' => [
+                            'id' => $category->get_id(),
+                            'name' => $category->get_name(),
+                            'description' => $category->get_description() ?? '',
+                            'sortorder' => $category->get_sortorder() ?? 0,
+                            'active' => false,
+                        ],
+                    ];
+                }
+            }
+        }
+
+        return $updates;
     }
 
     /**

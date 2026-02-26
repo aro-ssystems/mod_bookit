@@ -63,6 +63,7 @@ $string['bookit:viewownoverview'] = 'View own events overview';
 $string['bookitfieldset'] = 'PLACEHOLDER';
 $string['calendar'] = 'Calendar';
 $string['calendar_desc'] = 'General calendar & booking behaviour';
+$string['category_collapseexpand'] = 'Collapse/Expand';
 $string['category_created'] = 'Category created successfully';
 $string['category_deleted'] = 'Category deleted successfully';
 $string['category_name'] = 'Category name';

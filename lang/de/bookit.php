@@ -61,6 +61,7 @@ $string['bookit:viewownoverview'] = 'Eigene Ereignisübersicht anzeigen';
 $string['bookitfieldset'] = 'PLATZHALTER';
 $string['calendar'] = 'Kalender';
 $string['calendar_desc'] = 'Allgemeines Kalender- und Buchungsverhalten';
+$string['category_collapseexpand'] = 'Einklappen/Ausklappen';
 $string['category_created'] = 'Kategorie erfolgreich erstellt';
 $string['category_deleted'] = 'Kategorie erfolgreich gelöscht';
 $string['category_name'] = 'Kategoriename';

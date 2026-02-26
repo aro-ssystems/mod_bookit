@@ -156,6 +156,8 @@ export default class extends BaseComponent {
         this._initializeCategoryComponents();
         this._attachEventListeners();
         this._initializeRoomFilter();
+        this._restoreCategoryCollapseState();
+        this._initializeAllRoomBadges();
     }
 
     /**
@@ -336,29 +338,120 @@ export default class extends BaseComponent {
             return;
         }
 
-        // Clear existing content.
-        roomsCell.innerHTML = '<div class="d-flex flex-wrap align-items-center"></div>';
+        this._renderRoomBadgesForItem(item, roomsCell);
+    }
+
+    /**
+     * Render room badges for a single item into its table cell.
+     * Trims badges that overflow the container width and shows a +N overflow badge.
+     *
+     * @param {Object} item - Reactive state item
+     * @param {HTMLElement} roomsCell - The td element to render into
+     */
+    _renderRoomBadgesForItem(item, roomsCell) {
+        roomsCell.style.maxWidth = '200px';
+        roomsCell.style.overflow = 'hidden';
+        roomsCell.innerHTML = '<div class="d-flex flex-nowrap align-items-center"></div>';
         const container = roomsCell.querySelector('div');
 
         if (!item.roomnames || item.roomnames.length === 0) {
-            // Show "All rooms" badge.
             container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
-        } else {
-            // Render room badges with colors.
-            item.roomnames.forEach(room => {
-                const badge = document.createElement('span');
-                badge.className = `badge ${room.textclass} mr-1 mb-1`;
-                badge.style.opacity = '0.8';
-                badge.style.backgroundColor = room.eventcolor;
-                badge.dataset.bookitResourceTabledataRoomColor = room.eventcolor;
-                badge.dataset.bookitResourceTabledataRoomTextclass = room.textclass;
-                badge.dataset.bookitResourceTabledataRoomId = room.roomid;
-                badge.dataset.bookitResourceRoomname = room.roomname;
-                badge.dataset.bookitResourceTabledataIsRoomElement = '';
-                badge.textContent = room.roomname;
-                container.appendChild(badge);
-            });
+            return;
         }
+
+        item.roomnames.forEach(room => {
+            const badge = document.createElement('a');
+            badge.className = `badge ${room.textclass} mr-1`;
+            badge.style.opacity = '0.8';
+            badge.style.backgroundColor = room.eventcolor;
+            badge.style.textDecoration = 'none';
+            badge.href = room.roomurl || '#';
+            badge.dataset.bookitResourceTabledataRoomColor = room.eventcolor;
+            badge.dataset.bookitResourceTabledataRoomTextclass = room.textclass;
+            badge.dataset.bookitResourceTabledataRoomId = room.roomid;
+            badge.dataset.bookitResourceRoomname = room.roomname;
+            badge.dataset.bookitResourceTabledataIsRoomElement = '';
+            badge.textContent = room.roomname;
+            container.appendChild(badge);
+        });
+
+        // Use getBoundingClientRect to detect overflow in a flex-nowrap container.
+        const containerRect = container.getBoundingClientRect();
+        const allBadges = Array.from(container.querySelectorAll('a[data-bookit-resource-roomname]'));
+        let firstOverflowIdx = -1;
+
+        for (let i = 0; i < allBadges.length; i++) {
+            if (allBadges[i].getBoundingClientRect().right > containerRect.right) {
+                firstOverflowIdx = i;
+                break;
+            }
+        }
+
+        if (firstOverflowIdx >= 0) {
+            const overflowCount = allBadges.length - firstOverflowIdx;
+            for (let i = firstOverflowIdx; i < allBadges.length; i++) {
+                container.removeChild(allBadges[i]);
+            }
+            const allNames = item.roomnames.map(r => r.roomname).join(', ');
+            const overflow = document.createElement('span');
+            overflow.className = 'badge badge-light text-muted mr-1';
+            overflow.setAttribute('data-toggle', 'tooltip');
+            overflow.title = allNames;
+            overflow.textContent = `+${overflowCount}`;
+            container.appendChild(overflow);
+        }
+    }
+
+    /**
+     * Initialize room badges for all items on initial state load.
+     * Uses server-rendered DOM badges — does not clear or re-render from state.
+     */
+    _initializeAllRoomBadges() {
+        const roomCells = document.querySelectorAll('td[data-bookit-resource-tabledata-roomids-id]');
+        roomCells.forEach(roomsCell => {
+            // Cap the column width so badges overflow instead of expanding the table.
+            roomsCell.style.maxWidth = '200px';
+            roomsCell.style.overflow = 'hidden';
+
+            const container = roomsCell.querySelector('div.d-flex');
+            if (!container) {
+                return;
+            }
+
+            const badges = Array.from(
+                container.querySelectorAll('a[data-bookit-resource-tabledata-is-room-element]')
+            );
+            if (badges.length === 0) {
+                return;
+            }
+
+            const containerRect = container.getBoundingClientRect();
+            if (containerRect.width === 0) {
+                return;
+            }
+
+            let firstOverflowIdx = -1;
+            for (let i = 0; i < badges.length; i++) {
+                if (badges[i].getBoundingClientRect().right > containerRect.right) {
+                    firstOverflowIdx = i;
+                    break;
+                }
+            }
+
+            if (firstOverflowIdx >= 0) {
+                const allNames = badges.map(b => b.textContent.trim()).join(', ');
+                const overflowCount = badges.length - firstOverflowIdx;
+                for (let i = firstOverflowIdx; i < badges.length; i++) {
+                    badges[i].style.display = 'none';
+                }
+                const overflow = document.createElement('span');
+                overflow.className = 'badge badge-light text-muted mr-1';
+                overflow.setAttribute('data-toggle', 'tooltip');
+                overflow.title = allNames;
+                overflow.textContent = `+${overflowCount}`;
+                container.appendChild(overflow);
+            }
+        });
     }
 
     /**
@@ -410,6 +503,14 @@ export default class extends BaseComponent {
                 const toggle = e.target.closest('[data-action="toggle-active"]');
                 if (toggle) {
                     await this._handleToggleActive(toggle);
+                }
+            });
+
+            // Collapse/expand category rows (event delegation).
+            tableView.addEventListener('click', (e) => {
+                const toggleBtn = e.target.closest('[data-action="toggle-category"]');
+                if (toggleBtn) {
+                    this._handleToggleCategory(toggleBtn);
                 }
             });
         }
@@ -514,6 +615,54 @@ export default class extends BaseComponent {
             checkbox.checked = !newActiveState;
             window.console.error('Toggle active error:', error);
         }
+    }
+
+    /**
+     * Handle collapse/expand of a category row.
+     *
+     * @param {HTMLElement} btn - The toggle button element
+     */
+    _handleToggleCategory(btn) {
+        const categoryId = btn.dataset.categoryId;
+        const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+        const tableView = document.querySelector(this.selectors.tableView);
+        const itemRows = tableView
+            ? tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`)
+            : [];
+        const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
+
+        if (isExpanded) {
+            itemRows.forEach(row => row.classList.add('d-none'));
+            btn.setAttribute('aria-expanded', 'false');
+            localStorage.setItem(storageKey, '1');
+        } else {
+            itemRows.forEach(row => row.classList.remove('d-none'));
+            btn.setAttribute('aria-expanded', 'true');
+            localStorage.removeItem(storageKey);
+        }
+    }
+
+    /**
+     * Restore category collapse state from localStorage.
+     */
+    _restoreCategoryCollapseState() {
+        const tableView = document.querySelector(this.selectors.tableView);
+        if (!tableView) {
+            return;
+        }
+        const categoryRows = tableView.querySelectorAll('[data-region="resource-category-row"]');
+        categoryRows.forEach(row => {
+            const categoryId = row.dataset.categoryid;
+            const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
+            if (localStorage.getItem(storageKey)) {
+                const itemRows = tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
+                itemRows.forEach(r => r.classList.add('d-none'));
+                const btn = row.querySelector('[data-action="toggle-category"]');
+                if (btn) {
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
     }
 
     /**
