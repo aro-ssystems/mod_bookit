@@ -78,11 +78,13 @@
                 <a href="{{roomurl}}"
                     class="badge {{textclass}} mr-1 mb-1"
                     style="opacity: 0.8; background-color: {{eventcolor}}; text-decoration: none;"
+                    data-toggle="tooltip"
+                    title="{{roomname}}"
                     data-bookit-resource-tabledata-room-color="{{eventcolor}}"
                     data-bookit-resource-tabledata-room-textclass="{{textclass}}"
                     data-bookit-resource-tabledata-room-id="{{roomid}}"
                     data-bookit-resource-roomname="{{roomname}}"
-                    data-bookit-resource-tabledata-is-room-element>{{roomname}}</a>
+                    data-bookit-resource-tabledata-is-room-element>{{shortname}}</a>
             {{/roomnames}}
             {{#hasmore}}
                 <span class="badge badge-light text-muted ml-1 mb-1"

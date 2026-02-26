@@ -189,6 +189,7 @@ class edit_resource_form extends dynamic_form {
                 $roomnames[] = [
                     'roomid' => $room->id,
                     'roomname' => format_string($room->name),
+                    'shortname' => $room->shortname ?? '',
                     'eventcolor' => $eventcolor,
                     'textclass' => $textclass,
                     'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),

@@ -371,17 +371,19 @@ export default class extends BaseComponent {
             badge.dataset.bookitResourceTabledataRoomId = room.roomid;
             badge.dataset.bookitResourceRoomname = room.roomname;
             badge.dataset.bookitResourceTabledataIsRoomElement = '';
-            badge.textContent = room.roomname;
+            badge.setAttribute('data-toggle', 'tooltip');
+            badge.title = room.roomname;
+            badge.textContent = room.shortname || room.roomname;
             container.appendChild(badge);
         });
 
-        // Use getBoundingClientRect to detect overflow in a flex-nowrap container.
-        const containerRect = container.getBoundingClientRect();
+        // Compare against the TD's right edge (not the inner div which grows unconstrained).
+        const cellRight = roomsCell.getBoundingClientRect().right;
         const allBadges = Array.from(container.querySelectorAll('a[data-bookit-resource-roomname]'));
         let firstOverflowIdx = -1;
 
         for (let i = 0; i < allBadges.length; i++) {
-            if (allBadges[i].getBoundingClientRect().right > containerRect.right) {
+            if (allBadges[i].getBoundingClientRect().right > cellRight) {
                 firstOverflowIdx = i;
                 break;
             }
@@ -425,21 +427,23 @@ export default class extends BaseComponent {
                 return;
             }
 
-            const containerRect = container.getBoundingClientRect();
-            if (containerRect.width === 0) {
+            // Compare against the TD's right edge (inner div grows unconstrained with flex-nowrap).
+            const cellRight = roomsCell.getBoundingClientRect().right;
+            if (cellRight === 0) {
                 return;
             }
 
             let firstOverflowIdx = -1;
             for (let i = 0; i < badges.length; i++) {
-                if (badges[i].getBoundingClientRect().right > containerRect.right) {
+                if (badges[i].getBoundingClientRect().right > cellRight) {
                     firstOverflowIdx = i;
                     break;
                 }
             }
 
             if (firstOverflowIdx >= 0) {
-                const allNames = badges.map(b => b.textContent.trim()).join(', ');
+                // Use full room name from title attribute for tooltip (shortname shown in badge text).
+                const allNames = badges.map(b => (b.title || b.textContent.trim())).join(', ');
                 const overflowCount = badges.length - firstOverflowIdx;
                 for (let i = firstOverflowIdx; i < badges.length; i++) {
                     badges[i].style.display = 'none';
