@@ -82,7 +82,7 @@ if (empty($items)) {
 } else {
     // Render via Output Class.
     $catalog = new \mod_bookit\output\resource_checklist_catalog();
-    echo $OUTPUT->render($catalog);
+    echo $renderer->render($catalog);
 
     // Init Reactive JS.
     $PAGE->requires->js_call_amd(

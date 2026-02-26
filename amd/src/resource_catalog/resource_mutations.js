@@ -16,7 +16,7 @@
 /**
  * Mutations for resource catalog reactive state.
  *
- * @module mod_bookit/resource_mutations
+ * @module mod_bookit/resource_catalog/resource_mutations
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

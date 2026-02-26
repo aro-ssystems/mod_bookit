@@ -16,7 +16,7 @@
 /**
  * Resource catalog reactive component.
  *
- * @module mod_bookit/resource_catalog
+ * @module mod_bookit/resource_catalog/resource_catalog
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -115,7 +115,7 @@ export default class extends BaseComponent {
      * @return {string} Component name
      */
     static get componentName() {
-        return 'mod_bookit/resource_catalog';
+        return 'mod_bookit/resource_catalog/resource_catalog';
     }
 
     /**
