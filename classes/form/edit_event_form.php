@@ -825,18 +825,17 @@ class edit_event_form extends dynamic_form {
                     $groupelements[] = $mform->createElement('static', 'info_' . $resource['id'], '', $infoicon);
                 }
 
-                // Room icons: small colored badges with room shortname.
+                // Room icons: small colored badges with room shortname, fixed-width container for alignment.
                 $rooms = $resourcerooms[$resource['id']] ?? [];
-                if (!empty($rooms)) {
-                    $roomhtml = '';
-                    foreach ($rooms as $room) {
-                        $shortname = s($room['shortname'] ?? $room['name']);
-                        $color = s($room['color']);
-                        $roomhtml .= '<span class="badge ms-1" style="background-color:' . $color . ';color:#fff;"'
-                            . ' title="' . s($room['name']) . '">' . $shortname . '</span>';
-                    }
-                    $groupelements[] = $mform->createElement('static', 'rooms_' . $resource['id'], '', $roomhtml);
+                $roomhtml = '<span class="bookit-resource-rooms">';
+                foreach ($rooms as $room) {
+                    $shortname = s($room['shortname'] ?? $room['name']);
+                    $color = s($room['color']);
+                    $roomhtml .= '<span class="badge ms-1" style="background-color:' . $color . ';color:#fff;"'
+                        . ' title="' . s($room['name']) . '">' . $shortname . '</span>';
                 }
+                $roomhtml .= '</span>';
+                $groupelements[] = $mform->createElement('static', 'rooms_' . $resource['id'], '', $roomhtml);
 
                 // Amount field (only if not amount irrelevant).
                 if (!$resource['amountirrelevant']) {
