@@ -349,8 +349,8 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         // Initialize client-side amount validation.
         initAmountValidation(modalRoot);
 
-        // After layout, detect badge overflow and apply +N badge.
-        requestAnimationFrame(() => initRoomBadgeOverflow(modalRoot));
+        // After layout settles (modal fade-in completes), detect badge overflow and apply +N badge.
+        setTimeout(() => initRoomBadgeOverflow(modalRoot), 300);
     }
 
     return {

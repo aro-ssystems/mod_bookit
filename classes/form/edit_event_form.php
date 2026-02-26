@@ -827,7 +827,7 @@ class edit_event_form extends dynamic_form {
 
                 // Room icons: small colored badges with room shortname, fixed-width container for alignment.
                 $rooms = $resourcerooms[$resource['id']] ?? [];
-                $roomhtml = '<span class="bookit-resource-rooms">';
+                $roomhtml = '<span class="bookit-resource-rooms ms-2">';
                 foreach ($rooms as $room) {
                     $shortname = s($room['shortname'] ?? $room['name']);
                     $color = s($room['color']);
