@@ -130,6 +130,20 @@ export default class ResourceCategory extends BaseComponent {
             await itemComponent._render();
             this.itemComponents.set(itemData.id, itemComponent);
         }
+
+        // Restore collapse state after re-rendering items.
+        const catId = this.categoryData.id;
+        const ctxEl = document.querySelector('[data-contextid]');
+        const contextId = ctxEl ? ctxEl.dataset.contextid : '';
+        const storageKey = `bookit_cat_${contextId}_collapsed_${catId}`;
+        if (localStorage.getItem(storageKey)) {
+            const itemRows = this.categoryElement.querySelectorAll('[data-item-categoryid]');
+            itemRows.forEach(r => r.classList.add('d-none'));
+            const btn = this.categoryElement.querySelector('[data-action="toggle-category"]');
+            if (btn) {
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        }
     }
 
     /**

@@ -46,7 +46,9 @@ export default class {
             name: data.fields.name,
             description: data.fields.description,
             sortorder: data.fields.sortorder,
-            active: data.fields.active !== undefined ? Boolean(data.fields.active) : true,
+            active: data.fields.active !== undefined
+                ? Boolean(data.fields.active)
+                : (state.categories.get(data.fields.id)?.active ?? true),
         });
 
         stateManager.setReadOnly(true);

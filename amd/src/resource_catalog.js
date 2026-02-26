@@ -345,12 +345,18 @@ export default class extends BaseComponent {
             // Show "All rooms" badge.
             container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
         } else {
-            // Render room badges with colors.
-            item.roomnames.forEach(room => {
-                const badge = document.createElement('span');
+            const maxVisible = 3;
+            const visibleRooms = item.roomnames.slice(0, maxVisible);
+            const hiddenRooms = item.roomnames.slice(maxVisible);
+
+            // Render visible room badges as links.
+            visibleRooms.forEach(room => {
+                const badge = document.createElement('a');
                 badge.className = `badge ${room.textclass} mr-1 mb-1`;
                 badge.style.opacity = '0.8';
                 badge.style.backgroundColor = room.eventcolor;
+                badge.style.textDecoration = 'none';
+                badge.href = room.roomurl || '#';
                 badge.dataset.bookitResourceTabledataRoomColor = room.eventcolor;
                 badge.dataset.bookitResourceTabledataRoomTextclass = room.textclass;
                 badge.dataset.bookitResourceTabledataRoomId = room.roomid;
@@ -359,6 +365,17 @@ export default class extends BaseComponent {
                 badge.textContent = room.roomname;
                 container.appendChild(badge);
             });
+
+            // Render "+N more" overflow badge if needed.
+            if (hiddenRooms.length > 0) {
+                const allNames = item.roomnames.map(r => r.roomname).join(', ');
+                const overflow = document.createElement('span');
+                overflow.className = 'badge badge-light text-muted mr-1 mb-1';
+                overflow.setAttribute('data-toggle', 'tooltip');
+                overflow.title = allNames;
+                overflow.textContent = `+${hiddenRooms.length}`;
+                container.appendChild(overflow);
+            }
         }
     }
 
@@ -533,16 +550,20 @@ export default class extends BaseComponent {
     _handleToggleCategory(btn) {
         const categoryId = btn.dataset.categoryId;
         const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-        const itemRows = document.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
+        const tableView = document.querySelector(this.selectors.tableView);
+        const itemRows = tableView
+            ? tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`)
+            : [];
+        const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
 
         if (isExpanded) {
             itemRows.forEach(row => row.classList.add('d-none'));
             btn.setAttribute('aria-expanded', 'false');
-            localStorage.setItem(`bookit_cat_collapsed_${categoryId}`, '1');
+            localStorage.setItem(storageKey, '1');
         } else {
             itemRows.forEach(row => row.classList.remove('d-none'));
             btn.setAttribute('aria-expanded', 'true');
-            localStorage.removeItem(`bookit_cat_collapsed_${categoryId}`);
+            localStorage.removeItem(storageKey);
         }
     }
 
@@ -550,11 +571,16 @@ export default class extends BaseComponent {
      * Restore category collapse state from localStorage.
      */
     _restoreCategoryCollapseState() {
-        const categoryRows = document.querySelectorAll('[data-region="resource-category-row"]');
+        const tableView = document.querySelector(this.selectors.tableView);
+        if (!tableView) {
+            return;
+        }
+        const categoryRows = tableView.querySelectorAll('[data-region="resource-category-row"]');
         categoryRows.forEach(row => {
             const categoryId = row.dataset.categoryid;
-            if (localStorage.getItem(`bookit_cat_collapsed_${categoryId}`)) {
-                const itemRows = document.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
+            const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
+            if (localStorage.getItem(storageKey)) {
+                const itemRows = tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
                 itemRows.forEach(r => r.classList.add('d-none'));
                 const btn = row.querySelector('[data-action="toggle-category"]');
                 if (btn) {

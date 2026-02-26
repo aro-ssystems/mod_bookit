@@ -64,6 +64,7 @@ $string['calendar_desc'] = 'Allgemeines Kalender- und Buchungsverhalten';
 $string['category_created'] = 'Kategorie erfolgreich erstellt';
 $string['category_deleted'] = 'Kategorie erfolgreich gelöscht';
 $string['category_name'] = 'Kategoriename';
+$string['category_collapseexpand'] = 'Einklappen/Ausklappen';
 $string['category_updated'] = 'Kategorie erfolgreich aktualisiert';
 $string['checklist'] = 'Checkliste';
 $string['checklist_active'] = 'In Checkliste aktiv';

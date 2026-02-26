@@ -66,6 +66,7 @@ $string['calendar_desc'] = 'General calendar & booking behaviour';
 $string['category_created'] = 'Category created successfully';
 $string['category_deleted'] = 'Category deleted successfully';
 $string['category_name'] = 'Category name';
+$string['category_collapseexpand'] = 'Collapse/Expand';
 $string['category_updated'] = 'Category updated successfully';
 $string['checklist'] = 'Checklist';
 $string['checklist_active'] = 'Active in checklist';
