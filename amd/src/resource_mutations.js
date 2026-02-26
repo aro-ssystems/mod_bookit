@@ -100,6 +100,8 @@ export default class {
             amountirrelevant: data.fields.amountirrelevant,
             sortorder: data.fields.sortorder,
             active: Boolean(data.fields.active),
+            roomids: data.fields.roomids || [],
+            roomnames: data.fields.roomnames || [],
         });
 
         stateManager.setReadOnly(true);

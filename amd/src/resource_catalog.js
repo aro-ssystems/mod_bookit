@@ -349,6 +349,8 @@ export default class extends BaseComponent {
      * @param {HTMLElement} roomsCell - The td element to render into
      */
     _renderRoomBadgesForItem(item, roomsCell) {
+        roomsCell.style.maxWidth = '200px';
+        roomsCell.style.overflow = 'hidden';
         roomsCell.innerHTML = '<div class="d-flex flex-nowrap align-items-center"></div>';
         const container = roomsCell.querySelector('div');
 
@@ -407,6 +409,10 @@ export default class extends BaseComponent {
     _initializeAllRoomBadges() {
         const roomCells = document.querySelectorAll('td[data-bookit-resource-tabledata-roomids-id]');
         roomCells.forEach(roomsCell => {
+            // Cap the column width so badges overflow instead of expanding the table.
+            roomsCell.style.maxWidth = '200px';
+            roomsCell.style.overflow = 'hidden';
+
             const container = roomsCell.querySelector('div.d-flex');
             if (!container) {
                 return;
