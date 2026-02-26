@@ -97,6 +97,7 @@ class resource_item_card implements renderable, templatable {
                 $roomnames[] = [
                     'roomid' => $room->id,
                     'roomname' => format_string($room->name),
+                    'shortname' => $room->shortname ?? '',
                     'eventcolor' => $eventcolor,
                     'textclass' => $textclass,
                     'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),

@@ -189,6 +189,7 @@ class edit_resource_form extends dynamic_form {
                 $roomnames[] = [
                     'roomid' => $room->id,
                     'roomname' => format_string($room->name),
+                    'shortname' => $room->shortname ?? '',
                     'eventcolor' => $eventcolor,
                     'textclass' => $textclass,
                     'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
@@ -318,7 +319,7 @@ class edit_resource_form extends dynamic_form {
                 [$categoryid]
             );
             if ($activecount === 0) {
-                $DB->set_field('bookit_resource_categories', 'active', 0, ['id' => $categoryid]);
+                $DB->set_field('bookit_resource_category', 'active', 0, ['id' => $categoryid]);
                 $category = resource_manager::get_category($categoryid);
                 if ($category) {
                     $updates[] = [

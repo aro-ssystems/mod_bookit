@@ -322,6 +322,7 @@ $string['resource_status_confirmed'] = 'Confirmed';
 $string['resource_status_inprogress'] = 'In Progress';
 $string['resource_status_rejected'] = 'Rejected';
 $string['resource_status_requested'] = 'Requested';
+$string['resourceinfo'] = 'Resource information';
 $string['resourcenotfound'] = 'Resource not found';
 $string['resources'] = 'Resources';
 $string['resources:active'] = 'Active';

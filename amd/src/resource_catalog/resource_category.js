@@ -16,7 +16,7 @@
 /**
  * Resource category reactive component.
  *
- * @module mod_bookit/resource_category
+ * @module mod_bookit/resource_catalog/resource_category
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -40,7 +40,7 @@ export default class ResourceCategory extends BaseComponent {
      * @return {string} Component name
      */
     static get componentName() {
-        return 'mod_bookit/resource_category';
+        return 'mod_bookit/resource_catalog/resource_category';
     }
 
     /**
@@ -78,7 +78,7 @@ export default class ResourceCategory extends BaseComponent {
      */
     async _render() {
         // Render category row.
-        const categoryRowHtml = await Templates.render('mod_bookit/resource_category_row', this.categoryData);
+        const categoryRowHtml = await Templates.render('mod_bookit/resource_catalog/resource_category_row', this.categoryData);
 
         // Create tbody element for this category.
         const tbody = document.createElement('tbody');
@@ -337,7 +337,7 @@ export default class ResourceCategory extends BaseComponent {
         // Re-render the category row.
         const categoryRow = this.categoryElement.querySelector('[data-region="resource-category-row"]');
         if (categoryRow) {
-            Templates.render('mod_bookit/resource_category_row', newData)
+            Templates.render('mod_bookit/resource_catalog/resource_category_row', newData)
                 .then(html => {
                     const wrapper = document.createElement('tbody');
                     wrapper.innerHTML = html.trim();

@@ -16,15 +16,15 @@
 /**
  * Resource item reactive component.
  *
- * @module mod_bookit/resource_item
+ * @module mod_bookit/resource_catalog/resource_item
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {BaseComponent} from 'core/reactive';
-import {resourceReactiveInstance} from 'mod_bookit/resource_reactive';
-import {SELECTORS} from 'mod_bookit/resource_reactive';
+import {resourceReactiveInstance} from 'mod_bookit/resource_catalog/resource_reactive';
+import {SELECTORS} from 'mod_bookit/resource_catalog/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 

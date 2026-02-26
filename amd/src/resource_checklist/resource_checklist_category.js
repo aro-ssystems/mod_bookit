@@ -53,8 +53,8 @@ export default class extends BaseChecklistCategory {
             itemModalForm: 'mod_bookit\\form\\edit_resource_checklist_item_form',
             categoryModalForm: 'mod_bookit\\form\\edit_category_form',
             templates: {
-                categoryRow: 'mod_bookit/resource_checklist_category_row',
-                itemRow: 'mod_bookit/resource_checklist_item_row',
+                categoryRow: 'mod_bookit/resource_checklist/resource_checklist_category_row',
+                itemRow: 'mod_bookit/resource_checklist/resource_checklist_item_row',
             }
         };
     }

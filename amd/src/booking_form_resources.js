@@ -259,7 +259,59 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
     }
 
     /**
-     * Initialize resource filtering.
+     * Detect overflowing room badges and replace them with a +N tooltip badge.
+     *
+     * The .bookit-resource-rooms span has a fixed max-width. Badges that exceed it
+     * are hidden and replaced with a "+N" badge. The filter logic reads
+     * data-resource-rooms on the checkbox — not the displayed badges — so filtering
+     * is unaffected by hiding badges here.
+     *
+     * @param {Element} modalRoot The modal root element containing the form
+     */
+    function initRoomBadgeOverflow(modalRoot) {
+        const roomSpans = modalRoot.querySelectorAll('.bookit-resource-rooms');
+        roomSpans.forEach(span => {
+            const badges = Array.from(span.querySelectorAll('.badge'));
+            if (badges.length === 0) {
+                return;
+            }
+
+            const spanRight = span.getBoundingClientRect().right;
+            if (spanRight === 0) {
+                return; // Not yet rendered.
+            }
+
+            // Leave 8px breathing room so badges don't press against the input element.
+            const overflowThreshold = spanRight - 8;
+
+            let firstOverflowIdx = -1;
+            for (let i = 0; i < badges.length; i++) {
+                if (badges[i].getBoundingClientRect().right > overflowThreshold) {
+                    firstOverflowIdx = i;
+                    break;
+                }
+            }
+
+            if (firstOverflowIdx >= 0) {
+                const overflowCount = badges.length - firstOverflowIdx;
+                const hiddenNames = badges.slice(firstOverflowIdx)
+                    .map(b => b.title || b.textContent.trim()).join(', ');
+                for (let i = firstOverflowIdx; i < badges.length; i++) {
+                    badges[i].style.display = 'none';
+                }
+                const overflow = document.createElement('span');
+                overflow.className = 'badge badge-light text-muted ms-1';
+                overflow.setAttribute('data-bs-toggle', 'tooltip');
+                overflow.setAttribute('data-bs-placement', 'top');
+                overflow.title = hiddenNames;
+                overflow.textContent = '+' + overflowCount;
+                span.appendChild(overflow);
+            }
+        });
+    }
+
+    /**
+     * Main entry point called by edit_event_form.php.
      *
      * @param {Element} modalRoot The modal root element containing the form
      */
@@ -304,6 +356,9 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
 
         // Initialize client-side amount validation.
         initAmountValidation(modalRoot);
+
+        // After layout settles (modal fade-in completes), detect badge overflow and apply +N badge.
+        setTimeout(() => initRoomBadgeOverflow(modalRoot), 300);
     }
 
     return {

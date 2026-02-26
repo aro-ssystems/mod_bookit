@@ -50,11 +50,11 @@ echo $renderer->tabs($tabrow, $id);
 
 // Render via Output Class - renders full content with data-* attributes.
 $catalog = new \mod_bookit\output\resource_catalog();
-echo $OUTPUT->render($catalog);
+echo $renderer->render($catalog);
 
 // Init Reactive JS - reads state from DOM data-* attributes.
 $PAGE->requires->js_call_amd(
-    'mod_bookit/resource_catalog',
+    'mod_bookit/resource_catalog/resource_catalog',
     'init',
     ['#mod-bookit-resource-catalog']
 );

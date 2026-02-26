@@ -28,7 +28,7 @@ namespace mod_bookit\local\manager;
 
 use advanced_testcase;
 use mod_bookit\local\entity\bookit_resource;
-use mod_bookit\local\entity\bookit_resource_categories;
+use mod_bookit\local\entity\bookit_resource_category;
 
 /**
  * Unit tests for resource_manager class.
@@ -56,7 +56,7 @@ final class resource_manager_test extends advanced_testcase {
         $active = true;
 
         // Create category entity.
-        $category = new bookit_resource_categories(
+        $category = new bookit_resource_category(
             null,
             $name,
             $description,
@@ -86,7 +86,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->assertTrue($retrieved->is_active());
 
         // Verify database record.
-        $record = $DB->get_record('bookit_resource_categories', ['id' => $categoryid]);
+        $record = $DB->get_record('bookit_resource_category', ['id' => $categoryid]);
         $this->assertNotEmpty($record);
         $this->assertEquals($name, $record->name);
         $this->assertEquals(1, $record->active); // Boolean stored as int.
@@ -100,11 +100,11 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create active category.
-        $activecat = new bookit_resource_categories(null, 'Active Cat', null, 0, true, 0, 0, 2);
+        $activecat = new bookit_resource_category(null, 'Active Cat', null, 0, true, 0, 0, 2);
         $activeid = resource_manager::save_category($activecat, 2);
 
         // Create inactive category.
-        $inactivecat = new bookit_resource_categories(null, 'Inactive Cat', null, 1, false, 0, 0, 2);
+        $inactivecat = new bookit_resource_category(null, 'Inactive Cat', null, 1, false, 0, 0, 2);
         $inactiveid = resource_manager::save_category($inactivecat, 2);
 
         // Get all categories (including inactive).
@@ -127,7 +127,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create initial category.
-        $category = new bookit_resource_categories(null, 'Original Name', 'Original Desc', 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Original Name', 'Original Desc', 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Retrieve and modify.
@@ -143,7 +143,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->assertEquals($categoryid, $updatedid);
 
         // Verify updates in database.
-        $record = $DB->get_record('bookit_resource_categories', ['id' => $categoryid]);
+        $record = $DB->get_record('bookit_resource_category', ['id' => $categoryid]);
         $this->assertEquals('Updated Name', $record->name);
         $this->assertEquals('Updated Description', $record->description);
         $this->assertEquals(0, $record->active);
@@ -157,7 +157,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_categories(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource in category.
@@ -180,14 +180,14 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_categories(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Delete category.
         resource_manager::delete_category($categoryid);
 
         // Verify deleted from database.
-        $exists = $DB->record_exists('bookit_resource_categories', ['id' => $categoryid]);
+        $exists = $DB->record_exists('bookit_resource_category', ['id' => $categoryid]);
         $this->assertFalse($exists);
     }
 
@@ -201,7 +201,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category first.
-        $category = new bookit_resource_categories(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource.
@@ -265,10 +265,10 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create two categories.
-        $cat1 = new bookit_resource_categories(null, 'Cat 1', null, 0, true, 0, 0, 2);
+        $cat1 = new bookit_resource_category(null, 'Cat 1', null, 0, true, 0, 0, 2);
         $cat1id = resource_manager::save_category($cat1, 2);
 
-        $cat2 = new bookit_resource_categories(null, 'Cat 2', null, 1, true, 0, 0, 2);
+        $cat2 = new bookit_resource_category(null, 'Cat 2', null, 1, true, 0, 0, 2);
         $cat2id = resource_manager::save_category($cat2, 2);
 
         // Create resources in cat1.
@@ -303,7 +303,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_categories(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create active resource.
@@ -334,7 +334,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_categories(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource.
@@ -359,13 +359,13 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create categories.
-        $cat1 = new bookit_resource_categories(null, 'Cat 1', null, 0, true, 0, 0, 2);
+        $cat1 = new bookit_resource_category(null, 'Cat 1', null, 0, true, 0, 0, 2);
         $cat1id = resource_manager::save_category($cat1, 2);
 
-        $cat2 = new bookit_resource_categories(null, 'Cat 2', null, 1, true, 0, 0, 2);
+        $cat2 = new bookit_resource_category(null, 'Cat 2', null, 1, true, 0, 0, 2);
         $cat2id = resource_manager::save_category($cat2, 2);
 
-        $cat3 = new bookit_resource_categories(null, 'Cat 3', null, 2, true, 0, 0, 2);
+        $cat3 = new bookit_resource_category(null, 'Cat 3', null, 2, true, 0, 0, 2);
         $cat3id = resource_manager::save_category($cat3, 2);
 
         // Reorder: cat3 first, cat1 second, cat2 third.
@@ -378,13 +378,13 @@ final class resource_manager_test extends advanced_testcase {
         resource_manager::update_category_sortorder($neworder);
 
         // Verify new sortorder in database.
-        $cat1record = $DB->get_record('bookit_resource_categories', ['id' => $cat1id]);
+        $cat1record = $DB->get_record('bookit_resource_category', ['id' => $cat1id]);
         $this->assertEquals(1, $cat1record->sortorder);
 
-        $cat2record = $DB->get_record('bookit_resource_categories', ['id' => $cat2id]);
+        $cat2record = $DB->get_record('bookit_resource_category', ['id' => $cat2id]);
         $this->assertEquals(2, $cat2record->sortorder);
 
-        $cat3record = $DB->get_record('bookit_resource_categories', ['id' => $cat3id]);
+        $cat3record = $DB->get_record('bookit_resource_category', ['id' => $cat3id]);
         $this->assertEquals(0, $cat3record->sortorder);
     }
 
@@ -396,7 +396,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category with empty name.
-        $category = new bookit_resource_categories(null, '', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, '', null, 0, true, 0, 0, 2);
 
         // Expect exception when saving.
         $this->expectException(\moodle_exception::class);
@@ -412,7 +412,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_categories(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource with empty name.

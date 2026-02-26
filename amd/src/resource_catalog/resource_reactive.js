@@ -16,14 +16,14 @@
 /**
  * Reactive store for resource catalog.
  *
- * @module mod_bookit/resource_reactive
+ * @module mod_bookit/resource_catalog/resource_reactive
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {Reactive} from 'core/reactive';
-import Mutations from 'mod_bookit/resource_mutations';
+import Mutations from 'mod_bookit/resource_catalog/resource_mutations';
 
 export const SELECTORS = {
     TABLE: '#resource-table',

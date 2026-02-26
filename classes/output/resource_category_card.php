@@ -25,7 +25,7 @@
 
 namespace mod_bookit\output;
 
-use mod_bookit\local\entity\bookit_resource_categories;
+use mod_bookit\local\entity\bookit_resource_category;
 use mod_bookit\local\manager\resource_manager;
 use renderer_base;
 use renderable;
@@ -38,15 +38,15 @@ use stdClass;
  * Prepares data for a single resource category card
  */
 class resource_category_card implements renderable, templatable {
-    /** @var bookit_resource_categories */
+    /** @var bookit_resource_category */
     private $category;
 
     /**
      * Constructor
      *
-     * @param bookit_resource_categories $category
+     * @param bookit_resource_category $category
      */
-    public function __construct(bookit_resource_categories $category) {
+    public function __construct(bookit_resource_category $category) {
         $this->category = $category;
     }
 

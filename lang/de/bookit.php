@@ -313,6 +313,7 @@ $string['resource_status_confirmed'] = 'Bestätigt';
 $string['resource_status_inprogress'] = 'In Bearbeitung';
 $string['resource_status_rejected'] = 'Abgelehnt';
 $string['resource_status_requested'] = 'Angefragt';
+$string['resourceinfo'] = 'Ressourcen-Information';
 $string['resourcenotfound'] = 'Ressource nicht gefunden';
 $string['resources'] = 'Ressourcen';
 $string['resources:active'] = 'Aktiv';

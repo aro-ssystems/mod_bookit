@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/\>.
 }}
 {{!
-    @template mod_bookit/resource_catalog
+    @template mod_bookit/resource_catalog/resource_catalog
 
     Resource catalog container with categories and resources.
 
@@ -90,9 +90,9 @@
                            data-category-name="{{name}}"
                            data-category-description="{{description}}"
                            data-category-sortorder="{{sortorder}}">
-                        {{> mod_bookit/resource_category_row }}
+                        {{> mod_bookit/resource_catalog/resource_category_row }}
                         {{#resources}}
-                            {{> mod_bookit/resource_item_row }}
+                            {{> mod_bookit/resource_catalog/resource_item_row }}
                         {{/resources}}
                     </tbody>
                 {{/categories}}

@@ -173,7 +173,7 @@ class edit_resource_category_form extends dynamic_form {
 
         // Regular save logic.
         // Create entity from form data.
-        $category = new \mod_bookit\local\entity\bookit_resource_categories(
+        $category = new \mod_bookit\local\entity\bookit_resource_category(
             $formdata->id ?: null,
             $formdata->name,
             $formdata->description ?? '',
