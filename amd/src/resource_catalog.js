@@ -157,6 +157,7 @@ export default class extends BaseComponent {
         this._attachEventListeners();
         this._initializeRoomFilter();
         this._restoreCategoryCollapseState();
+        this._initializeAllRoomBadges();
     }
 
     /**
@@ -337,49 +338,114 @@ export default class extends BaseComponent {
             return;
         }
 
-        // Clear existing content.
-        roomsCell.innerHTML = '<div class="d-flex flex-wrap align-items-center"></div>';
+        this._renderRoomBadgesForItem(item, roomsCell);
+    }
+
+    /**
+     * Render room badges for a single item into its table cell.
+     * Trims badges that overflow the container width and shows a +N overflow badge.
+     *
+     * @param {Object} item - Reactive state item
+     * @param {HTMLElement} roomsCell - The td element to render into
+     */
+    _renderRoomBadgesForItem(item, roomsCell) {
+        roomsCell.innerHTML = '<div class="d-flex flex-nowrap align-items-center"></div>';
         const container = roomsCell.querySelector('div');
 
         if (!item.roomnames || item.roomnames.length === 0) {
-            // Show "All rooms" badge.
             container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
-        } else {
-            // Render all badges first, then remove those that wrap to a second row.
-            item.roomnames.forEach(room => {
-                const badge = document.createElement('a');
-                badge.className = `badge ${room.textclass} mr-1 mb-1`;
-                badge.style.opacity = '0.8';
-                badge.style.backgroundColor = room.eventcolor;
-                badge.style.textDecoration = 'none';
-                badge.href = room.roomurl || '#';
-                badge.dataset.bookitResourceTabledataRoomColor = room.eventcolor;
-                badge.dataset.bookitResourceTabledataRoomTextclass = room.textclass;
-                badge.dataset.bookitResourceTabledataRoomId = room.roomid;
-                badge.dataset.bookitResourceRoomname = room.roomname;
-                badge.dataset.bookitResourceTabledataIsRoomElement = '';
-                badge.textContent = room.roomname;
-                container.appendChild(badge);
-            });
+            return;
+        }
 
-            // Determine which badges wrapped to a second row by comparing offsetTop.
-            const allBadges = Array.from(container.querySelectorAll('a[data-bookit-resource-roomname]'));
-            if (allBadges.length > 0) {
-                const firstRowTop = allBadges[0].offsetTop;
-                const wrappedBadges = allBadges.filter(b => b.offsetTop > firstRowTop);
+        item.roomnames.forEach(room => {
+            const badge = document.createElement('a');
+            badge.className = `badge ${room.textclass} mr-1`;
+            badge.style.opacity = '0.8';
+            badge.style.backgroundColor = room.eventcolor;
+            badge.style.textDecoration = 'none';
+            badge.href = room.roomurl || '#';
+            badge.dataset.bookitResourceTabledataRoomColor = room.eventcolor;
+            badge.dataset.bookitResourceTabledataRoomTextclass = room.textclass;
+            badge.dataset.bookitResourceTabledataRoomId = room.roomid;
+            badge.dataset.bookitResourceRoomname = room.roomname;
+            badge.dataset.bookitResourceTabledataIsRoomElement = '';
+            badge.textContent = room.roomname;
+            container.appendChild(badge);
+        });
 
-                if (wrappedBadges.length > 0) {
-                    wrappedBadges.forEach(b => container.removeChild(b));
-                    const allNames = item.roomnames.map(r => r.roomname).join(', ');
-                    const overflow = document.createElement('span');
-                    overflow.className = 'badge badge-light text-muted mr-1 mb-1';
-                    overflow.setAttribute('data-toggle', 'tooltip');
-                    overflow.title = allNames;
-                    overflow.textContent = `+${wrappedBadges.length}`;
-                    container.appendChild(overflow);
-                }
+        // Use getBoundingClientRect to detect overflow in a flex-nowrap container.
+        const containerRect = container.getBoundingClientRect();
+        const allBadges = Array.from(container.querySelectorAll('a[data-bookit-resource-roomname]'));
+        let firstOverflowIdx = -1;
+
+        for (let i = 0; i < allBadges.length; i++) {
+            if (allBadges[i].getBoundingClientRect().right > containerRect.right) {
+                firstOverflowIdx = i;
+                break;
             }
         }
+
+        if (firstOverflowIdx >= 0) {
+            const overflowCount = allBadges.length - firstOverflowIdx;
+            for (let i = firstOverflowIdx; i < allBadges.length; i++) {
+                container.removeChild(allBadges[i]);
+            }
+            const allNames = item.roomnames.map(r => r.roomname).join(', ');
+            const overflow = document.createElement('span');
+            overflow.className = 'badge badge-light text-muted mr-1';
+            overflow.setAttribute('data-toggle', 'tooltip');
+            overflow.title = allNames;
+            overflow.textContent = `+${overflowCount}`;
+            container.appendChild(overflow);
+        }
+    }
+
+    /**
+     * Initialize room badges for all items on initial state load.
+     * Uses server-rendered DOM badges — does not clear or re-render from state.
+     */
+    _initializeAllRoomBadges() {
+        const roomCells = document.querySelectorAll('td[data-bookit-resource-tabledata-roomids-id]');
+        roomCells.forEach(roomsCell => {
+            const container = roomsCell.querySelector('div.d-flex');
+            if (!container) {
+                return;
+            }
+
+            const badges = Array.from(
+                container.querySelectorAll('a[data-bookit-resource-tabledata-is-room-element]')
+            );
+            if (badges.length === 0) {
+                return;
+            }
+
+            const containerRect = container.getBoundingClientRect();
+            if (containerRect.width === 0) {
+                return;
+            }
+
+            let firstOverflowIdx = -1;
+            for (let i = 0; i < badges.length; i++) {
+                if (badges[i].getBoundingClientRect().right > containerRect.right) {
+                    firstOverflowIdx = i;
+                    break;
+                }
+            }
+
+            if (firstOverflowIdx >= 0) {
+                const allNames = badges.map(b => b.textContent.trim()).join(', ');
+                const overflowCount = badges.length - firstOverflowIdx;
+                for (let i = firstOverflowIdx; i < badges.length; i++) {
+                    badges[i].style.display = 'none';
+                }
+                const overflow = document.createElement('span');
+                overflow.className = 'badge badge-light text-muted mr-1';
+                overflow.setAttribute('data-toggle', 'tooltip');
+                overflow.title = allNames;
+                overflow.textContent = `+${overflowCount}`;
+                container.appendChild(overflow);
+            }
+        });
     }
 
     /**

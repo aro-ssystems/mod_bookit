@@ -68,17 +68,7 @@ class resource_item_card implements renderable, templatable {
         $data->sortorder = $this->resource->get_sortorder();
         $data->active = $this->resource->is_active();
         $data->roomids = json_encode($this->resource->get_roomids() ?? []);
-        $allroomnames = $this->get_room_names();
-        $maxrooms = 3;
-        if (count($allroomnames) > $maxrooms) {
-            $data->hasmore = true;
-            $data->moreroomscount = count($allroomnames) - $maxrooms;
-            $data->allroomnames = implode(', ', array_column($allroomnames, 'roomname'));
-            $data->roomnames = array_slice($allroomnames, 0, $maxrooms);
-        } else {
-            $data->hasmore = false;
-            $data->roomnames = $allroomnames;
-        }
+        $data->roomnames = $this->get_room_names();
 
         return $data;
     }
