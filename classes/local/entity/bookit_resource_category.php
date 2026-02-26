@@ -23,7 +23,7 @@ namespace mod_bookit\local\entity;
  * @copyright   2024 Justus Dieckmann, Universität Münster
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class bookit_resource_categories {
+class bookit_resource_category {
     /** @var ?int Database ID */
     private ?int $id;
 

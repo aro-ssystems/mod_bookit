@@ -114,7 +114,7 @@ class event_checklist_catalog implements renderable, templatable {
 
             $categoryid = (int)($resource->categoryid ?? 0);
             if ($categoryid > 0) {
-                $category = $DB->get_record('bookit_resource_categories', ['id' => $categoryid]);
+                $category = $DB->get_record('bookit_resource_category', ['id' => $categoryid]);
                 $categoryname = $category ? format_string($category->name) : '';
             } else {
                 $categoryname = '';

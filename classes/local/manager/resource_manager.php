@@ -25,7 +25,7 @@ namespace mod_bookit\local\manager;
 
 use dml_exception;
 use mod_bookit\local\entity\bookit_resource;
-use mod_bookit\local\entity\bookit_resource_categories;
+use mod_bookit\local\entity\bookit_resource_category;
 use mod_bookit\local\manager\resource_checklist_manager;
 
 /**
@@ -62,7 +62,7 @@ class resource_manager {
         $records = $DB->get_records_sql(
             'SELECT r.id resource_id, r.name resource_name, r.description resource_desc, r.amount resource_amount,
                     c.id category_id, c.name category_name, c.description category_desc
-                    FROM {bookit_resource} r LEFT JOIN {bookit_resource_categories} c ON c.id = r.categoryid'
+                    FROM {bookit_resource} r LEFT JOIN {bookit_resource_category} c ON c.id = r.categoryid'
         );
         $resources = [];
         foreach ($records as $record) {
@@ -121,7 +121,7 @@ class resource_manager {
      * Get all resource categories.
      *
      * @param bool $activeonly Filter only active categories
-     * @return array Array of bookit_resource_categories objects
+     * @return array Array of bookit_resource_category objects
      * @throws dml_exception
      */
     public static function get_all_categories(bool $activeonly = false): array {
@@ -132,7 +132,7 @@ class resource_manager {
             $conditions['active'] = 1;
         }
 
-        $records = $DB->get_records('bookit_resource_categories', $conditions, 'sortorder ASC');
+        $records = $DB->get_records('bookit_resource_category', $conditions, 'sortorder ASC');
 
         $categories = [];
         foreach ($records as $record) {
@@ -146,13 +146,13 @@ class resource_manager {
      * Get a single category by ID.
      *
      * @param int $id Category ID
-     * @return bookit_resource_categories|null Category object or null if not found
+     * @return bookit_resource_category|null Category object or null if not found
      * @throws dml_exception
      */
-    public static function get_category(int $id): ?bookit_resource_categories {
+    public static function get_category(int $id): ?bookit_resource_category {
         global $DB;
 
-        $record = $DB->get_record('bookit_resource_categories', ['id' => $id]);
+        $record = $DB->get_record('bookit_resource_category', ['id' => $id]);
 
         if (!$record) {
             return null;
@@ -164,13 +164,13 @@ class resource_manager {
     /**
      * Save a category (insert or update).
      *
-     * @param bookit_resource_categories $category Category to save
+     * @param bookit_resource_category $category Category to save
      * @param int $userid User performing the action
      * @return int Category ID
      * @throws \moodle_exception If validation fails
      * @throws dml_exception
      */
-    public static function save_category(bookit_resource_categories $category, int $userid): int {
+    public static function save_category(bookit_resource_category $category, int $userid): int {
         global $DB;
 
         self::validate_category($category);
@@ -186,12 +186,12 @@ class resource_manager {
             // Insert new category.
             $record->timecreated = time();
             $record->timemodified = time();
-            $id = $DB->insert_record('bookit_resource_categories', $record);
+            $id = $DB->insert_record('bookit_resource_category', $record);
         } else {
             // Update existing category.
             $record->id = $category->get_id();
             $record->timemodified = time();
-            $DB->update_record('bookit_resource_categories', $record);
+            $DB->update_record('bookit_resource_category', $record);
             $id = $record->id;
         }
 
@@ -215,7 +215,7 @@ class resource_manager {
             throw new \moodle_exception('category_has_resources', 'mod_bookit');
         }
 
-        $DB->delete_records('bookit_resource_categories', ['id' => $id]);
+        $DB->delete_records('bookit_resource_category', ['id' => $id]);
     }
 
     /**
@@ -232,14 +232,14 @@ class resource_manager {
 
         // Handle single ID + sortorder.
         if (is_int($categoryids) && $sortorder !== null) {
-            $DB->set_field('bookit_resource_categories', 'sortorder', $sortorder, ['id' => $categoryids]);
+            $DB->set_field('bookit_resource_category', 'sortorder', $sortorder, ['id' => $categoryids]);
             return;
         }
 
         // Handle array.
         if (is_array($categoryids)) {
             foreach ($categoryids as $sort => $categoryid) {
-                $DB->set_field('bookit_resource_categories', 'sortorder', $sort, ['id' => $categoryid]);
+                $DB->set_field('bookit_resource_category', 'sortorder', $sort, ['id' => $categoryid]);
             }
         }
     }
@@ -383,10 +383,10 @@ class resource_manager {
      * Create category entity from database record.
      *
      * @param \stdClass $record Database record
-     * @return bookit_resource_categories Category entity
+     * @return bookit_resource_category Category entity
      */
-    private static function category_from_record(\stdClass $record): bookit_resource_categories {
-        return new bookit_resource_categories(
+    private static function category_from_record(\stdClass $record): bookit_resource_category {
+        return new bookit_resource_category(
             isset($record->id) ? (int)$record->id : null,
             $record->name ?? '',
             $record->description ?? null,
@@ -432,11 +432,11 @@ class resource_manager {
     /**
      * Validate category data.
      *
-     * @param bookit_resource_categories $category Category to validate
+     * @param bookit_resource_category $category Category to validate
      * @return void
      * @throws \moodle_exception If validation fails
      */
-    private static function validate_category(bookit_resource_categories $category): void {
+    private static function validate_category(bookit_resource_category $category): void {
         if (empty(trim($category->get_name()))) {
             throw new \moodle_exception('category_name_required', 'mod_bookit');
         }
@@ -450,10 +450,10 @@ class resource_manager {
         $params = ['name' => $category->get_name()];
         if ($category->get_id() !== null) {
             // Exclude current category when editing.
-            $sql = "SELECT id FROM {bookit_resource_categories} WHERE name = :name AND id != :id";
+            $sql = "SELECT id FROM {bookit_resource_category} WHERE name = :name AND id != :id";
             $params['id'] = $category->get_id();
         } else {
-            $sql = "SELECT id FROM {bookit_resource_categories} WHERE name = :name";
+            $sql = "SELECT id FROM {bookit_resource_category} WHERE name = :name";
         }
 
         if ($DB->record_exists_sql($sql, $params)) {
@@ -528,7 +528,7 @@ class resource_manager {
                 c.name as category_name,
                 c.sortorder as category_sortorder
             FROM {bookit_resource} r
-            JOIN {bookit_resource_categories} c ON c.id = r.categoryid
+            JOIN {bookit_resource_category} c ON c.id = r.categoryid
             WHERE r.active = 1 AND c.active = 1
             ORDER BY c.sortorder ASC, r.sortorder ASC
         ";

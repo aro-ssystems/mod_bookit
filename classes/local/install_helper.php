@@ -28,7 +28,7 @@ namespace mod_bookit\local;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_category;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
-use mod_bookit\local\entity\bookit_resource_categories;
+use mod_bookit\local\entity\bookit_resource_category;
 use mod_bookit\local\entity\bookit_resource;
 use mod_bookit\local\manager\resource_manager;
 
@@ -619,7 +619,7 @@ class install_helper {
         $categorymap = []; // Name => ID mapping.
 
         // Get all existing categories.
-        $existingcats = $DB->get_records('bookit_resource_categories');
+        $existingcats = $DB->get_records('bookit_resource_category');
         $existingcatsbyname = [];
         foreach ($existingcats as $cat) {
             $existingcatsbyname[$cat->name] = $cat;
@@ -639,7 +639,7 @@ class install_helper {
                     mtrace("Creating resource category: {$catdata['name']}");
                 }
 
-                $category = new bookit_resource_categories(
+                $category = new bookit_resource_category(
                     null, // ID.
                     $catdata['name'],
                     $catdata['description'],
