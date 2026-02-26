@@ -345,12 +345,8 @@ export default class extends BaseComponent {
             // Show "All rooms" badge.
             container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
         } else {
-            const maxVisible = 3;
-            const visibleRooms = item.roomnames.slice(0, maxVisible);
-            const hiddenRooms = item.roomnames.slice(maxVisible);
-
-            // Render visible room badges as links.
-            visibleRooms.forEach(room => {
+            // Render all badges first, then remove those that wrap to a second row.
+            item.roomnames.forEach(room => {
                 const badge = document.createElement('a');
                 badge.className = `badge ${room.textclass} mr-1 mb-1`;
                 badge.style.opacity = '0.8';
@@ -366,15 +362,22 @@ export default class extends BaseComponent {
                 container.appendChild(badge);
             });
 
-            // Render "+N more" overflow badge if needed.
-            if (hiddenRooms.length > 0) {
-                const allNames = item.roomnames.map(r => r.roomname).join(', ');
-                const overflow = document.createElement('span');
-                overflow.className = 'badge badge-light text-muted mr-1 mb-1';
-                overflow.setAttribute('data-toggle', 'tooltip');
-                overflow.title = allNames;
-                overflow.textContent = `+${hiddenRooms.length}`;
-                container.appendChild(overflow);
+            // Determine which badges wrapped to a second row by comparing offsetTop.
+            const allBadges = Array.from(container.querySelectorAll('a[data-bookit-resource-roomname]'));
+            if (allBadges.length > 0) {
+                const firstRowTop = allBadges[0].offsetTop;
+                const wrappedBadges = allBadges.filter(b => b.offsetTop > firstRowTop);
+
+                if (wrappedBadges.length > 0) {
+                    wrappedBadges.forEach(b => container.removeChild(b));
+                    const allNames = item.roomnames.map(r => r.roomname).join(', ');
+                    const overflow = document.createElement('span');
+                    overflow.className = 'badge badge-light text-muted mr-1 mb-1';
+                    overflow.setAttribute('data-toggle', 'tooltip');
+                    overflow.title = allNames;
+                    overflow.textContent = `+${wrappedBadges.length}`;
+                    container.appendChild(overflow);
+                }
             }
         }
     }
