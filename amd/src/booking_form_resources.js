@@ -281,9 +281,12 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
                 return; // Not yet rendered.
             }
 
+            // Leave 8px breathing room so badges don't press against the input element.
+            const overflowThreshold = spanRight - 8;
+
             let firstOverflowIdx = -1;
             for (let i = 0; i < badges.length; i++) {
-                if (badges[i].getBoundingClientRect().right > spanRight) {
+                if (badges[i].getBoundingClientRect().right > overflowThreshold) {
                     firstOverflowIdx = i;
                     break;
                 }
@@ -307,7 +310,12 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         });
     }
 
-
+    /**
+     * Main entry point called by edit_event_form.php.
+     *
+     * @param {Element} modalRoot The modal root element containing the form
+     */
+    function init(modalRoot) {
         if (!modalRoot) {
             return;
         }
