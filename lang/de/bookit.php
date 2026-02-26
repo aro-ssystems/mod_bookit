@@ -40,6 +40,7 @@ $string['booking:resource_amount'] = 'Anzahl';
 $string['booking:resource_amount_invalid'] = 'Angeforderte Anzahl ({$a->requested}) überschreitet verfügbare Anzahl ({$a->available})';
 $string['booking:resource_amount_too_low'] = 'Anzahl muss mindestens 1 sein';
 $string['booking:resource_max'] = 'Max: {$a}';
+$string['resourceinfo'] = 'Ressourcen-Information';
 $string['booking:resource_room_conflict'] = 'Der gewählte Raum stellt nicht alle gebuchten Ressourcen zur Verfügung. Nutzen Sie die Raumübersicht, um einen Überblick über die Räume und die jeweiligen verfügbaren Ressourcen zu erhalten.';
 $string['booking:resource_selected'] = 'Ausgewählt';
 $string['booking:resource_unavailable'] = 'Nicht verfügbar im ausgewählten Raum';

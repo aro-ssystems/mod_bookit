@@ -809,19 +809,23 @@ class edit_event_form extends dynamic_form {
                 );
                 $mform->disabledIf('checkbox_' . $resource['id'], 'editevent', 'neq');
 
-                // Info icon with tooltip showing description and max amount.
-                $tooltipparts = [];
+                // Info icon with popover (Moodle-native pattern: data-toggle=popover, trigger=focus).
+                $popoverparts = [];
                 if (!empty($resource['description'])) {
-                    $tooltipparts[] = s($resource['description']);
+                    $popoverparts[] = s($resource['description']);
                 }
                 if (!$resource['amountirrelevant'] && $resource['amount'] > 0) {
-                    $tooltipparts[] = get_string('booking:resource_max', 'mod_bookit', $resource['amount']);
+                    $popoverparts[] = get_string('booking:resource_max', 'mod_bookit', $resource['amount']);
                 }
-                if (!empty($tooltipparts)) {
-                    $tooltiptext = implode(' | ', $tooltipparts);
-                    $infoicon = '<i class="fa fa-info-circle text-info ms-1"'
-                        . ' data-bs-toggle="tooltip" data-bs-placement="top"'
-                        . ' title="' . s($tooltiptext) . '"></i>';
+                if (!empty($popoverparts)) {
+                    $popovercontent = implode('<br>', $popoverparts);
+                    $infoicon = '<a class="btn btn-link p-0 ms-1 icon-no-margin" role="button" tabindex="0"'
+                        . ' data-container="body" data-toggle="popover"'
+                        . ' data-placement="right" data-content="' . $popovercontent . '"'
+                        . ' data-html="true" data-trigger="focus"'
+                        . ' aria-label="' . get_string('resourceinfo', 'mod_bookit') . '">'
+                        . '<i class="fa fa-info-circle text-info"></i>'
+                        . '</a>';
                     $groupelements[] = $mform->createElement('static', 'info_' . $resource['id'], '', $infoicon);
                 }
 

@@ -41,6 +41,7 @@ $string['booking:resource_amount'] = 'Amount';
 $string['booking:resource_amount_invalid'] = 'Requested amount ({$a->requested}) exceeds available amount ({$a->available})';
 $string['booking:resource_amount_too_low'] = 'Amount must be at least 1';
 $string['booking:resource_max'] = 'Max: {$a}';
+$string['resourceinfo'] = 'Resource information';
 $string['booking:resource_room_conflict'] = 'The selected room does not provide all booked resources. Use the room overview to get an overview of rooms and their available resources.';
 $string['booking:resource_selected'] = 'Selected';
 $string['booking:resource_unavailable'] = 'Not available in selected room';
