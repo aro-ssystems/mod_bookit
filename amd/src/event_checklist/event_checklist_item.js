@@ -103,15 +103,13 @@ export default class EventChecklistItem extends BaseComponent {
         .then(() => {
             // Update reactive state on success.
             this.reactive.dispatch('updateStatus', {id: this.itemId, status: newStatus});
-            return;
+            select.disabled = false;
         })
         .catch(e => {
             // Revert on error and log for debugging.
             select.value = previousStatus;
             this.element.dataset.itemStatus = previousStatus;
             window.console.error('Event resource status update failed:', e);
-        })
-        .finally(() => {
             select.disabled = false;
         });
     }
