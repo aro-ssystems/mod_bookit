@@ -364,7 +364,7 @@ export default class extends BaseComponent {
         const isAllRooms = this.totalrooms > 0 && item.roomids && item.roomids.length === this.totalrooms;
         if (isAllRooms) {
             const badge = document.createElement('span');
-            badge.className = 'badge badge-primary';
+            badge.className = 'badge badge-secondary';
             badge.textContent = 'All rooms';
             getString('allrooms', 'mod_bookit').then(str => {
                 badge.textContent = str;
