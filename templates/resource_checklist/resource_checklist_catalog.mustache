@@ -88,8 +88,14 @@
                     <div class="d-flex flex-wrap align-items-center">
                         {{#roomnames}}
                             <span class="badge {{textclass}} mr-1 mb-1"
-                                  style="opacity: 0.8; background-color: {{eventcolor}};">{{roomname}}</span>
+                                  style="opacity: 0.8; background-color: {{eventcolor}};"
+                                  title="{{roomname}}">{{shortname}}</span>
                         {{/roomnames}}
+                        {{#moreroomscount}}
+                            <span class="badge badge-light text-muted mr-1 mb-1"
+                                  data-toggle="tooltip"
+                                  title="{{allroomnames}}">+{{moreroomscount}}</span>
+                        {{/moreroomscount}}
                         {{^hasrooms}}<small class="text-muted">-</small>{{/hasrooms}}
                     </div>
                 </td>

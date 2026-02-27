@@ -26,7 +26,7 @@
  */
 
 import {BaseComponent} from 'core/reactive';
-import ModalForm from 'core_form/modalform';
+import Ajax from 'core/ajax';
 import {get_strings as getStrings} from 'core/str';
 
 /** CSS badge classes per status */
@@ -82,7 +82,7 @@ export default class EventChecklistItem extends BaseComponent {
      *
      * @param {Event} event
      */
-    async _onDropdownChange(event) {
+    _onDropdownChange(event) {
         const select = event.currentTarget;
         const newStatus = select.value;
         const previousStatus = this.element.dataset.itemStatus;
@@ -91,29 +91,29 @@ export default class EventChecklistItem extends BaseComponent {
         this.element.dataset.itemStatus = newStatus;
         select.disabled = true;
 
-        try {
-            const form = new ModalForm({
-                formClass: 'mod_bookit\\form\\update_event_resource_status_form',
-                args: {
-                    cmid:       this.cmid,
-                    eventid:    this.eventid,
-                    resourceid: parseInt(this.element.dataset.itemResourceid),
-                    status:     newStatus,
-                },
-            });
-            await form.submitFormAjax();
-
-            // Update reactive state.
+        Ajax.call([{
+            methodname: 'mod_bookit_update_event_resource_status',
+            args: {
+                cmid:       this.cmid,
+                eventid:    this.eventid,
+                resourceid: parseInt(this.element.dataset.itemResourceid),
+                status:     newStatus,
+            },
+        }])[0]
+        .then(() => {
+            // Update reactive state on success.
             this.reactive.dispatch('updateStatus', {id: this.itemId, status: newStatus});
-
-        } catch (e) {
+            return;
+        })
+        .catch(e => {
             // Revert on error and log for debugging.
             select.value = previousStatus;
             this.element.dataset.itemStatus = previousStatus;
             window.console.error('Event resource status update failed:', e);
-        } finally {
+        })
+        .finally(() => {
             select.disabled = false;
-        }
+        });
     }
 
     /**

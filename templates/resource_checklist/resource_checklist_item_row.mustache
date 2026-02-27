@@ -28,6 +28,11 @@
     * active - Active status
     * duedate - Due date (timestamp or null)
     * duedatetype - Due date type
+    * roomnames - Array of {roomid, roomname, shortname, eventcolor, textclass}
+    * moreroomscount - Number of additional rooms beyond the displayed ones
+    * allroomnames - Comma-separated list of all room names (for tooltip)
+    * amount - Amount value
+    * amountirrelevant - Whether amount is unlimited
 }}
 <tr class="resource-checklist-item-row {{^active}}opacity-50{{/active}}"
     data-region="checklist-item-row"
@@ -39,12 +44,36 @@
     data-item-sortorder="{{sortorder}}"
     data-item-active="{{active}}"
     data-item-duedate="{{duedate}}"
-    data-item-duedatetype="{{duedatetype}}">
-    <td class="py-2">
+    data-item-duedatetype="{{duedatetype}}"
+    data-item-rooms="{{rooms}}">
+    <td class="align-middle py-2 pl-4">
         <span data-field="item-name">{{{name}}}</span>
         {{#description}}
         <small class="text-muted d-block" data-field="item-description">{{{description}}}</small>
         {{/description}}
+    </td>
+    <td class="align-middle py-2" data-field="item-amount">
+        {{#amountirrelevant}}
+            <span class="badge badge-secondary">{{#str}}resources:amount_unlimited, mod_bookit{{/str}}</span>
+        {{/amountirrelevant}}
+        {{^amountirrelevant}}
+            <span class="badge badge-info">{{amount}}x</span>
+        {{/amountirrelevant}}
+    </td>
+    <td class="align-middle py-2" data-field="item-rooms">
+        <div class="d-flex flex-wrap align-items-center">
+            {{#roomnames}}
+                <span class="badge {{textclass}} mr-1 mb-1"
+                      style="opacity: 0.8; background-color: {{eventcolor}};"
+                      title="{{roomname}}">{{shortname}}</span>
+            {{/roomnames}}
+            {{#moreroomscount}}
+                <span class="badge badge-light text-muted mr-1 mb-1"
+                      data-toggle="tooltip"
+                      title="{{allroomnames}}">+{{moreroomscount}}</span>
+            {{/moreroomscount}}
+            {{^hasrooms}}<small class="text-muted">-</small>{{/hasrooms}}
+        </div>
     </td>
     <td class="py-2" data-field="item-duedate">
         {{#duedate}}{{duedate}}{{/duedate}}

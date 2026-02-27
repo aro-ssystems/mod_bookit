@@ -123,6 +123,7 @@ class resource_checklist_catalog implements renderable, templatable {
                                     $roomnames[] = [
                                         'roomid'     => $room->id,
                                         'roomname'   => $room->name,
+                                        'shortname'  => $room->shortname ?? '',
                                         'eventcolor' => $room->eventcolor ?? '#6c757d',
                                         'textclass'  => $room->textclass ?? 'text-light',
                                     ];
@@ -131,8 +132,20 @@ class resource_checklist_catalog implements renderable, templatable {
                             }
                         }
                     }
-                    $itemdata->roomnames = $roomnames;
-                    $itemdata->rooms = implode(', ', $roomnamesplain);
+
+                    // Overflow badge: show first 2 rooms, then +N.
+                    $maxvisible = 2;
+                    $visiblerooms = array_slice($roomnames, 0, $maxvisible);
+                    $moreroomscount = max(0, count($roomnames) - $maxvisible);
+                    foreach ($visiblerooms as &$r) {
+                        $r['shortname'] = $r['shortname'] ?: $r['roomname'];
+                    }
+                    unset($r);
+
+                    $itemdata->roomnames = $visiblerooms;
+                    $itemdata->moreroomscount = $moreroomscount > 0 ? $moreroomscount : null;
+                    $itemdata->allroomnames = implode(', ', $roomnamesplain);
+                    $itemdata->rooms = $itemdata->allroomnames;
                     $itemdata->hasrooms = !empty($roomnames);
 
                     $categorydata->items[] = $itemdata;

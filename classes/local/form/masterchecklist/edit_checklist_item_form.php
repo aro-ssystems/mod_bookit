@@ -320,6 +320,7 @@ class edit_checklist_item_form extends dynamic_form {
             array_push($fields['roomnames'], [
                 'roomid' => (int) $roomid,
                 'roomname' => $room->name,
+                'shortname' => $room->shortname ?? '',
                 'eventcolor' => $room->eventcolor,
                 'textclass' => $room->textclass,
             ]);
