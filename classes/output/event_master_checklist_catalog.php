@@ -108,8 +108,8 @@ class event_master_checklist_catalog implements renderable, templatable {
         $categoriesdata = [];
 
         foreach ($categories as $category) {
-            $categoryid   = $category->get_id();
-            $categoryname = format_string($category->get_name());
+            $categoryid   = $category->id;
+            $categoryname = format_string($category->name);
 
             $items = checklist_manager::get_items_by_category_id($categoryid);
             if (empty($items)) {
@@ -118,12 +118,12 @@ class event_master_checklist_catalog implements renderable, templatable {
 
             $itemsdata = [];
             foreach ($items as $item) {
-                $itemid = $item->get_id();
+                $itemid = $item->id;
                 $done   = $statebyitem[$itemid] ?? false;
 
                 $itemdata = new stdClass();
                 $itemdata->id    = $itemid;
-                $itemdata->title = format_string($item->get_title());
+                $itemdata->title = format_string($item->title);
                 $itemdata->done  = $done;
 
                 $totalcount++;

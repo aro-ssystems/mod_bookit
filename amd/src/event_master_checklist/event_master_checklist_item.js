@@ -59,8 +59,9 @@ export default class EventMasterChecklistItem extends BaseComponent {
         const done = checkbox.checked;
         const id = parseInt(this.element.dataset.itemid);
         const state = this.reactive.stateManager.state;
-        const cmid = state.cmid;
-        const eventid = state.eventid;
+        const item = state.items.get(id);
+        const cmid = item ? item.cmid : parseInt(this.element.closest('[data-cmid]')?.dataset.cmid ?? 0);
+        const eventid = item ? item.eventid : parseInt(this.element.closest('[data-eventid]')?.dataset.eventid ?? 0);
 
         // Update reactive state immediately (optimistic update).
         this.reactive.dispatch('toggleDone', {id, done});

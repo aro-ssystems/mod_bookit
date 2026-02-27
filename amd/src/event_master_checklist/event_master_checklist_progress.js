@@ -38,16 +38,27 @@ const SELECTORS = {
 export default class EventMasterChecklistProgress extends BaseComponent {
 
     /**
-     * State ready: subscribe to all state changes.
+     * State ready: initial calculation.
      */
     stateReady() {
-        this.addEventListener(document, this.reactive.eventName, this._onStateChange.bind(this));
+        this._updateProgressBar();
     }
 
     /**
-     * Recalculate and update the progress bar on any state event.
+     * Watch for item done state changes.
+     *
+     * @return {Array}
      */
-    _onStateChange() {
+    getWatchers() {
+        return [
+            {watch: 'items.done:updated', handler: this._updateProgressBar.bind(this)},
+        ];
+    }
+
+    /**
+     * Recalculate and update the progress bar.
+     */
+    _updateProgressBar() {
         const state = this.reactive.stateManager.state;
         if (!state || !state.items) {
             return;

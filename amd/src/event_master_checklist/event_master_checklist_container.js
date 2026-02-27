@@ -63,7 +63,7 @@ export default class EventMasterChecklistContainer extends BaseComponent {
 
         const instance = new EventMasterChecklistContainer({element, reactive});
 
-        reactive.setInitialState({items, cmid, eventid});
+        reactive.setInitialState({items});
 
         return instance;
     }
