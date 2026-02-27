@@ -15,7 +15,10 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Read-only resource status view for bookers and examiners.
+ * Resource status view for event participants and service team.
+ *
+ * Service team (managebasics): interactive checklist with status dropdowns.
+ * Bookers and examiners: read-only view matching the booking form layout.
  *
  * @package     mod_bookit
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -40,35 +43,51 @@ require_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/bookit:view', $context);
 
+$canmanage = has_capability('mod/bookit:managebasics', $context);
+
 $PAGE->set_url(new moodle_url('/mod/bookit/view/event_resources.php', ['id' => $cmid, 'eventid' => $eventid]));
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('incourse');
-$PAGE->set_title(get_string('event_resources_title', 'mod_bookit'));
 $PAGE->set_heading($course->fullname);
 
-// Build booked resources map.
-$bookedresources = [];
-foreach (resource_manager::get_resources_of_event($eventid) as $br) {
-    $bookedresources[(int)$br->resourceid] = [
-        'amount' => (int)$br->amount,
-        'status' => (string)($br->status ?? 'requested'),
-    ];
-}
-
-$resourcesdata = resource_manager::get_active_resources_grouped();
-
-$form = new view_event_resources_form(null, [
-    'bookedresources' => $bookedresources,
-    'resourcesdata'   => $resourcesdata,
-]);
+$titlestr = $canmanage ? get_string('event_checklist_title', 'mod_bookit') : get_string('event_resources_title', 'mod_bookit');
+$PAGE->set_title($titlestr);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('event_resources_heading', 'mod_bookit', format_string($event->name)));
 
-if (empty($bookedresources)) {
-    echo $OUTPUT->notification(get_string('event_checklist_no_resources', 'mod_bookit'), 'info');
+if ($canmanage) {
+    echo $OUTPUT->heading(get_string('event_checklist_heading', 'mod_bookit', format_string($event->name)));
+
+    $catalog = new \mod_bookit\output\event_checklist_catalog($eventid, $cmid, $canmanage, $event);
+    echo $OUTPUT->render($catalog);
+
+    $PAGE->requires->js_call_amd(
+        'mod_bookit/event_checklist/event_checklist_container',
+        'init',
+        ['#mod-bookit-event-checklist-container']
+    );
 } else {
-    $form->display();
+    // Bookers and examiners: read-only form matching the booking form layout.
+    echo $OUTPUT->heading(get_string('event_resources_heading', 'mod_bookit', format_string($event->name)));
+
+    $bookedresources = [];
+    foreach (resource_manager::get_resources_of_event($eventid) as $br) {
+        $bookedresources[(int)$br->resourceid] = [
+            'amount' => (int)$br->amount,
+            'status' => (string)($br->status ?? 'requested'),
+        ];
+    }
+
+    if (empty($bookedresources)) {
+        echo $OUTPUT->notification(get_string('event_checklist_no_resources', 'mod_bookit'), 'info');
+    } else {
+        $resourcesdata = resource_manager::get_active_resources_grouped();
+        $form = new view_event_resources_form(null, [
+            'bookedresources' => $bookedresources,
+            'resourcesdata'   => $resourcesdata,
+        ]);
+        $form->display();
+    }
 }
 
 echo html_writer::start_tag('div', ['class' => 'mt-3']);
