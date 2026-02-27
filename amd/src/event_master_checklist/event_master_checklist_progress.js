@@ -89,10 +89,8 @@ export default class EventMasterChecklistProgress extends BaseComponent {
 
         if (complete) {
             bar.classList.add('bg-success');
-            bar.classList.remove('progress-bar-animated');
         } else {
             bar.classList.remove('bg-success');
-            bar.classList.add('progress-bar-animated');
         }
 
         if (text) {
