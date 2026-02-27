@@ -601,7 +601,7 @@ class edit_event_form extends dynamic_form {
                 }
             }
 
-            if ($data && $data->roomid) {
+            if ($data && $data->roomid && !is_null($data->duration)) {
                 /** @var \MoodleQuickForm_select $starttimeel */
                 $starttimeel = $mform->getElement('starttime');
                 $starttimeel->removeOptions();
