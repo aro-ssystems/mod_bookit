@@ -112,14 +112,14 @@
 
                     <td>
                         {{#checklistprogress_available}}
-                        <div class="progress" style="min-width:80px;">
+                        <div class="progress position-relative" style="min-width:80px;">
                             <div class="progress-bar" role="progressbar"
                                  style="width:{{checklistprogress}}%;"
                                  aria-valuenow="{{checklistprogress}}"
                                  aria-valuemin="0" aria-valuemax="100">
                             </div>
+                            <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{checklistprogress}}%</span>
                         </div>
-                        <small>{{checklistprogress}}%</small>
                         {{/checklistprogress_available}}
                         {{^checklistprogress_available}}--{{/checklistprogress_available}}
                     </td>
