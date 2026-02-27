@@ -45,9 +45,11 @@ class resource_catalog implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
+        global $DB;
         $data = new stdClass();
         $data->contextid = \context_system::instance()->id;
         $data->categories = [];
+        $data->totalrooms = $DB->count_records('bookit_room');
 
         $categories = resource_manager::get_all_categories();
 

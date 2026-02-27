@@ -55,6 +55,7 @@ class resource_checklist_catalog implements renderable, templatable {
 
         // Get all rooms as [id => room record with color] for lookup.
         $allrooms = checklist_manager::get_bookit_rooms();
+        $totalrooms = count($allrooms);
         // Index by id for fast lookup.
         $roomsbyid = [];
         foreach ($allrooms as $room) {
@@ -147,6 +148,8 @@ class resource_checklist_catalog implements renderable, templatable {
                     $itemdata->allroomnames = implode(', ', $roomnamesplain);
                     $itemdata->rooms = $itemdata->allroomnames;
                     $itemdata->hasrooms = !empty($roomnames);
+                    $assignedcount = !empty($item->roomids) ? count(json_decode($item->roomids, true) ?: []) : 0;
+                    $itemdata->isallrooms = $totalrooms > 0 && $assignedcount === $totalrooms;
 
                     $categorydata->items[] = $itemdata;
                 }

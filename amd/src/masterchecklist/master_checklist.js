@@ -281,6 +281,7 @@ export default class extends BaseComponent {
                 categoryid: event.element.category,
                 roomids: event.element.roomids,
                 roomnames: roomNames,
+                isallrooms: event.element.isallrooms ?? false,
                 roleids: event.element.roleids,
                 rolenames: roleNames,
                 type: 'item',
@@ -340,7 +341,8 @@ export default class extends BaseComponent {
                 templateName = 'mod_bookit/masterchecklist/bookit_checklist_item_rooms';
                 templateData = {
                     id: event.element.id,
-                    roomnames: stateItem.roomnames
+                    roomnames: stateItem.roomnames,
+                    isallrooms: stateItem.isallrooms ?? false,
                 };
             } else if (fieldPart.startsWith('role')) {
 

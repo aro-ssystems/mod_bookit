@@ -28,6 +28,10 @@
 }}
 <td class="align-middle py-3" data-bookit-checklistitem-tabledata-roomids-id="{{id}}">
     <div class="d-flex flex-wrap align-items-center">
+    {{#isallrooms}}
+        <span class="badge badge-primary">{{#str}}allrooms, mod_bookit{{/str}}</span>
+    {{/isallrooms}}
+    {{^isallrooms}}
     {{#roomnames}}
         <span class="badge {{textclass}} mr-1 mb-1"
             style="opacity: 0.8;background-color: {{eventcolor}};"
@@ -38,5 +42,6 @@
             data-bookit-checklistitem-roomname="{{roomname}}"
             data-bookit-checklistitem-tabledata-is-room-element>{{shortname}}{{^shortname}}{{roomname}}{{/shortname}}</span>
     {{/roomnames}}
+    {{/isallrooms}}
     </div>
 </td>

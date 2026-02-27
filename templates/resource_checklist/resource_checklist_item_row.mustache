@@ -62,6 +62,10 @@
     </td>
     <td class="align-middle py-2" data-field="item-rooms">
         <div class="d-flex flex-wrap align-items-center">
+            {{#isallrooms}}
+                <span class="badge badge-primary">{{#str}}allrooms, mod_bookit{{/str}}</span>
+            {{/isallrooms}}
+            {{^isallrooms}}
             {{#roomnames}}
                 <span class="badge {{textclass}} mr-1 mb-1"
                       style="opacity: 0.8; background-color: {{eventcolor}};"
@@ -73,6 +77,7 @@
                       title="{{allroomnames}}">+{{moreroomscount}}</span>
             {{/moreroomscount}}
             {{^hasrooms}}<small class="text-muted">-</small>{{/hasrooms}}
+            {{/isallrooms}}
         </div>
     </td>
     <td class="py-2" data-field="item-duedate">
