@@ -45,16 +45,27 @@ const SELECTORS = {
 export default class EventChecklistProgress extends BaseComponent {
 
     /**
-     * State ready: subscribe to all state changes.
+     * Watch for any status update in the items map.
+     *
+     * @return {Array}
      */
-    stateReady() {
-        this.addEventListener(document, this.reactive.eventName, this._onStateChange.bind(this));
+    getWatchers() {
+        return [
+            {watch: 'items.status:updated', handler: this._updateProgressBar.bind(this)},
+        ];
     }
 
     /**
-     * Recalculate and update the progress bar on any state event.
+     * Initial render after state is ready.
      */
-    _onStateChange() {
+    stateReady() {
+        this._updateProgressBar();
+    }
+
+    /**
+     * Recalculate and update the progress bar.
+     */
+    _updateProgressBar() {
         const state = this.reactive.stateManager.state;
         if (!state || !state.items) {
             return;
