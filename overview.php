@@ -214,7 +214,7 @@ foreach ($events as $ev) {
             'id' => 'master_checklist_items',
         ]))->out(false),
         'resourceschecklistlabel' => get_string('resources', 'mod_bookit'),
-        'resourceschecklisturl' => (new moodle_url('/mod/bookit/view/event_checklist.php', [
+        'resourceschecklisturl' => (new moodle_url('/mod/bookit/view/event_resources.php', [
             'id' => $cm->id,
             'eventid' => (int)$ev->id,
         ]))->out(false),
