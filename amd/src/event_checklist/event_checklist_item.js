@@ -104,6 +104,7 @@ export default class EventChecklistItem extends BaseComponent {
             // Update reactive state on success.
             this.reactive.dispatch('updateStatus', {id: this.itemId, status: newStatus});
             select.disabled = false;
+            return true;
         })
         .catch(e => {
             // Revert on error and log for debugging.

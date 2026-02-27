@@ -255,6 +255,7 @@ $string['internalnotes'] = 'Interne Hinweise';
 $string['internalnotes_help'] = 'Diese Notizen sind nur für den internen Gebrauch bestimmt und werden der buchenden Person nicht angezeigt.';
 $string['invalidchecklistitemid'] = 'Ungültige Checklisten-Element-ID';
 $string['invalidcsvformat'] = 'Ungültiges CSV-Format. Bitte überprüfen Sie die Dateistruktur.';
+$string['invalideventid'] = 'Ungültige Veranstaltungs-ID';
 $string['invalidformat'] = 'Ungültiges Exportformat angegeben';
 $string['invalidweekday'] = 'Dieser Wochentag ist für Buchungen nicht erlaubt.';
 $string['item_created'] = 'Ressource erfolgreich erstellt';
