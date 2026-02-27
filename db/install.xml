@@ -332,5 +332,28 @@
         <KEY NAME="usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
+    <TABLE NAME="bookit_event_checklist_state" COMMENT="Stores per-event check-off state for master checklist items">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to bookit (event)"/>
+        <FIELD NAME="checklistitemid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Foreign key to bookit_checklist_item"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User who checked the item"/>
+        <FIELD NAME="done" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if checked off, 0 otherwise"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="eventid_fk" TYPE="foreign" FIELDS="eventid" REFTABLE="bookit" REFFIELDS="id"/>
+        <KEY NAME="checklistitemid_fk" TYPE="foreign" FIELDS="checklistitemid" REFTABLE="bookit_checklist_item" REFFIELDS="id"/>
+        <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="usermodified_fk" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="eventid_idx" UNIQUE="false" FIELDS="eventid" COMMENT="Index for event lookups"/>
+        <INDEX NAME="event_item_user_unique_idx" UNIQUE="true" FIELDS="eventid,checklistitemid,userid" COMMENT="One state record per event/item/user"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

@@ -1,0 +1,133 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/event_master_checklist_catalog
+    Event-specific master checklist with check-off and reactive progress bar.
+
+    Context variables:
+    * eventid          - Event ID
+    * cmid             - Course module ID
+    * contextid        - Context ID
+    * eventname        - Event name string
+    * starttime        - Formatted start time string
+    * categories       - Array of category objects, each with items array
+    * hasitems         - Boolean: any checklist items present?
+    * progresstotal    - Total number of items
+    * progressdone     - Number of done items
+    * progresspercent  - Percentage (0-100)
+    * progresscomplete - Boolean: all items done?
+
+    Example context (json):
+    {
+        "eventid": 2,
+        "cmid": 4,
+        "contextid": 42,
+        "eventname": "Test Event",
+        "starttime": "27.02.2026 10:00",
+        "hasitems": true,
+        "progresstotal": 3,
+        "progressdone": 1,
+        "progresspercent": 33,
+        "progresscomplete": false,
+        "categories": [
+            {
+                "id": 1,
+                "name": "Preparation",
+                "items": [
+                    {"id": 1, "title": "Book room", "done": true},
+                    {"id": 2, "title": "Send invitations", "done": false}
+                ]
+            }
+        ]
+    }
+}}
+<div class="d-flex justify-content-center">
+<div id="mod-bookit-event-master-checklist-container"
+     class="mod-bookit-event-master-checklist-container mt-4"
+     data-region="event-master-checklist-container"
+     data-eventid="{{eventid}}"
+     data-cmid="{{cmid}}"
+     data-contextid="{{contextid}}"
+     style="min-width: 600px; max-width: 800px; width: 100%;">
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">{{#str}}event_details, mod_bookit{{/str}}</h5>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">{{#str}}event_name, mod_bookit{{/str}}</dt>
+                <dd class="col-sm-8">{{{eventname}}}</dd>
+                {{#starttime}}
+                <dt class="col-sm-4">{{#str}}starttime, mod_bookit{{/str}}</dt>
+                <dd class="col-sm-8">{{starttime}}</dd>
+                {{/starttime}}
+            </dl>
+        </div>
+    </div>
+
+    <div class="card mb-4" data-region="event-master-checklist-progress-container">
+        <div class="card-body">
+            <h6 class="card-title mb-2">{{#str}}event_checklist_view:progress, mod_bookit{{/str}}</h6>
+            <div class="progress" style="height: 22px;">
+                <div class="progress-bar progress-bar-striped {{#progresscomplete}}bg-success{{/progresscomplete}}{{^progresscomplete}}progress-bar-animated{{/progresscomplete}}"
+                     role="progressbar"
+                     data-region="event-master-checklist-progressbar"
+                     style="width: {{progresspercent}}%; min-width: 2em;"
+                     aria-valuenow="{{progresspercent}}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">{{progresspercent}}%</div>
+            </div>
+            <small class="text-muted mt-1 d-block">
+                <span data-region="event-master-checklist-progress-text">{{progressdone}}</span> / {{progresstotal}} {{#str}}event_checklist_view:done, mod_bookit{{/str}}
+            </small>
+        </div>
+    </div>
+
+    {{#hasitems}}
+    <div class="list-group">
+        {{#categories}}
+        <div class="list-group-item list-group-item-secondary font-weight-bold py-2">
+            {{{name}}}
+        </div>
+        {{#items}}
+        <div class="list-group-item d-flex align-items-center"
+             data-region="event-master-checklist-item-row"
+             data-itemid="{{id}}"
+             data-itemdone="{{done}}">
+            <input type="checkbox"
+                   class="form-check-input mr-3"
+                   data-region="event-master-checklist-item-checkbox"
+                   id="event-master-checklist-item-{{id}}"
+                   {{#done}}checked{{/done}}
+                   style="width: 1.2em; height: 1.2em; cursor: pointer;">
+            <label class="form-check-label mb-0 flex-grow-1 {{#done}}text-decoration-line-through text-muted{{/done}}"
+                   for="event-master-checklist-item-{{id}}"
+                   data-region="event-master-checklist-item-label">
+                {{title}}
+            </label>
+        </div>
+        {{/items}}
+        {{/categories}}
+    </div>
+    {{/hasitems}}
+    {{^hasitems}}
+    <div class="alert alert-info">
+        {{#str}}event_checklist_view_no_items, mod_bookit{{/str}}
+    </div>
+    {{/hasitems}}
+
+</div>
+</div>
