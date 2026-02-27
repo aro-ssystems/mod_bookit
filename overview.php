@@ -108,9 +108,14 @@ echo $OUTPUT->header();
    3.  Fetch examiner’s events
    ======================================================================= */
 use mod_bookit\local\manager\event_manager;
+use mod_bookit\local\manager\checklist_manager;
+use mod_bookit\local\manager\event_checklist_state_manager;
 
 global $USER;
 $events = event_manager::get_events_for_examiner($USER->id);
+
+$defaultmaster = checklist_manager::get_default_master();
+$masterid = $defaultmaster ? (int)$defaultmaster->id : 0;
 
 
 /* ----- status → label / colours -------------------------------------- */
@@ -208,7 +213,9 @@ foreach ($events as $ev) {
         'datestr' => $datestr,
         'starttime' => (int)$ev->starttime,
         'cmid' => (int)$cm->id,
-        'checklistprogress' => '--',
+        'checklistprogress' => $masterid > 0
+            ? event_checklist_state_manager::get_progress_for_event((int)$ev->id, $masterid)['percent'] . '%'
+            : '--',
         'checklistlabel' => get_string('checklist', 'mod_bookit'),
         'checklisturl' => (new moodle_url('/mod/bookit/view/event_checklist_view.php', [
             'id' => $cm->id,
