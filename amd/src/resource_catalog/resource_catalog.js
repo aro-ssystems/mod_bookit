@@ -130,6 +130,7 @@ export default class extends BaseComponent {
         this.selectors.roomFilter = '#id_roomfilter_filter_section';
         this.categoryComponents = new Map();
         this.selectedRooms = new Set();
+        this.totalrooms = parseInt(this.element.dataset.totalrooms) || 0;
 
         // Cache localized strings for active/inactive.
         this.strings = {};
@@ -355,7 +356,21 @@ export default class extends BaseComponent {
         const container = roomsCell.querySelector('div');
 
         if (!item.roomnames || item.roomnames.length === 0) {
-            container.innerHTML = '<span class="badge badge-secondary">All rooms</span>';
+            container.innerHTML = '<span class="text-muted">-</span>';
+            return;
+        }
+
+        // Show "All Rooms" badge when all rooms are assigned.
+        const isAllRooms = this.totalrooms > 0 && item.roomids && item.roomids.length === this.totalrooms;
+        if (isAllRooms) {
+            const badge = document.createElement('span');
+            badge.className = 'badge badge-secondary';
+            badge.textContent = 'All rooms';
+            getString('allrooms', 'mod_bookit').then(str => {
+                badge.textContent = str;
+                return str;
+            }).catch(() => undefined);
+            container.appendChild(badge);
             return;
         }
 
@@ -478,6 +493,12 @@ export default class extends BaseComponent {
         row.dataset.itemRoomids = JSON.stringify(item.roomids || []);
         // Also update data-rooms to keep filter in sync.
         row.dataset.rooms = JSON.stringify(item.roomids || []);
+
+        // Re-render room badges.
+        const roomsCell = document.querySelector(`td[data-bookit-resource-tabledata-roomids-id="${item.id}"]`);
+        if (roomsCell) {
+            this._renderRoomBadgesForItem(item, roomsCell);
+        }
     }
 
     /**

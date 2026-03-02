@@ -320,10 +320,13 @@ class edit_checklist_item_form extends dynamic_form {
             array_push($fields['roomnames'], [
                 'roomid' => (int) $roomid,
                 'roomname' => $room->name,
+                'shortname' => $room->shortname ?? '',
                 'eventcolor' => $room->eventcolor,
                 'textclass' => $room->textclass,
             ]);
         }
+        $totalrooms = count(checklist_manager::get_bookit_rooms());
+        $fields['isallrooms'] = $totalrooms > 0 && count($data['roomids']) === $totalrooms;
 
         $fields['rolenames'] = [];
         foreach ($data['roleids'] as $roleid) {
