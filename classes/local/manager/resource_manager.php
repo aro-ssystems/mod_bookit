@@ -26,6 +26,7 @@
 namespace mod_bookit\local\manager;
 
 use dml_exception;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\entity\resource\bookit_resource_category;
 use mod_bookit\local\manager\resource_checklist_manager;
@@ -42,17 +43,24 @@ use mod_bookit\local\manager\resource_checklist_manager;
 class resource_manager {
     /**
      * Get resources of event.
-     * @param int $eventid
-     * @return array
+     *
+     * @param int $eventid Event ID
+     * @return bookit_event_resource[] Array keyed by resourceid
      * @throws dml_exception
      */
-    public static function get_resources_of_event(int $eventid) {
+    public static function get_resources_of_event(int $eventid): array {
         global $DB;
-        $resources = $DB->get_records_sql('
-            SELECT er.resourceid, er.amount, er.status, r.name, r.categoryid
-            FROM {bookit_resource} r JOIN {bookit_event_resource} er ON er.resourceid = r.id
+        $records = $DB->get_records_sql('
+            SELECT er.id, er.eventid, er.resourceid, er.amount, er.status,
+                   er.usermodified, er.timecreated, er.timemodified
+            FROM {bookit_event_resource} er
             WHERE er.eventid = :eventid', ['eventid' => $eventid]);
-        return $resources;
+
+        $entities = [];
+        foreach ($records as $record) {
+            $entities[(int)$record->resourceid] = bookit_event_resource::from_record($record);
+        }
+        return $entities;
     }
 
     /**

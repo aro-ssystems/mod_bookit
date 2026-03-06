@@ -414,10 +414,10 @@ class edit_event_form extends dynamic_form {
             $eventrec = $DB->get_record('bookit_event', ['id' => $eventid], 'bookingstatus');
             if ($eventrec && (int)$eventrec->bookingstatus >= 2) {
                 $bookingcompleted = true;
-                foreach (resource_manager::get_resources_of_event($eventid) as $br) {
-                    $bookedresources[(int)$br->resourceid] = [
-                        'amount' => (int)$br->amount,
-                        'status' => (string)($br->status ?? 'requested'),
+                foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
+                    $bookedresources[$rid] = [
+                        'amount' => $br->get_amount(),
+                        'status' => $br->get_status(),
                     ];
                 }
             }

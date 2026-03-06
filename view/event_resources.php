@@ -77,10 +77,10 @@ if ($canmanage) {
     echo $OUTPUT->heading(get_string('event_resources_heading', 'mod_bookit', format_string($event->name)));
 
     $bookedresources = [];
-    foreach (resource_manager::get_resources_of_event($eventid) as $br) {
-        $bookedresources[(int)$br->resourceid] = [
-            'amount' => (int)$br->amount,
-            'status' => (string)($br->status ?? 'requested'),
+    foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
+        $bookedresources[$rid] = [
+            'amount' => $br->get_amount(),
+            'status' => $br->get_status(),
         ];
     }
 
