@@ -32,6 +32,18 @@ namespace mod_bookit\local\entity\resource;
  * No business logic or persistence methods.
  */
 class bookit_event_resource {
+    /** @var string Status value: requested */
+    const STATUS_REQUESTED = 'requested';
+
+    /** @var string Status value: confirmed */
+    const STATUS_CONFIRMED = 'confirmed';
+
+    /** @var string Status value: in progress */
+    const STATUS_INPROGRESS = 'inprogress';
+
+    /** @var string Status value: rejected */
+    const STATUS_REJECTED = 'rejected';
+
     /** @var int|null Record ID */
     private ?int $id;
 
@@ -73,7 +85,7 @@ class bookit_event_resource {
         int $eventid = 0,
         int $resourceid = 0,
         int $amount = 1,
-        string $status = 'requested',
+        string $status = self::STATUS_REQUESTED,
         int $usermodified = 0,
         int $timecreated = 0,
         int $timemodified = 0
@@ -100,7 +112,7 @@ class bookit_event_resource {
             (int)($record->eventid ?? 0),
             (int)($record->resourceid ?? 0),
             (int)($record->amount ?? 1),
-            $record->status ?? 'requested',
+            $record->status ?? self::STATUS_REQUESTED,
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0)

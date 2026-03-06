@@ -113,7 +113,7 @@ class event_resource_manager {
         int $resourceid,
         int $amount,
         int $userid,
-        string $status = 'requested'
+        string $status = bookit_event_resource::STATUS_REQUESTED
     ): int {
         global $DB;
 
@@ -238,7 +238,7 @@ class event_resource_manager {
             (int)$record->eventid,
             (int)$record->resourceid,
             (int)($record->amount ?? 1),
-            $record->status ?? 'requested',
+            $record->status ?? bookit_event_resource::STATUS_REQUESTED,
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0)

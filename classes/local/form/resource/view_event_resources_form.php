@@ -25,8 +25,8 @@
 
 namespace mod_bookit\local\form\resource;
 
+use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\manager\resource_manager;
-use moodleform;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -49,10 +49,10 @@ class view_event_resources_form extends moodleform {
         $resourcesdata   = $this->_customdata['resourcesdata'] ?? [];
 
         $statusclassmap = [
-            'requested'  => 'badge-secondary',
-            'confirmed'  => 'badge-success',
-            'inprogress' => 'badge-primary',
-            'rejected'   => 'badge-danger',
+            bookit_event_resource::STATUS_REQUESTED  => 'badge-secondary',
+            bookit_event_resource::STATUS_CONFIRMED  => 'badge-success',
+            bookit_event_resource::STATUS_INPROGRESS => 'badge-primary',
+            bookit_event_resource::STATUS_REJECTED   => 'badge-danger',
         ];
 
         foreach ($resourcesdata as $categorygroup) {

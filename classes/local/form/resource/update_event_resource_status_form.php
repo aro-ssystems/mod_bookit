@@ -28,6 +28,7 @@ namespace mod_bookit\local\form\resource;
 use context;
 use context_module;
 use core_form\dynamic_form;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\manager\event_resource_manager;
 use moodle_url;
 
@@ -44,7 +45,12 @@ class update_event_resource_status_form extends dynamic_form {
      *
      * @var string[]
      */
-    const VALID_STATUSES = ['requested', 'confirmed', 'inprogress', 'rejected'];
+    const VALID_STATUSES = [
+        bookit_event_resource::STATUS_REQUESTED,
+        bookit_event_resource::STATUS_CONFIRMED,
+        bookit_event_resource::STATUS_INPROGRESS,
+        bookit_event_resource::STATUS_REJECTED,
+    ];
 
     /**
      * Form definition — all fields are hidden.

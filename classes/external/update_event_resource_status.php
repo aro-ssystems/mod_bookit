@@ -29,6 +29,7 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\manager\event_resource_manager;
 
 defined('MOODLE_INTERNAL') || die;
@@ -75,7 +76,12 @@ class update_event_resource_status extends external_api {
         self::validate_context($context);
         require_capability('mod/bookit:managebasics', $context);
 
-        $validstatuses = ['requested', 'confirmed', 'inprogress', 'rejected'];
+        $validstatuses = [
+            bookit_event_resource::STATUS_REQUESTED,
+            bookit_event_resource::STATUS_CONFIRMED,
+            bookit_event_resource::STATUS_INPROGRESS,
+            bookit_event_resource::STATUS_REJECTED,
+        ];
         if (!in_array($params['status'], $validstatuses)) {
             throw new \invalid_parameter_exception('Invalid status value: ' . $params['status']);
         }
