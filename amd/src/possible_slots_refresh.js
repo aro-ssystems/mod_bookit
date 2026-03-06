@@ -24,7 +24,6 @@
 import * as Ajax from 'core/ajax';
 import {getString} from 'core/str';
 import {prefetchStrings} from 'core/prefetch';
-import ResourceFilter from "mod_bookit/booking_form_resources";
 
 /**
  * Initializes the calendar.
@@ -36,12 +35,6 @@ export function initPossibleStarttimesRefresh(cmId, exceptEventId = null) {
     if (!formEl) {
         setTimeout(initPossibleStarttimesRefresh, 50, cmId, exceptEventId);
         return;
-    }
-
-    // Initialize resource filter with modal root.
-    const modalRoot = formEl.closest('.modal');
-    if (modalRoot) {
-        ResourceFilter.init(modalRoot);
     }
 
     void prefetchStrings('mod_bookit', ['no_slot_available', 'no_weekplan_defined']);
