@@ -67,6 +67,7 @@ $string['calendar_desc'] = 'General calendar & booking behaviour';
 $string['category_collapseexpand'] = 'Collapse/Expand';
 $string['category_created'] = 'Category created successfully';
 $string['category_deleted'] = 'Category deleted successfully';
+$string['category_has_resources'] = 'This category cannot be deleted because it contains resources. Please reassign or delete the resources first.';
 $string['category_name'] = 'Category name';
 $string['category_name_required'] = 'Category name is required.';
 $string['category_updated'] = 'Category updated successfully';

@@ -65,6 +65,7 @@ $string['calendar_desc'] = 'Allgemeines Kalender- und Buchungsverhalten';
 $string['category_collapseexpand'] = 'Einklappen/Ausklappen';
 $string['category_created'] = 'Kategorie erfolgreich erstellt';
 $string['category_deleted'] = 'Kategorie erfolgreich gelöscht';
+$string['category_has_resources'] = 'Diese Kategorie kann nicht gelöscht werden, da sie Ressourcen enthält. Bitte weisen Sie die Ressourcen zuerst anderen Kategorien zu oder löschen Sie sie.';
 $string['category_name'] = 'Kategoriename';
 $string['category_name_required'] = 'Kategoriename ist erforderlich.';
 $string['category_updated'] = 'Kategorie erfolgreich aktualisiert';

@@ -165,9 +165,12 @@ final class resource_manager_test extends advanced_testcase {
         $resourceid = resource_manager::save_resource($resource, 2);
 
         // Try to delete category - should throw exception.
-        $this->expectException(\moodle_exception::class);
-        $this->expectExceptionMessage('category_has_resources');
-        resource_manager::delete_category($categoryid);
+        try {
+            resource_manager::delete_category($categoryid);
+            $this->fail('Expected moodle_exception not thrown.');
+        } catch (\moodle_exception $e) {
+            $this->assertEquals('category_has_resources', $e->errorcode);
+        }
     }
 
     /**
@@ -399,9 +402,12 @@ final class resource_manager_test extends advanced_testcase {
         $category = new bookit_resource_category(null, '', null, 0, true, 0, 0, 2);
 
         // Expect exception when saving.
-        $this->expectException(\moodle_exception::class);
-        $this->expectExceptionMessage('category_name_required');
-        resource_manager::save_category($category, 2);
+        try {
+            resource_manager::save_category($category, 2);
+            $this->fail('Expected moodle_exception not thrown.');
+        } catch (\moodle_exception $e) {
+            $this->assertEquals('category_name_required', $e->errorcode);
+        }
     }
 
     /**
@@ -419,9 +425,12 @@ final class resource_manager_test extends advanced_testcase {
         $resource = new bookit_resource(null, '', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
 
         // Expect exception when saving.
-        $this->expectException(\moodle_exception::class);
-        $this->expectExceptionMessage('resource_name_required');
-        resource_manager::save_resource($resource, 2);
+        try {
+            resource_manager::save_resource($resource, 2);
+            $this->fail('Expected moodle_exception not thrown.');
+        } catch (\moodle_exception $e) {
+            $this->assertEquals('resource_name_required', $e->errorcode);
+        }
     }
 
     /**
@@ -435,8 +444,11 @@ final class resource_manager_test extends advanced_testcase {
         $resource = new bookit_resource(null, 'Test Resource', null, 99999, 5, false, 0, true, null, 0, 0, 2);
 
         // Expect exception when saving.
-        $this->expectException(\moodle_exception::class);
-        $this->expectExceptionMessage('resource_category_not_found');
-        resource_manager::save_resource($resource, 2);
+        try {
+            resource_manager::save_resource($resource, 2);
+            $this->fail('Expected moodle_exception not thrown.');
+        } catch (\moodle_exception $e) {
+            $this->assertEquals('resource_category_not_found', $e->errorcode);
+        }
     }
 }
