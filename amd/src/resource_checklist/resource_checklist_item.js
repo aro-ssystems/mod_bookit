@@ -55,6 +55,9 @@ export default class ResourceChecklistItem extends BaseComponent {
      */
     create(descriptor) {
         const itemId = descriptor.element.dataset.itemid || descriptor.element.dataset.bookitItemId;
+        if (!itemId) {
+            window.console.warn('resource_checklist_item: missing itemId on element', descriptor.element);
+        }
         this._editBtnSelector = itemId ? `#edit-item-${itemId}` : null;
         this.itemData = descriptor.itemData;
     }
