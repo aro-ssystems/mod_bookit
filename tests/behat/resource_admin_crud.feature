@@ -7,7 +7,6 @@ Feature: Manage resources in the admin area
   Background:
     Given I log in as "admin"
     And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I click on "Run install helper" "link"
     And I log out
 
   Scenario: Admin can create a new resource category
@@ -36,6 +35,8 @@ Feature: Manage resources in the admin area
     Then I should see "Edit Category"
     And I set the field "Name" to "Renamed Category"
     And I click on "button[data-action='save']" "css_element"
+    And I wait "3" seconds
+    And I reload the page
     And I should see "Renamed Category"
     And I should not see "Original Category"
 
@@ -51,7 +52,10 @@ Feature: Manage resources in the admin area
     When I click on "[data-action='add-resource']" "css_element"
     Then I should see "Add Resource"
     And I set the field "Name" to "Projector"
+    And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
+    And I wait "3" seconds
+    And I reload the page
     And I should see "Projector"
 
   Scenario: Admin can edit a resource
@@ -62,14 +66,19 @@ Feature: Manage resources in the admin area
     And I click on "[data-action='add-category']" "css_element"
     And I set the field "Name" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
+    And I should see "Equipment"
     And I click on "[data-action='add-resource']" "css_element"
     And I set the field "Name" to "Laptop"
+    And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
+    And I wait "3" seconds
     And I should see "Laptop"
     When I click on "[data-action='edit-item']" "css_element"
     Then I should see "Edit Resource"
     And I set the field "Name" to "Laptop EDITED"
     And I click on "button[data-action='save']" "css_element"
+    And I wait "3" seconds
+    And I reload the page
     And I should see "Laptop EDITED"
     And I should not see "Laptop" in the "#mod-bookit-resource-table" "css_element"
 
@@ -81,9 +90,15 @@ Feature: Manage resources in the admin area
     And I click on "[data-action='add-category']" "css_element"
     And I set the field "Name" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
+    And I should see "Equipment"
     And I click on "[data-action='add-resource']" "css_element"
     And I set the field "Name" to "Camera"
+    And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
+    And I wait "3" seconds
+    And I reload the page
     And I should see "Camera"
     When I click on "[data-action='toggle-active']" "css_element"
+    And I wait "2" seconds
+    And I reload the page
     Then I should see "Camera"
