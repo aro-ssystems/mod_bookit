@@ -23,8 +23,7 @@
  */
 
 import {BaseComponent} from 'core/reactive';
-import {resourceReactiveInstance} from 'mod_bookit/resource_catalog/resource_reactive';
-import {SELECTORS} from 'mod_bookit/resource_catalog/resource_reactive';
+import {getResourceReactive, SELECTORS} from 'mod_bookit/resource_catalog/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 
@@ -39,7 +38,7 @@ export default class ResourceItem extends BaseComponent {
     static init(target, selectors) {
         return new this({
             element: document.querySelector(target),
-            reactive: resourceReactiveInstance,
+            reactive: getResourceReactive(),
             selectors: selectors || SELECTORS,
         });
     }
