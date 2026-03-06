@@ -76,7 +76,7 @@ class update_event_resource_status_form extends dynamic_form {
         $errors = parent::validation($data, $files);
 
         if (!in_array($data['status'] ?? '', self::VALID_STATUSES, true)) {
-            $errors['status'] = 'Invalid status value.';
+            $errors['status'] = get_string('resources:invalid_status', 'mod_bookit');
         }
 
         return $errors;

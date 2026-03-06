@@ -367,6 +367,7 @@ $string['resources:edit_category'] = 'Kategorie bearbeiten';
 $string['resources:edit_resource'] = 'Ressource bearbeiten';
 $string['resources:generate_checklist'] = 'Checkliste generieren';
 $string['resources:inactive'] = 'Inaktiv';
+$string['resources:invalid_status'] = 'Ungültiger Statuswert.';
 $string['resources:name'] = 'Name';
 $string['resources:name_help'] = 'Der Name der Ressource oder Kategorie.';
 $string['resources:no_categories'] = 'Noch keine Kategorien';
