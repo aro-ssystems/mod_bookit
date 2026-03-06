@@ -23,7 +23,7 @@
  */
 
 import {BaseComponent} from 'core/reactive';
-import {resourceReactiveInstance, initResourceReactive} from './resource_reactive';
+import {getResourceReactive, initResourceReactive} from './resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Ajax from 'core/ajax';
@@ -40,63 +40,14 @@ export default class extends BaseComponent {
      * @return {ResourceCatalog} Component instance
      */
     static init(target) {
-        // Get container element.
         const element = document.querySelector(target);
         if (!element) {
             return null;
         }
 
-        // Read contextId from DOM.
         const contextId = parseInt(element.dataset.contextid);
+        const {categoriesArray, itemsArray} = this._parseDomState(element);
 
-        // Read categories and resources from DOM.
-        const categoriesArray = [];
-        const itemsArray = [];
-
-        const categoryElements = element.querySelectorAll('[data-region="resource-category"]');
-        categoryElements.forEach(categoryEl => {
-            const categoryRow = categoryEl.querySelector('[data-region="resource-category-row"]');
-            const categoryData = {
-                id: parseInt(categoryEl.dataset.categoryid),
-                name: categoryEl.dataset.categoryName || categoryRow?.textContent.trim(),
-                description: categoryEl.dataset.categoryDescription || '',
-                sortorder: parseInt(categoryEl.dataset.categorySortorder) || 0,
-            };
-            categoriesArray.push(categoryData);
-
-            // Read resources for this category.
-            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item-row"]');
-            itemElements.forEach(itemEl => {
-                // Parse roomids from JSON string.
-                let roomids = [];
-                if (itemEl.dataset.itemRoomids) {
-                    try {
-                        roomids = JSON.parse(itemEl.dataset.itemRoomids);
-                        if (!Array.isArray(roomids)) {
-                            roomids = [];
-                        }
-                    } catch (e) {
-                        window.console.warn('Failed to parse roomids:', e);
-                        roomids = [];
-                    }
-                }
-
-                const itemData = {
-                    id: parseInt(itemEl.dataset.itemid),
-                    name: itemEl.dataset.itemName || '',
-                    description: itemEl.dataset.itemDescription || '',
-                    categoryid: parseInt(itemEl.dataset.itemCategoryid),
-                    amount: parseInt(itemEl.dataset.itemAmount) || 0,
-                    amountirrelevant: itemEl.dataset.itemAmountirrelevant === '1',
-                    active: itemEl.dataset.itemActive === '1',
-                    sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
-                    roomids: roomids,
-                };
-                itemsArray.push(itemData);
-            });
-        });
-
-        // Initialize reactive store.
         initResourceReactive({
             categories: categoriesArray,
             items: itemsArray,
@@ -104,9 +55,83 @@ export default class extends BaseComponent {
 
         return new this({
             element: element,
-            reactive: resourceReactiveInstance,
+            reactive: getResourceReactive(),
             selectors: {contextId},
         });
+    }
+
+    /**
+     * Parse categories and items from the server-rendered DOM.
+     *
+     * @param {HTMLElement} element - Container element
+     * @return {{categoriesArray: Array, itemsArray: Array}}
+     */
+    static _parseDomState(element) {
+        const categoriesArray = [];
+        const itemsArray = [];
+
+        const categoryElements = element.querySelectorAll('[data-region="resource-category"]');
+        categoryElements.forEach(categoryEl => {
+            categoriesArray.push(this._parseCategoryElement(categoryEl));
+
+            const itemElements = categoryEl.querySelectorAll('[data-region="resource-item-row"]');
+            itemElements.forEach(itemEl => {
+                itemsArray.push(this._parseItemElement(itemEl));
+            });
+        });
+
+        return {categoriesArray, itemsArray};
+    }
+
+    /**
+     * Parse a single category element into a data object.
+     *
+     * @param {HTMLElement} categoryEl - Category DOM element
+     * @return {Object} Category data object
+     */
+    static _parseCategoryElement(categoryEl) {
+        const categoryRow = categoryEl.querySelector('[data-region="resource-category-row"]');
+        return {
+            id: parseInt(categoryEl.dataset.categoryid),
+            name: categoryEl.dataset.categoryName || categoryRow?.textContent.trim(),
+            description: categoryEl.dataset.categoryDescription || '',
+            sortorder: parseInt(categoryEl.dataset.categorySortorder) || 0,
+        };
+    }
+
+    /**
+     * Parse a single item element into a data object.
+     *
+     * Parses roomids from the JSON string stored in the data attribute.
+     *
+     * @param {HTMLElement} itemEl - Item DOM element
+     * @return {Object} Item data object
+     */
+    static _parseItemElement(itemEl) {
+        let roomids = [];
+        if (itemEl.dataset.itemRoomids) {
+            try {
+                roomids = JSON.parse(itemEl.dataset.itemRoomids);
+                if (!Array.isArray(roomids)) {
+                    roomids = [];
+                }
+            } catch (e) {
+                window.console.warn('Failed to parse roomids:', e);
+                roomids = [];
+            }
+        }
+
+        return {
+            id: parseInt(itemEl.dataset.itemid),
+            name: itemEl.dataset.itemName || '',
+            description: itemEl.dataset.itemDescription || '',
+            categoryid: parseInt(itemEl.dataset.itemCategoryid),
+            amount: parseInt(itemEl.dataset.itemAmount) || 0,
+            amountirrelevant: itemEl.dataset.itemAmountirrelevant === '1',
+            active: itemEl.dataset.itemActive === '1',
+            sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
+            roomids: roomids,
+        };
     }
 
     /**
