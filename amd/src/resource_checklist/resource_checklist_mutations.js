@@ -16,35 +16,156 @@
 /**
  * Mutations for resource checklist reactive state.
  *
+ * Standalone mutations class for the resource checklist reactive store.
+ * Handles CRUD operations on categories and checklist items.
+ *
  * @module mod_bookit/resource_checklist/resource_checklist_mutations
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import BaseChecklistMutations from 'mod_bookit/checklist/base_checklist_mutations';
-
 /**
- * Resource checklist mutations.
- *
- * Extends base mutations with resource checklist specific fields.
+ * Mutations for resource checklist reactive state.
  */
-export default class ResourceChecklistMutations extends BaseChecklistMutations {
+export default class ResourceChecklistMutations {
+
     /**
-     * Constructor.
+     * Placeholder for state event dispatching.
      */
-    constructor() {
-        super('categories', 'checklistitems');
+    checklistStateEvent() {
+        // Placeholder — state events are dispatched via dispatchResourceChecklistStateEvent.
+    }
+
+    // -------------------------------------------------------------------------
+    // Category mutations
+    // -------------------------------------------------------------------------
+
+    /**
+     * Handle category created.
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object
+     */
+    categoriesCreated(stateManager, data) {
+        const state = stateManager.state;
+        stateManager.setReadOnly(false);
+        state.categories.set(data.fields.id, {
+            id: data.fields.id,
+            name: data.fields.name,
+            description: data.fields.description || '',
+            sortorder: data.fields.sortorder || 0,
+        });
+        stateManager.setReadOnly(true);
     }
 
     /**
-     * Extract resource checklist specific item fields.
+     * Handle category updated.
      *
-     * @param {Object} fields - All fields from the data
-     * @return {Object} Domain-specific fields
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object
      */
-    _getItemFields(fields) {
+    categoriesUpdated(stateManager, data) {
+        const state = stateManager.state;
+        stateManager.setReadOnly(false);
+        const existing = state.categories.get(data.fields.id) || {};
+        state.categories.set(data.fields.id, {
+            ...existing,
+            id: data.fields.id,
+            name: data.fields.name,
+            description: data.fields.description || '',
+            sortorder: data.fields.sortorder || existing.sortorder || 0,
+        });
+        stateManager.setReadOnly(true);
+    }
+
+    /**
+     * Handle category deleted.
+     *
+     * Also removes all checklist items belonging to the deleted category.
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object containing id
+     */
+    categoriesDeleted(stateManager, data) {
+        const state = stateManager.state;
+        stateManager.setReadOnly(false);
+
+        const itemsToDelete = [];
+        state.checklistitems.forEach((item, id) => {
+            if (item.categoryid === data.fields.id) {
+                itemsToDelete.push(id);
+            }
+        });
+        itemsToDelete.forEach(id => state.checklistitems.delete(id));
+
+        state.categories.delete(data.fields.id);
+        stateManager.setReadOnly(true);
+    }
+
+    // -------------------------------------------------------------------------
+    // Checklist item mutations
+    // -------------------------------------------------------------------------
+
+    /**
+     * Handle checklist item created.
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object
+     */
+    itemsCreated(stateManager, data) {
+        const state = stateManager.state;
+        stateManager.setReadOnly(false);
+        state.checklistitems.set(data.fields.id, this._buildItemRecord(data.fields, {}));
+        stateManager.setReadOnly(true);
+    }
+
+    /**
+     * Handle checklist item updated.
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object
+     */
+    itemsUpdated(stateManager, data) {
+        const state = stateManager.state;
+        stateManager.setReadOnly(false);
+        const existing = state.checklistitems.get(data.fields.id) || {};
+        state.checklistitems.set(data.fields.id, this._buildItemRecord(data.fields, existing));
+        stateManager.setReadOnly(true);
+    }
+
+    /**
+     * Handle checklist item deleted.
+     *
+     * @param {Object} stateManager - The reactive state manager
+     * @param {Object} data - Data with fields object containing id
+     */
+    itemsDeleted(stateManager, data) {
+        const state = stateManager.state;
+        stateManager.setReadOnly(false);
+        state.checklistitems.delete(data.fields.id);
+        stateManager.setReadOnly(true);
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Build a checklist item record from field data.
+     *
+     * @param {Object} fields - Field data from server response
+     * @param {Object} existing - Existing record for fallback values
+     * @return {Object} Complete item record
+     */
+    _buildItemRecord(fields, existing) {
         return {
+            ...existing,
+            id: fields.id,
+            name: fields.name,
+            description: fields.description || '',
+            categoryid: fields.categoryid,
+            sortorder: fields.sortorder || existing.sortorder || 0,
             resourceid: fields.resourceid || 0,
             duedate: fields.duedate || null,
             duedatetype: fields.duedatetype || null,
