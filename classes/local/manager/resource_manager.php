@@ -19,6 +19,8 @@
  *
  * @package     mod_bookit
  * @copyright   2024 Melanie Treitinger, Ruhr-Universität Bochum <melanie.treitinger@ruhr-uni-bochum.de>
+ * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_bookit\local\manager;
@@ -33,6 +35,8 @@ use mod_bookit\local\manager\resource_checklist_manager;
  *
  * @package     mod_bookit
  * @copyright   2024 Melanie Treitinger, Ruhr-Universität Bochum <melanie.treitinger@ruhr-uni-bochum.de>
+ * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class resource_manager {
