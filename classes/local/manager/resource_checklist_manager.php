@@ -264,23 +264,18 @@ class resource_checklist_manager {
             $resourcename = '';
         }
 
-        // Get all existing checklist items with resource names, ordered alphabetically.
-        $existingsql = "SELECT rc.id, rc.sortorder, r.name
-                        FROM {bookit_resource_checklist} rc
-                        JOIN {bookit_resource} r ON r.id = rc.resourceid
-                        ORDER BY r.name ASC";
-        $existing = $DB->get_records_sql($existingsql);
+        $existingcount = $DB->count_records('bookit_resource_checklist');
 
-        if (empty($existing)) {
+        if ($existingcount === 0) {
             $sortorder = 0;
         } else {
-            // Find position where new resource fits alphabetically.
-            $position = 0;
-            foreach ($existing as $entry) {
-                if (strcasecmp($resourcename, $entry->name) > 0) {
-                    $position++;
-                }
-            }
+            // Count resources that come alphabetically before the new one.
+            $position = (int)$DB->count_records_sql(
+                "SELECT COUNT(*) FROM {bookit_resource_checklist} rc
+                 JOIN {bookit_resource} r ON r.id = rc.resourceid
+                 WHERE UPPER(r.name) < UPPER(:name)",
+                ['name' => $resourcename]
+            );
             // Shift existing items at position and above to make room.
             $DB->execute(
                 "UPDATE {bookit_resource_checklist} SET sortorder = sortorder + 1 WHERE sortorder >= ?",
