@@ -673,7 +673,7 @@ export default class extends BaseComponent {
      * @param {HTMLElement} btn - The toggle button element
      */
     _handleToggleCategory(btn) {
-        const categoryId = btn.dataset.categoryId;
+        const categoryId = btn.dataset.categoryid;
         const isExpanded = btn.getAttribute('aria-expanded') === 'true';
         const tableView = document.querySelector(this.selectors.tableView);
         const itemRows = tableView
