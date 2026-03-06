@@ -105,6 +105,35 @@ class bookit_resource {
     }
 
     /**
+     * Create entity from database record.
+     *
+     * @param \stdClass $record Database record
+     * @return self
+     */
+    public static function from_record(\stdClass $record): self {
+        $roomids = null;
+        if (isset($record->roomids) && $record->roomids !== null) {
+            $decoded = json_decode($record->roomids, true);
+            $roomids = is_array($decoded) ? $decoded : null;
+        }
+
+        return new self(
+            isset($record->id) ? (int)$record->id : null,
+            $record->name ?? '',
+            $record->description ?? null,
+            (int)($record->categoryid ?? 0),
+            (int)($record->amount ?? 0),
+            (bool)($record->amountirrelevant ?? 0),
+            (int)($record->sortorder ?? 0),
+            (bool)($record->active ?? 1),
+            $roomids,
+            (int)($record->timecreated ?? 0),
+            (int)($record->timemodified ?? 0),
+            (int)($record->usermodified ?? 0)
+        );
+    }
+
+    /**
      * Get database ID.
      *
      * @return ?int

@@ -89,6 +89,25 @@ class bookit_event_resource {
     }
 
     /**
+     * Create entity from database record.
+     *
+     * @param \stdClass $record Database record
+     * @return self
+     */
+    public static function from_record(\stdClass $record): self {
+        return new self(
+            isset($record->id) ? (int)$record->id : null,
+            (int)($record->eventid ?? 0),
+            (int)($record->resourceid ?? 0),
+            (int)($record->amount ?? 1),
+            $record->status ?? 'requested',
+            (int)($record->usermodified ?? 0),
+            (int)($record->timecreated ?? 0),
+            (int)($record->timemodified ?? 0)
+        );
+    }
+
+    /**
      * Get record ID.
      *
      * @return int|null

@@ -81,6 +81,25 @@ class bookit_resource_category {
     }
 
     /**
+     * Create entity from database record.
+     *
+     * @param \stdClass $record Database record
+     * @return self
+     */
+    public static function from_record(\stdClass $record): self {
+        return new self(
+            isset($record->id) ? (int)$record->id : null,
+            $record->name ?? '',
+            $record->description ?? null,
+            (int)($record->sortorder ?? 0),
+            (bool)($record->active ?? 1),
+            (int)($record->timecreated ?? 0),
+            (int)($record->timemodified ?? 0),
+            (int)($record->usermodified ?? 0)
+        );
+    }
+
+    /**
      * Get database ID.
      *
      * @return ?int

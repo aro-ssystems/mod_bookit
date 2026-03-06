@@ -119,6 +119,30 @@ class bookit_resource_checklist {
     }
 
     /**
+     * Create entity from database record.
+     *
+     * @param \stdClass $record Database record
+     * @return self
+     */
+    public static function from_record(\stdClass $record): self {
+        return new self(
+            isset($record->id) ? (int)$record->id : null,
+            (int)($record->resourceid ?? 0),
+            isset($record->duedate) ? (int)$record->duedate : null,
+            $record->duedatetype ?? null,
+            (int)($record->sortorder ?? 0),
+            (bool)($record->active ?? 1),
+            isset($record->beforedueid) ? (int)$record->beforedueid : null,
+            isset($record->whendueid) ? (int)$record->whendueid : null,
+            isset($record->overdueid) ? (int)$record->overdueid : null,
+            isset($record->whendoneid) ? (int)$record->whendoneid : null,
+            (int)($record->timecreated ?? 0),
+            (int)($record->timemodified ?? 0),
+            (int)($record->usermodified ?? 0)
+        );
+    }
+
+    /**
      * Get database ID.
      *
      * @return ?int
