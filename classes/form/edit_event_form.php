@@ -189,7 +189,7 @@ class edit_event_form extends dynamic_form {
             'static',
             'extratime_label',
             get_string('event_extratime_label', 'mod_bookit'),
-            get_string('event_extratime_description', 'mod_bookit', $config->extratime)
+            get_string('event_extratime_description', 'mod_bookit')
         );
 
         // Add "amount of students" field.
@@ -346,10 +346,14 @@ class edit_event_form extends dynamic_form {
         }
 
         if ($caneditinternal) {
+            // Don't use PARAM_INT, because it converts an empty text field to 0.
+            // In our case, an empty field should mean be the inherited default.
             $mform->addElement('text', 'extratimebefore', get_string('settings_extratime_before', 'mod_bookit'));
-            $mform->setType('extratimebefore', PARAM_INT);
+            $mform->setType('extratimebefore', PARAM_ALPHANUM);
+            $mform->addRule('extratimebefore', null, 'numeric', null, 'client');
             $mform->addElement('text', 'extratimeafter', get_string('settings_extratime_after', 'mod_bookit'));
-            $mform->setType('extratimeafter', PARAM_INT);
+            $mform->setType('extratimeafter', PARAM_ALPHANUM);
+            $mform->addRule('extratimeafter', null, 'numeric', null, 'client');
         } else {
             $mform->addElement('hidden', 'extratimebefore');
             $mform->addElement('hidden', 'extratimeafter');
@@ -375,19 +379,9 @@ class edit_event_form extends dynamic_form {
         $mform->hideIf('internalnotes', 'editinternal', 'neq');
         $mform->addHelpButton('internalnotes', 'event_internalnotes', 'mod_bookit');
 
-        // Handle time selection.
-        if (isset($_REQUEST['timeclicked']) && is_array($_REQUEST['timeclicked'])) {
-                // Fallback, when API not reachable.
-                $timeclicked = optional_param_array('timeclicked', null, PARAM_RAW);
-                $timeclicked = is_array($timeclicked) ? ($timeclicked[0] ?? null) : $timeclicked;
-        } else {
-            $timeclicked = $this->optional_param('timeclicked', null, PARAM_TEXT);
-        }
-            // Merge 28.01: Added default.
-            $possiblestarttimes = [];
-            $selectedtime = null;
-            $timeclickedstamp = null;
-            $startdate = null;
+        $timeclicked = $this->optional_param('timeclicked', null, PARAM_TEXT);
+        $possiblestarttimes = [];
+        $selectedtime = null;
 
         if ($timeclicked && $roomoptions) {
             $timeclicked = new \DateTimeImmutable($timeclicked);
@@ -411,46 +405,6 @@ class edit_event_form extends dynamic_form {
                 }
             }
         }
-            // Merge 28.01: fallback to "old behaviour" (15-min grid) if new possible_starttimes failed.
-        if (empty($possiblestarttimes) || !is_array($possiblestarttimes)) {
-            if ($startdate instanceof \DateTimeImmutable) {
-                $baseday = $startdate;
-            } else if ($timeclicked) {
-                try {
-                    $baseday = (new \DateTimeImmutable($timeclicked))->setTime(0, 0);
-                } catch (\Exception $e) {
-                    $baseday = (new \DateTimeImmutable('now'))->setTime(0, 0);
-                }
-            } else {
-                $baseday = (new \DateTimeImmutable('now'))->setTime(0, 0);
-            }
-
-            // Build "old style" 15-min slots for that day.
-            $startts = $baseday->getTimestamp();
-            for ($m = 0; $m < 24 * 60; $m += 15) {
-                $ts = $startts + ($m * 60);
-                $possiblestarttimes[$ts] = userdate($ts, get_string('strftimetime', 'langconfig'));
-            }
-
-            // Pick default: closest to click if we have it, else first slot.
-            if ($timeclickedstamp !== null) {
-                $selectedtime = $timeclickedstamp;
-            } else {
-                $selectedtime = array_key_first($possiblestarttimes);
-            }
-        }
-
-            /** @var \MoodleQuickForm_select $starttimeel */
-            $starttimeel = $mform->getElement('starttime');
-            $starttimeel->removeOptions();
-
-            // Merge 28.01: Quick Fix Attempt. Needs deeper investigation.
-        if (!empty($possiblestarttimes)) {
-            $starttimeel->loadArray($possiblestarttimes);
-        }
-        if ($selectedtime !== null) {
-            $mform->setDefault('starttime', $selectedtime);
-        }
 
         // Check if booking is completed (status >= 2: Accepted/Canceled/Rejected).
         $eventid = $this->optional_param('id', null, PARAM_INT);
@@ -468,6 +422,12 @@ class edit_event_form extends dynamic_form {
                 }
             }
         }
+
+        /** @var \MoodleQuickForm_select $starttimeel */
+        $starttimeel = $mform->getElement('starttime');
+        $starttimeel->removeOptions();
+        $starttimeel->loadArray($possiblestarttimes);
+        $mform->setDefault('starttime', $selectedtime);
 
         // Get active resources grouped by category for booking form.
         $resourcesdata = resource_manager::get_active_resources_grouped();
@@ -608,7 +568,8 @@ class edit_event_form extends dynamic_form {
                 [$possiblestarttimes, ] = get_possible_starttimes::list_possible_starttimes(
                     (new \DateTime())->setTimestamp($data->startdate),
                     $data->duration,
-                    $data->roomid
+                    $data->roomid,
+                    $id
                 );
                 $starttimeel->loadArray($possiblestarttimes);
             }
@@ -685,7 +646,7 @@ class edit_event_form extends dynamic_form {
         $formdata->resources = $mappings;
 
         // Calculate endtime.
-        $formdata->endtime = $formdata->starttime + $formdata->duration * 60 + $formdata->extratime * 60;
+        $formdata->endtime = $formdata->starttime + $formdata->duration * 60;
 
         if (is_array($formdata->supportpersons)) {
             $formdata->supportpersons = implode(',', array_filter($formdata->supportpersons));
@@ -697,6 +658,14 @@ class edit_event_form extends dynamic_form {
 
         if (!is_int($formdata->usermodified)) {
             unset($formdata->usermodified);
+        }
+
+        if (!is_int($formdata->extratimebefore)) {
+            $formdata->extratimebefore = null;
+        }
+
+        if (!is_int($formdata->extratimeafter)) {
+            $formdata->extratimeafter = null;
         }
 
         $event = bookit_event::from_record($formdata);
