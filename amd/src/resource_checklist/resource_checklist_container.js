@@ -36,7 +36,7 @@ const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
 const CATEGORY_REGION = 'resource-checklist-category';
 const ITEM_REGION = 'resource-checklist-item-row';
 const CATEGORY_MODAL_FORM = 'mod_bookit\\form\\edit_category_form';
-const ITEM_MODAL_FORM = 'mod_bookit\\form\\edit_resource_checklist_item_form';
+const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form';
 
 let resourceChecklistReactiveInstance = null;
 

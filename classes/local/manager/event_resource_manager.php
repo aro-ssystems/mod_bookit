@@ -26,7 +26,7 @@
 namespace mod_bookit\local\manager;
 
 use dml_exception;
-use mod_bookit\local\entity\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 
 /**
  * Event-resource relationship manager.

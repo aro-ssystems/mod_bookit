@@ -29,7 +29,7 @@
 require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/formslib.php');
 
-use mod_bookit\form\view_event_resources_form;
+use mod_bookit\local\form\resource\view_event_resources_form;
 use mod_bookit\local\manager\resource_manager;
 
 $eventid = required_param('eventid', PARAM_INT);

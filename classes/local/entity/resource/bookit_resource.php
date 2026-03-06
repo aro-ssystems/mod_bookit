@@ -14,30 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_bookit\local\entity;
+namespace mod_bookit\local\entity\resource;
 
 /**
- * Entity class for resource categories.
+ * Entity class for resources.
  *
  * @package     mod_bookit
  * @copyright   2024 Justus Dieckmann, Universität Münster
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class bookit_resource_category {
+class bookit_resource {
     /** @var ?int Database ID */
     private ?int $id;
 
-    /** @var string Category name */
+    /** @var string Resource name */
     private string $name;
 
     /** @var ?string Optional description */
     private ?string $description;
 
-    /** @var int Sort order for drag and drop */
+    /** @var int Foreign key to resource_categories */
+    private int $categoryid;
+
+    /** @var int Available amount */
+    private int $amount;
+
+    /** @var bool Flag: amount is irrelevant */
+    private bool $amountirrelevant;
+
+    /** @var int Sort order */
     private int $sortorder;
 
     /** @var bool Active/inactive flag */
     private bool $active;
+
+    /** @var ?array Room IDs assigned to this resource */
+    private ?array $roomids;
 
     /** @var int Unix timestamp of creation */
     private int $timecreated;
@@ -52,10 +64,14 @@ class bookit_resource_category {
      * Constructor.
      *
      * @param ?int $id Database ID, null for new objects
-     * @param string $name Category name
+     * @param string $name Resource name
      * @param ?string $description Optional description
+     * @param int $categoryid Category ID
+     * @param int $amount Available amount
+     * @param bool $amountirrelevant Amount irrelevant flag
      * @param int $sortorder Sort order
      * @param bool $active Active flag
+     * @param ?array $roomids Room IDs or null if available in all rooms
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
      * @param int $usermodified User ID
@@ -64,8 +80,12 @@ class bookit_resource_category {
         ?int $id = null,
         string $name = '',
         ?string $description = null,
+        int $categoryid = 0,
+        int $amount = 0,
+        bool $amountirrelevant = false,
         int $sortorder = 0,
         bool $active = true,
+        ?array $roomids = null,
         int $timecreated = 0,
         int $timemodified = 0,
         int $usermodified = 0
@@ -73,8 +93,12 @@ class bookit_resource_category {
         $this->id = $id;
         $this->name = $name;
         $this->description = $description;
+        $this->categoryid = $categoryid;
+        $this->amount = $amount;
+        $this->amountirrelevant = $amountirrelevant;
         $this->sortorder = $sortorder;
         $this->active = $active;
+        $this->roomids = $roomids;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->usermodified = $usermodified;
@@ -90,7 +114,7 @@ class bookit_resource_category {
     }
 
     /**
-     * Get category name.
+     * Get resource name.
      *
      * @return string
      */
@@ -108,6 +132,33 @@ class bookit_resource_category {
     }
 
     /**
+     * Get category ID.
+     *
+     * @return int
+     */
+    public function get_categoryid(): int {
+        return $this->categoryid;
+    }
+
+    /**
+     * Get available amount.
+     *
+     * @return int
+     */
+    public function get_amount(): int {
+        return $this->amount;
+    }
+
+    /**
+     * Check if amount is irrelevant.
+     *
+     * @return bool
+     */
+    public function is_amountirrelevant(): bool {
+        return $this->amountirrelevant;
+    }
+
+    /**
      * Get sort order.
      *
      * @return int
@@ -117,12 +168,21 @@ class bookit_resource_category {
     }
 
     /**
-     * Check if category is active.
+     * Check if resource is active.
      *
      * @return bool
      */
     public function is_active(): bool {
         return $this->active;
+    }
+
+    /**
+     * Get room IDs.
+     *
+     * @return ?array
+     */
+    public function get_roomids(): ?array {
+        return $this->roomids;
     }
 
     /**
@@ -153,7 +213,7 @@ class bookit_resource_category {
     }
 
     /**
-     * Set category name.
+     * Set resource name.
      *
      * @param string $name
      * @return void
@@ -170,6 +230,36 @@ class bookit_resource_category {
      */
     public function set_description(?string $description): void {
         $this->description = $description;
+    }
+
+    /**
+     * Set category ID.
+     *
+     * @param int $categoryid
+     * @return void
+     */
+    public function set_categoryid(int $categoryid): void {
+        $this->categoryid = $categoryid;
+    }
+
+    /**
+     * Set available amount.
+     *
+     * @param int $amount
+     * @return void
+     */
+    public function set_amount(int $amount): void {
+        $this->amount = $amount;
+    }
+
+    /**
+     * Set amount irrelevant flag.
+     *
+     * @param bool $amountirrelevant
+     * @return void
+     */
+    public function set_amountirrelevant(bool $amountirrelevant): void {
+        $this->amountirrelevant = $amountirrelevant;
     }
 
     /**
@@ -190,5 +280,15 @@ class bookit_resource_category {
      */
     public function set_active(bool $active): void {
         $this->active = $active;
+    }
+
+    /**
+     * Set room IDs.
+     *
+     * @param ?array $roomids
+     * @return void
+     */
+    public function set_roomids(?array $roomids): void {
+        $this->roomids = $roomids;
     }
 }

@@ -26,7 +26,7 @@
 namespace mod_bookit\local\manager;
 
 use dml_exception;
-use mod_bookit\local\entity\bookit_resource_checklist;
+use mod_bookit\local\entity\resource\bookit_resource_checklist;
 
 /**
  * Resource checklist manager class.

@@ -30,7 +30,7 @@ import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 
-const ITEM_MODAL_FORM = 'mod_bookit\\form\\edit_resource_checklist_item_form';
+const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form';
 const ITEM_TEMPLATE = 'mod_bookit/resource_checklist/resource_checklist_item_row';
 const ITEM_REGION = 'resource-checklist-item-row';
 

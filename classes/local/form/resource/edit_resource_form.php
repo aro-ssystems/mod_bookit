@@ -23,7 +23,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_bookit\form;
+namespace mod_bookit\local\form\resource;
 
 use core_form\dynamic_form;
 use context;
@@ -266,7 +266,7 @@ class edit_resource_form extends dynamic_form {
         $roomids = !empty($formdata->roomids) ? $formdata->roomids : null;
 
         // Create entity from form data.
-        $resource = new \mod_bookit\local\entity\bookit_resource(
+        $resource = new \mod_bookit\local\entity\resource\bookit_resource(
             $formdata->id ?: null,
             $formdata->name,
             $formdata->description ?? '',

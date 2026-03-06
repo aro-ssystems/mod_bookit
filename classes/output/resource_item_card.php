@@ -25,7 +25,7 @@
 
 namespace mod_bookit\output;
 
-use mod_bookit\local\entity\bookit_resource;
+use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\manager\color_manager;
 use renderer_base;
 use renderable;

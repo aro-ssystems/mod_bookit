@@ -546,7 +546,7 @@ export default class extends BaseComponent {
      */
     async _handleAddCategory() {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\edit_resource_category_form',
+            formClass: 'mod_bookit\\local\\form\\resource\\edit_resource_category_form',
             args: {
                 contextid: this.selectors.contextId,
             },
@@ -567,7 +567,7 @@ export default class extends BaseComponent {
      */
     async _handleAddResource() {
         const modalForm = new ModalForm({
-            formClass: 'mod_bookit\\form\\edit_resource_form',
+            formClass: 'mod_bookit\\local\\form\\resource\\edit_resource_form',
             args: {
                 contextid: this.selectors.contextId,
             },
@@ -611,7 +611,7 @@ export default class extends BaseComponent {
             sortorder: item.sortorder,
             active: newActiveState ? 1 : 0,
             action: 'put',
-            [`_qf__mod_bookit_form_edit_resource_form`]: 1
+            [`_qf__mod_bookit_local_form_resource_edit_resource_form`]: 1
         };
 
         // Convert to URL-encoded string.
@@ -631,7 +631,7 @@ export default class extends BaseComponent {
                 methodname: 'core_form_dynamic_form',
                 args: {
                     formdata: formDataString,
-                    form: 'mod_bookit\\form\\edit_resource_form'
+                    form: 'mod_bookit\\local\\form\\resource\\edit_resource_form'
                 }
             }])[0];
             this.reactive.stateManager.processUpdates(JSON.parse(response.data));
