@@ -24,13 +24,6 @@
 
 export default class {
     /**
-     * Placeholder method for resource catalog state events.
-     */
-    resourceCatalogStateEvent() {
-        // This method is intentionally empty - it's a placeholder for state events.
-    }
-
-    /**
      * Handle category updated (called by processUpdates for action: 'put').
      *
      * @param {Object} stateManager - The reactive state manager

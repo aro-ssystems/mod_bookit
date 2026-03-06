@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_bookit\local\entity;
+namespace mod_bookit\local\entity\resource;
 
 /**
  * Entity class for resources.
@@ -48,7 +48,7 @@ class bookit_resource {
     /** @var bool Active/inactive flag */
     private bool $active;
 
-    /** @var ?array Room IDs assigned to this resource */
+    /** @var ?array Room IDs assigned to this resource; stored as JSON in DB, null means available in all rooms */
     private ?array $roomids;
 
     /** @var int Unix timestamp of creation */
@@ -102,6 +102,35 @@ class bookit_resource {
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->usermodified = $usermodified;
+    }
+
+    /**
+     * Create entity from database record.
+     *
+     * @param \stdClass $record Database record
+     * @return self
+     */
+    public static function from_record(\stdClass $record): self {
+        $roomids = null;
+        if (isset($record->roomids) && $record->roomids !== null) {
+            $decoded = json_decode($record->roomids, true);
+            $roomids = is_array($decoded) ? $decoded : null;
+        }
+
+        return new self(
+            isset($record->id) ? (int)$record->id : null,
+            $record->name ?? '',
+            $record->description ?? null,
+            (int)($record->categoryid ?? 0),
+            (int)($record->amount ?? 0),
+            (bool)($record->amountirrelevant ?? 0),
+            (int)($record->sortorder ?? 0),
+            (bool)($record->active ?? 1),
+            $roomids,
+            (int)($record->timecreated ?? 0),
+            (int)($record->timemodified ?? 0),
+            (int)($record->usermodified ?? 0)
+        );
     }
 
     /**

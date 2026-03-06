@@ -68,7 +68,7 @@ class event_master_checklist_catalog implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
-        global $DB, $USER;
+        global $DB;
 
         $data = new stdClass();
         $data->eventid   = $this->eventid;
@@ -98,8 +98,8 @@ class event_master_checklist_catalog implements renderable, templatable {
 
         $masterid = $master->id;
 
-        // Load per-user state for this event.
-        $statebyitem = event_checklist_state_manager::get_state_for_event($this->eventid, $USER->id);
+        // Load global state for this event (an item counts as done if any user marked it done).
+        $statebyitem = event_checklist_state_manager::get_global_state_for_event($this->eventid);
 
         $categories = checklist_manager::get_categories_by_master_id($masterid);
 

@@ -23,7 +23,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_bookit\form;
+namespace mod_bookit\local\form\resource;
 
 use context;
 use context_system;
@@ -244,11 +244,9 @@ class edit_resource_checklist_item_form extends dynamic_form {
         }
 
         // Build rooms display string.
-        $allrooms = resource_manager::get_rooms();
-        $roomids = $resource->get_roomids() ?? [];
-        $roomnames = array_filter(array_map(fn($rid) => $allrooms[$rid] ?? null, $roomids));
+        $roomnames = resource_manager::get_room_names_for_resource($resource);
         $roomshtml = !empty($roomnames)
-            ? implode(', ', array_map('s', array_values($roomnames)))
+            ? implode(', ', array_map('s', $roomnames))
             : get_string('none');
 
         // Map duedatetype/duedate to radio + duration.

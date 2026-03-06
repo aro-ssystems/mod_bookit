@@ -54,6 +54,24 @@ class event_checklist_state_manager {
     }
 
     /**
+     * Get the global done state for an event (any user marks an item done counts it as done).
+     *
+     * Returns a map of checklistitemid => bool (true if any user marked it done).
+     *
+     * @param int $eventid
+     * @return array checklistitemid => bool
+     */
+    public static function get_global_state_for_event(int $eventid): array {
+        global $DB;
+        $records = $DB->get_records_select(self::TABLE, 'eventid = :eventid AND done = 1', ['eventid' => $eventid]);
+        $state = [];
+        foreach ($records as $record) {
+            $state[(int)$record->checklistitemid] = true;
+        }
+        return $state;
+    }
+
+    /**
      * Set the done state for one checklist item in an event.
      *
      * Creates or updates the state record.

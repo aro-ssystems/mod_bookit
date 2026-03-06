@@ -34,6 +34,7 @@ use mod_bookit\external\get_possible_starttimes;
 use core_user\fields;
 use dml_exception;
 use mod_bookit\local\entity\bookit_event;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\manager\event_manager;
 use mod_bookit\local\manager\resource_manager;
 use mod_bookit\local\persistent\institution;
@@ -414,10 +415,10 @@ class edit_event_form extends dynamic_form {
             $eventrec = $DB->get_record('bookit_event', ['id' => $eventid], 'bookingstatus');
             if ($eventrec && (int)$eventrec->bookingstatus >= 2) {
                 $bookingcompleted = true;
-                foreach (resource_manager::get_resources_of_event($eventid) as $br) {
-                    $bookedresources[(int)$br->resourceid] = [
-                        'amount' => (int)$br->amount,
-                        'status' => (string)($br->status ?? 'requested'),
+                foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
+                    $bookedresources[$rid] = [
+                        'amount' => $br->get_amount(),
+                        'status' => $br->get_status(),
                     ];
                 }
             }
@@ -745,10 +746,10 @@ class edit_event_form extends dynamic_form {
                     $bookedamount = $bookedinfo['amount'];
                     $bookedstatus = $bookedinfo['status'];
                     $statusclassmap = [
-                        'requested' => 'badge-secondary',
-                        'confirmed' => 'badge-success',
-                        'inprogress' => 'badge-primary',
-                        'rejected' => 'badge-danger',
+                        bookit_event_resource::STATUS_REQUESTED  => 'badge-secondary',
+                        bookit_event_resource::STATUS_CONFIRMED  => 'badge-success',
+                        bookit_event_resource::STATUS_INPROGRESS => 'badge-primary',
+                        bookit_event_resource::STATUS_REJECTED   => 'badge-danger',
                     ];
                     $badgeclass = 'badge ' . ($statusclassmap[$bookedstatus] ?? 'badge-secondary');
                     $statuslabel = get_string('resource_status_' . $bookedstatus, 'mod_bookit');

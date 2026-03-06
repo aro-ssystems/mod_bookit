@@ -25,7 +25,7 @@
 
 namespace mod_bookit\output;
 
-use mod_bookit\local\entity\bookit_resource;
+use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\manager\color_manager;
 use renderer_base;
 use renderable;
@@ -41,13 +41,18 @@ class resource_item_card implements renderable, templatable {
     /** @var bookit_resource */
     private $resource;
 
+    /** @var int */
+    private $totalrooms;
+
     /**
      * Constructor
      *
      * @param bookit_resource $resource
+     * @param int $totalrooms Total number of rooms (passed in to avoid repeated DB queries)
      */
-    public function __construct(bookit_resource $resource) {
+    public function __construct(bookit_resource $resource, int $totalrooms = 0) {
         $this->resource = $resource;
+        $this->totalrooms = $totalrooms;
     }
 
     /**
@@ -57,7 +62,6 @@ class resource_item_card implements renderable, templatable {
      * @return stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
-        global $DB;
         $data = new stdClass();
         $data->id = $this->resource->get_id();
         $data->name = format_string($this->resource->get_name());
@@ -71,9 +75,8 @@ class resource_item_card implements renderable, templatable {
         $data->roomids = json_encode($this->resource->get_roomids() ?? []);
         $data->roomnames = $this->get_room_names();
 
-        $totalrooms = $DB->count_records('bookit_room');
         $assignedcount = count($this->resource->get_roomids() ?? []);
-        $data->isallrooms = $totalrooms > 0 && $assignedcount === $totalrooms;
+        $data->isallrooms = $this->totalrooms > 0 && $assignedcount === $this->totalrooms;
 
         return $data;
     }
@@ -91,23 +94,27 @@ class resource_item_card implements renderable, templatable {
             return [];
         }
 
+        [$insql, $inparams] = $DB->get_in_or_equal($roomids, SQL_PARAMS_NAMED);
+        $rooms = $DB->get_records_select('bookit_room', "id $insql", $inparams);
+
         $roomnames = [];
         foreach ($roomids as $roomid) {
-            $room = $DB->get_record('bookit_room', ['id' => $roomid]);
-            if ($room) {
-                $eventcolor = $room->eventcolor ?? '';
-                $textcolor = color_manager::get_textcolor_for_background($eventcolor);
-                $textclass = $textcolor === '#000' ? 'text-dark' : 'text-light';
-
-                $roomnames[] = [
-                    'roomid' => $room->id,
-                    'roomname' => format_string($room->name),
-                    'shortname' => $room->shortname ?? '',
-                    'eventcolor' => $eventcolor,
-                    'textclass' => $textclass,
-                    'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
-                ];
+            if (!isset($rooms[$roomid])) {
+                continue;
             }
+            $room = $rooms[$roomid];
+            $eventcolor = $room->eventcolor ?? '';
+            $textcolor = color_manager::get_textcolor_for_background($eventcolor);
+            $textclass = $textcolor === '#000' ? 'text-dark' : 'text-light';
+
+            $roomnames[] = [
+                'roomid' => $room->id,
+                'roomname' => format_string($room->name),
+                'shortname' => $room->shortname ?? '',
+                'eventcolor' => $eventcolor,
+                'textclass' => $textclass,
+                'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
+            ];
         }
 
         return $roomnames;

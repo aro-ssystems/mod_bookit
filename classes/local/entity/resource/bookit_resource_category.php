@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace mod_bookit\local\entity;
+namespace mod_bookit\local\entity\resource;
 
 /**
  * Entity class for resource categories.
@@ -78,6 +78,25 @@ class bookit_resource_category {
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->usermodified = $usermodified;
+    }
+
+    /**
+     * Create entity from database record.
+     *
+     * @param \stdClass $record Database record
+     * @return self
+     */
+    public static function from_record(\stdClass $record): self {
+        return new self(
+            isset($record->id) ? (int)$record->id : null,
+            $record->name ?? '',
+            $record->description ?? null,
+            (int)($record->sortorder ?? 0),
+            (bool)($record->active ?? 1),
+            (int)($record->timecreated ?? 0),
+            (int)($record->timemodified ?? 0),
+            (int)($record->usermodified ?? 0)
+        );
     }
 
     /**

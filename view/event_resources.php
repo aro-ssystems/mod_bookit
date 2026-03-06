@@ -29,7 +29,7 @@
 require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/formslib.php');
 
-use mod_bookit\form\view_event_resources_form;
+use mod_bookit\local\form\resource\view_event_resources_form;
 use mod_bookit\local\manager\resource_manager;
 
 $eventid = required_param('eventid', PARAM_INT);
@@ -77,10 +77,10 @@ if ($canmanage) {
     echo $OUTPUT->heading(get_string('event_resources_heading', 'mod_bookit', format_string($event->name)));
 
     $bookedresources = [];
-    foreach (resource_manager::get_resources_of_event($eventid) as $br) {
-        $bookedresources[(int)$br->resourceid] = [
-            'amount' => (int)$br->amount,
-            'status' => (string)($br->status ?? 'requested'),
+    foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
+        $bookedresources[$rid] = [
+            'amount' => $br->get_amount(),
+            'status' => $br->get_status(),
         ];
     }
 

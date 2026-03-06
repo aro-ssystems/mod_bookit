@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Reactive store for resource checklist.
+ * Reactive store for the resource checklist.
  *
  * @module mod_bookit/resource_checklist/resource_checklist_reactive
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -23,64 +23,48 @@
  */
 
 import {Reactive} from 'core/reactive';
-import ResourceChecklistMutations from 'mod_bookit/resource_checklist/resource_checklist_mutations';
+import ResourceChecklistMutations from './resource_checklist_mutations';
 
-export const SELECTORS = {
-    TABLE: '#resource-checklist-table',
-    ALL_CATEGORY_ROWS: 'tbody[data-bookit-category-id]',
-    ALL_ITEM_ROWS: 'tr[data-bookit-item-id]',
-};
-
-const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
-
-let resourceChecklistReactiveInstance = null;
+export const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
 
 /**
- * Initialize resource checklist reactive store.
+ * Dispatch a resource checklist state event.
  *
- * @param {Object} initialState - Initial state with categories and checklistitems
- * @param {Array} initialState.categories - Array of category data
- * @param {Array} initialState.checklistitems - Array of checklist item data
- * @return {Reactive} Reactive instance
+ * @param {Object} detail - Event detail payload
+ * @param {HTMLElement} target - Dispatch target (defaults to document)
  */
-export const initResourceChecklistReactive = (initialState) => {
-    if (resourceChecklistReactiveInstance === null) {
-        resourceChecklistReactiveInstance = new Reactive({
+export const dispatchChecklistStateEvent = (detail, target) => {
+    (target || document).dispatchEvent(
+        new CustomEvent(EVENTNAME, {bubbles: true, detail})
+    );
+};
+
+let checklistReactiveInstance = null;
+
+/**
+ * Initialize the reactive store for the resource checklist.
+ *
+ * Creates the Reactive instance if it doesn't exist yet.
+ *
+ * @return {Reactive} The reactive instance
+ */
+export const initChecklistReactive = () => {
+    if (!checklistReactiveInstance) {
+        checklistReactiveInstance = new Reactive({
             name: 'Moodle Bookit Resource Checklist',
             eventName: EVENTNAME,
-            eventDispatch: dispatchResourceChecklistStateEvent,
+            eventDispatch: dispatchChecklistStateEvent,
             mutations: new ResourceChecklistMutations(),
         });
-
-        // Set initial state - Moodle automatically converts arrays to Maps.
-        resourceChecklistReactiveInstance.setInitialState({
-            categories: initialState.categories,
-            checklistitems: initialState.checklistitems,
-        });
     }
-
-    return resourceChecklistReactiveInstance;
+    return checklistReactiveInstance;
 };
 
 /**
- * Dispatch the resource checklist state event.
+ * Get the reactive instance.
  *
- * @param {Object} detail - The event detail
- * @param {HTMLElement} target - The target element
+ * Returns null if initChecklistReactive() has not been called yet.
+ *
+ * @return {Reactive|null} Reactive instance
  */
-function dispatchResourceChecklistStateEvent(detail, target) {
-    if (target === undefined) {
-        target = document;
-    }
-    target.dispatchEvent(
-        new CustomEvent(
-            EVENTNAME,
-            {
-                bubbles: true,
-                detail: detail,
-            }
-        )
-    );
-}
-
-export {resourceChecklistReactiveInstance};
+export const getChecklistReactive = () => checklistReactiveInstance;

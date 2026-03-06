@@ -83,4 +83,11 @@ function dispatchResourceStateEvent(detail, target) {
     );
 }
 
-export {resourceReactiveInstance};
+/**
+ * Get the reactive instance.
+ *
+ * Returns null if initResourceReactive() has not been called yet.
+ *
+ * @return {Reactive|null} Reactive instance
+ */
+export const getResourceReactive = () => resourceReactiveInstance;

@@ -50,12 +50,13 @@ class event_manager {
         $event = $DB->get_record('bookit_event', ['id' => $id]);
         $eventresources = resource_manager::get_resources_of_event($id);
         foreach ($eventresources as $rid => $res) {
-            if (1 == $res->categoryid) {
+            $resource = resource_manager::get_resource($rid);
+            if ($resource && 1 == $resource->get_categoryid()) {
                 $event->room = $rid;
             } else {
                 $r = 'resource_' . $rid;
                 $c = 'checkbox_' . $rid;
-                $event->$r = $res->amount;
+                $event->$r = $res->get_amount();
                 $event->$c = 1;
             }
         }

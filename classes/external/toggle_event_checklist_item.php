@@ -63,7 +63,7 @@ class toggle_event_checklist_item extends external_api {
      * @return array
      */
     public static function execute(int $cmid, int $eventid, int $checklistitemid, bool $done): array {
-        global $USER;
+        global $DB, $USER;
 
         $params = self::validate_parameters(self::execute_parameters(), [
             'cmid'            => $cmid,
@@ -76,6 +76,9 @@ class toggle_event_checklist_item extends external_api {
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
         require_capability('mod/bookit:editevent', $context);
+
+        // Verify event exists before acting on it.
+        $DB->get_record('bookit_event', ['id' => $params['eventid']], '*', MUST_EXIST);
 
         event_checklist_state_manager::set_item_state(
             $params['eventid'],

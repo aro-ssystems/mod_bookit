@@ -23,7 +23,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_bookit\form;
+namespace mod_bookit\local\form\resource;
 
 use core_form\dynamic_form;
 use context;
@@ -173,7 +173,7 @@ class edit_resource_category_form extends dynamic_form {
 
         // Regular save logic.
         // Create entity from form data.
-        $category = new \mod_bookit\local\entity\bookit_resource_category(
+        $category = new \mod_bookit\local\entity\resource\bookit_resource_category(
             $formdata->id ?: null,
             $formdata->name,
             $formdata->description ?? '',

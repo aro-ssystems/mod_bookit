@@ -19,13 +19,16 @@
  *
  * @package     mod_bookit
  * @copyright   2024 Melanie Treitinger, Ruhr-Universität Bochum <melanie.treitinger@ruhr-uni-bochum.de>
+ * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_bookit\local\manager;
 
 use dml_exception;
-use mod_bookit\local\entity\bookit_resource;
-use mod_bookit\local\entity\bookit_resource_category;
+use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource;
+use mod_bookit\local\entity\resource\bookit_resource_category;
 use mod_bookit\local\manager\resource_checklist_manager;
 
 /**
@@ -33,22 +36,31 @@ use mod_bookit\local\manager\resource_checklist_manager;
  *
  * @package     mod_bookit
  * @copyright   2024 Melanie Treitinger, Ruhr-Universität Bochum <melanie.treitinger@ruhr-uni-bochum.de>
+ * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class resource_manager {
     /**
      * Get resources of event.
-     * @param int $eventid
-     * @return array
+     *
+     * @param int $eventid Event ID
+     * @return bookit_event_resource[] Array keyed by resourceid
      * @throws dml_exception
      */
-    public static function get_resources_of_event(int $eventid) {
+    public static function get_resources_of_event(int $eventid): array {
         global $DB;
-        $resources = $DB->get_records_sql('
-            SELECT er.resourceid, er.amount, er.status, r.name, r.categoryid
-            FROM {bookit_resource} r JOIN {bookit_event_resource} er ON er.resourceid = r.id
+        $records = $DB->get_records_sql('
+            SELECT er.id, er.eventid, er.resourceid, er.amount, er.status,
+                   er.usermodified, er.timecreated, er.timemodified
+            FROM {bookit_event_resource} er
             WHERE er.eventid = :eventid', ['eventid' => $eventid]);
-        return $resources;
+
+        $entities = [];
+        foreach ($records as $record) {
+            $entities[(int)$record->resourceid] = bookit_event_resource::from_record($record);
+        }
+        return $entities;
     }
 
     /**
@@ -95,24 +107,25 @@ class resource_manager {
     public static function get_rooms(): array {
         global $DB;
 
-        // Source (new, 02.02.2026): bookit_room table (persistent room).
         $rooms = [];
         $records = $DB->get_records('bookit_room', null, 'name ASC', 'id, name');
         foreach ($records as $r) {
             $rooms[(int)$r->id] = $r->name;
         }
-        if (!empty($rooms)) {
-            return $rooms;
-        }
-
-        // Fallback: legacy rooms stored as resources.
-        $resources = self::get_resources();
-        if (!empty($resources['Rooms']['resources'])) {
-            foreach ($resources['Rooms']['resources'] as $rid => $r) {
-                $rooms[$rid] = $r['name'];
-            }
-        }
         return $rooms;
+    }
+
+    /**
+     * Get room names for a resource, resolved from its roomids.
+     *
+     * @param bookit_resource $resource
+     * @return string[] Array of room names
+     * @throws dml_exception
+     */
+    public static function get_room_names_for_resource(bookit_resource $resource): array {
+        $allrooms = self::get_rooms();
+        $roomids = $resource->get_roomids() ?? [];
+        return array_values(array_filter(array_map(fn($rid) => $allrooms[$rid] ?? null, $roomids)));
     }
 
     // Category CRUD Methods.
@@ -209,9 +222,7 @@ class resource_manager {
     public static function delete_category(int $id): void {
         global $DB;
 
-        // Check if category has resources.
-        $count = $DB->count_records('bookit_resource', ['categoryid' => $id]);
-        if ($count > 0) {
+        if ($DB->record_exists('bookit_resource', ['categoryid' => $id])) {
             throw new \moodle_exception('category_has_resources', 'mod_bookit');
         }
 
@@ -347,6 +358,8 @@ class resource_manager {
     public static function delete_resource(int $id): void {
         global $DB;
 
+        resource_checklist_manager::delete_checklist_item_by_resource($id);
+        $DB->delete_records('bookit_event_resource', ['resourceid' => $id]);
         $DB->delete_records('bookit_resource', ['id' => $id]);
     }
 
@@ -470,6 +483,8 @@ class resource_manager {
      * @throws dml_exception
      */
     private static function validate_resource(bookit_resource $resource): void {
+        global $DB;
+
         if (empty(trim($resource->get_name()))) {
             throw new \moodle_exception('resource_name_required', 'mod_bookit');
         }
@@ -479,8 +494,7 @@ class resource_manager {
         }
 
         // Check if category exists.
-        $category = self::get_category($resource->get_categoryid());
-        if ($category === null) {
+        if (!$DB->record_exists('bookit_resource_category', ['id' => $resource->get_categoryid()])) {
             throw new \moodle_exception('resource_category_not_found', 'mod_bookit');
         }
 

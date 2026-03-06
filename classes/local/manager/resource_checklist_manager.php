@@ -26,7 +26,7 @@
 namespace mod_bookit\local\manager;
 
 use dml_exception;
-use mod_bookit\local\entity\bookit_resource_checklist;
+use mod_bookit\local\entity\resource\bookit_resource_checklist;
 
 /**
  * Resource checklist manager class.
@@ -105,29 +105,6 @@ class resource_checklist_manager {
     }
 
     /**
-     * Get checklist item by ID (alias for get_checklist_item).
-     *
-     * @param int $id Checklist item ID
-     * @return bookit_resource_checklist|null
-     * @throws dml_exception
-     */
-    public static function get_checklist_item_by_id(int $id): ?bookit_resource_checklist {
-        return self::get_checklist_item($id);
-    }
-
-    /**
-     * Update checklist item (alias for save_checklist_item).
-     *
-     * @param bookit_resource_checklist $item Checklist item
-     * @param int $userid User ID
-     * @return int Item ID
-     * @throws dml_exception
-     */
-    public static function update_checklist_item(bookit_resource_checklist $item, int $userid): int {
-        return self::save_checklist_item($item, $userid);
-    }
-
-    /**
      * Get checklist item by resource ID.
      *
      * @param int $resourceid Resource ID
@@ -178,7 +155,6 @@ class resource_checklist_manager {
             // Insert new.
             $record->timecreated = time();
             $id = $DB->insert_record('bookit_resource_checklist', $record);
-            $item->set_id($id);
             return $id;
         }
     }
@@ -193,6 +169,18 @@ class resource_checklist_manager {
     public static function delete_checklist_item(int $id): bool {
         global $DB;
         return $DB->delete_records('bookit_resource_checklist', ['id' => $id]);
+    }
+
+    /**
+     * Delete checklist item by resource ID.
+     *
+     * @param int $resourceid Resource ID
+     * @return bool Success
+     * @throws dml_exception
+     */
+    public static function delete_checklist_item_by_resource(int $resourceid): bool {
+        global $DB;
+        return $DB->delete_records('bookit_resource_checklist', ['resourceid' => $resourceid]);
     }
 
     /**
@@ -275,23 +263,18 @@ class resource_checklist_manager {
             $resourcename = '';
         }
 
-        // Get all existing checklist items with resource names, ordered alphabetically.
-        $existingsql = "SELECT rc.id, rc.sortorder, r.name
-                        FROM {bookit_resource_checklist} rc
-                        JOIN {bookit_resource} r ON r.id = rc.resourceid
-                        ORDER BY r.name ASC";
-        $existing = $DB->get_records_sql($existingsql);
+        $existingcount = $DB->count_records('bookit_resource_checklist');
 
-        if (empty($existing)) {
+        if ($existingcount === 0) {
             $sortorder = 0;
         } else {
-            // Find position where new resource fits alphabetically.
-            $position = 0;
-            foreach ($existing as $entry) {
-                if (strcasecmp($resourcename, $entry->name) > 0) {
-                    $position++;
-                }
-            }
+            // Count resources that come alphabetically before the new one.
+            $position = (int)$DB->count_records_sql(
+                "SELECT COUNT(*) FROM {bookit_resource_checklist} rc
+                 JOIN {bookit_resource} r ON r.id = rc.resourceid
+                 WHERE UPPER(r.name) < UPPER(:name)",
+                ['name' => $resourcename]
+            );
             // Shift existing items at position and above to make room.
             $DB->execute(
                 "UPDATE {bookit_resource_checklist} SET sortorder = sortorder + 1 WHERE sortorder >= ?",

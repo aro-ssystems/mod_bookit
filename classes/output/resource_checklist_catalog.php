@@ -50,22 +50,17 @@ class resource_checklist_catalog implements renderable, templatable {
         $data->contextid = \context_system::instance()->id;
         $data->categories = [];
 
-        // Get all categories.
         $categories = resource_manager::get_all_categories();
 
-        // Get all rooms as [id => room record with color] for lookup.
         $allrooms = checklist_manager::get_bookit_rooms();
         $totalrooms = count($allrooms);
-        // Index by id for fast lookup.
         $roomsbyid = [];
         foreach ($allrooms as $room) {
             $roomsbyid[(int)$room->id] = $room;
         }
 
-        // Get all checklist items with resource data joined (includes r.roomids).
         $checklistitems = resource_checklist_manager::get_all_checklist_items_with_rooms();
 
-        // Group checklist items by category.
         $itemsbycategory = [];
         foreach ($checklistitems as $item) {
             if (!isset($itemsbycategory[$item->categoryid])) {
@@ -74,7 +69,6 @@ class resource_checklist_catalog implements renderable, templatable {
             $itemsbycategory[$item->categoryid][] = $item;
         }
 
-        // Build category structure with items.
         foreach ($categories as $category) {
             $categorydata = new stdClass();
             $categorydata->id = $category->get_id();
@@ -83,75 +77,9 @@ class resource_checklist_catalog implements renderable, templatable {
             $categorydata->sortorder = $category->get_sortorder();
             $categorydata->items = [];
 
-            // Add checklist items for this category.
             if (isset($itemsbycategory[$category->get_id()])) {
                 foreach ($itemsbycategory[$category->get_id()] as $item) {
-                    $itemdata = new stdClass();
-                    $itemdata->id = $item->id;
-                    $itemdata->resourceid = $item->resourceid;
-                    $itemdata->name = format_string($item->name);
-                    $itemdata->description = format_text($item->description ?? '', FORMAT_HTML);
-                    $itemdata->categoryid = $item->categoryid;
-                    $itemdata->amount = $item->amountirrelevant ? null : (int)$item->amount;
-                    $itemdata->amountirrelevant = (bool)$item->amountirrelevant;
-                    $itemdata->sortorder = $item->sortorder;
-                    $itemdata->active = (bool)$item->active;
-
-                    // Format duedate for display.
-                    if (!empty($item->duedate) && !empty($item->duedatetype) && $item->duedatetype !== 'none') {
-                        $days = (int)round((int)$item->duedate / DAYSECS);
-                        if ($item->duedatetype === 'before_event') {
-                            $itemdata->duedate = get_string('checklist_duedate_days_before', 'mod_bookit', $days);
-                        } else if ($item->duedatetype === 'after_event') {
-                            $itemdata->duedate = get_string('checklist_duedate_days_after', 'mod_bookit', $days);
-                        } else {
-                            $itemdata->duedate = null;
-                        }
-                    } else {
-                        $itemdata->duedate = null;
-                    }
-                    $itemdata->duedatetype = $item->duedatetype ?? null;
-
-                    // Resolve room names with color from JSON roomids on resource.
-                    $roomnames = [];
-                    $roomnamesplain = [];
-                    if (!empty($item->roomids)) {
-                        $roomids = json_decode($item->roomids, true);
-                        if (is_array($roomids)) {
-                            foreach ($roomids as $roomid) {
-                                if (isset($roomsbyid[(int)$roomid])) {
-                                    $room = $roomsbyid[(int)$roomid];
-                                    $roomnames[] = [
-                                        'roomid'     => $room->id,
-                                        'roomname'   => $room->name,
-                                        'shortname'  => $room->shortname ?? '',
-                                        'eventcolor' => $room->eventcolor ?? '#6c757d',
-                                        'textclass'  => $room->textclass ?? 'text-light',
-                                    ];
-                                    $roomnamesplain[] = $room->name;
-                                }
-                            }
-                        }
-                    }
-
-                    // Overflow badge: show first 2 rooms, then +N.
-                    $maxvisible = 2;
-                    $visiblerooms = array_slice($roomnames, 0, $maxvisible);
-                    $moreroomscount = max(0, count($roomnames) - $maxvisible);
-                    foreach ($visiblerooms as &$r) {
-                        $r['shortname'] = $r['shortname'] ?: $r['roomname'];
-                    }
-                    unset($r);
-
-                    $itemdata->roomnames = $visiblerooms;
-                    $itemdata->moreroomscount = $moreroomscount > 0 ? $moreroomscount : null;
-                    $itemdata->allroomnames = implode(', ', $roomnamesplain);
-                    $itemdata->rooms = $itemdata->allroomnames;
-                    $itemdata->hasrooms = !empty($roomnames);
-                    $assignedcount = !empty($item->roomids) ? count(json_decode($item->roomids, true) ?: []) : 0;
-                    $itemdata->isallrooms = $totalrooms > 0 && $assignedcount === $totalrooms;
-
-                    $categorydata->items[] = $itemdata;
+                    $categorydata->items[] = $this->build_item_data($item, $roomsbyid, $totalrooms);
                 }
             }
 
@@ -159,5 +87,109 @@ class resource_checklist_catalog implements renderable, templatable {
         }
 
         return $data;
+    }
+
+    /**
+     * Build template data for a single checklist item.
+     *
+     * @param stdClass $item Checklist item with joined resource data
+     * @param array $roomsbyid Room records indexed by id
+     * @param int $totalrooms Total number of rooms
+     * @return stdClass
+     */
+    private function build_item_data(stdClass $item, array $roomsbyid, int $totalrooms): stdClass {
+        $itemdata = new stdClass();
+        $itemdata->id = $item->id;
+        $itemdata->resourceid = $item->resourceid;
+        $itemdata->name = format_string($item->name);
+        $itemdata->description = format_text($item->description ?? '', FORMAT_HTML);
+        $itemdata->categoryid = $item->categoryid;
+        $itemdata->amount = $item->amountirrelevant ? null : (int)$item->amount;
+        $itemdata->amountirrelevant = (bool)$item->amountirrelevant;
+        $itemdata->sortorder = $item->sortorder;
+        $itemdata->active = (bool)$item->active;
+        $itemdata->duedate = $this->format_duedate($item);
+        $itemdata->duedatetype = $item->duedatetype ?? null;
+
+        $roomdata = $this->resolve_rooms($item->roomids ?? null, $roomsbyid, $totalrooms);
+        $itemdata->roomnames = $roomdata['visible'];
+        $itemdata->moreroomscount = $roomdata['morecount'];
+        $itemdata->allroomnames = $roomdata['allnames'];
+        $itemdata->rooms = $itemdata->allroomnames;
+        $itemdata->hasrooms = $roomdata['hasrooms'];
+        $itemdata->isallrooms = $roomdata['isallrooms'];
+
+        return $itemdata;
+    }
+
+    /**
+     * Format due date string for display.
+     *
+     * @param stdClass $item Checklist item
+     * @return string|null Formatted due date or null
+     */
+    private function format_duedate(stdClass $item): ?string {
+        if (empty($item->duedate) || empty($item->duedatetype) || $item->duedatetype === 'none') {
+            return null;
+        }
+
+        $days = (int)round((int)$item->duedate / DAYSECS);
+        if ($item->duedatetype === 'before_event') {
+            return get_string('checklist_duedate_days_before', 'mod_bookit', $days);
+        } else if ($item->duedatetype === 'after_event') {
+            return get_string('checklist_duedate_days_after', 'mod_bookit', $days);
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve room names and badges from JSON roomids field.
+     *
+     * @param string|null $roomidsjson JSON-encoded array of room IDs
+     * @param array $roomsbyid Room records indexed by id
+     * @param int $totalrooms Total number of rooms
+     * @return array{visible: array, morecount: int|null, allnames: string, hasrooms: bool, isallrooms: bool}
+     */
+    private function resolve_rooms(?string $roomidsjson, array $roomsbyid, int $totalrooms): array {
+        $roomnames = [];
+        $roomnamesplain = [];
+
+        if (!empty($roomidsjson)) {
+            $roomids = json_decode($roomidsjson, true);
+            if (is_array($roomids)) {
+                foreach ($roomids as $roomid) {
+                    if (isset($roomsbyid[(int)$roomid])) {
+                        $room = $roomsbyid[(int)$roomid];
+                        $roomnames[] = [
+                            'roomid'     => $room->id,
+                            'roomname'   => $room->name,
+                            'shortname'  => $room->shortname ?? '',
+                            'eventcolor' => $room->eventcolor ?? '#6c757d',
+                            'textclass'  => $room->textclass ?? 'text-light',
+                        ];
+                        $roomnamesplain[] = $room->name;
+                    }
+                }
+            }
+        }
+
+        $maxvisible = 2;
+        $visiblerooms = array_slice($roomnames, 0, $maxvisible);
+        $moreroomscount = max(0, count($roomnames) - $maxvisible);
+        foreach ($visiblerooms as &$r) {
+            $r['shortname'] = $r['shortname'] ?: $r['roomname'];
+        }
+        unset($r);
+
+        $assignedcount = !empty($roomidsjson) ? count(json_decode($roomidsjson, true) ?: []) : 0;
+
+        return [
+            'visible'   => $visiblerooms,
+            'morecount' => $moreroomscount > 0 ? $moreroomscount : null,
+            'allnames'  => implode(', ', $roomnamesplain),
+            'hasrooms'  => !empty($roomnames),
+            'isallrooms' => $totalrooms > 0 && $assignedcount === $totalrooms,
+        ];
     }
 }

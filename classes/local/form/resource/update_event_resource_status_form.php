@@ -23,11 +23,12 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_bookit\form;
+namespace mod_bookit\local\form\resource;
 
 use context;
 use context_module;
 use core_form\dynamic_form;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\manager\event_resource_manager;
 use moodle_url;
 
@@ -44,7 +45,12 @@ class update_event_resource_status_form extends dynamic_form {
      *
      * @var string[]
      */
-    const VALID_STATUSES = ['requested', 'confirmed', 'inprogress', 'rejected'];
+    const VALID_STATUSES = [
+        bookit_event_resource::STATUS_REQUESTED,
+        bookit_event_resource::STATUS_CONFIRMED,
+        bookit_event_resource::STATUS_INPROGRESS,
+        bookit_event_resource::STATUS_REJECTED,
+    ];
 
     /**
      * Form definition — all fields are hidden.
@@ -76,7 +82,7 @@ class update_event_resource_status_form extends dynamic_form {
         $errors = parent::validation($data, $files);
 
         if (!in_array($data['status'] ?? '', self::VALID_STATUSES, true)) {
-            $errors['status'] = 'Invalid status value.';
+            $errors['status'] = get_string('resources:invalid_status', 'mod_bookit');
         }
 
         return $errors;
@@ -97,7 +103,12 @@ class update_event_resource_status_form extends dynamic_form {
      * @return array Updated status value.
      */
     public function process_dynamic_submission(): array {
+        global $DB;
+
         $data = $this->get_data();
+
+        // Verify event exists before acting on it.
+        $DB->get_record('bookit_event', ['id' => (int)$data->eventid], '*', MUST_EXIST);
 
         event_resource_manager::update_status(
             (int)$data->eventid,

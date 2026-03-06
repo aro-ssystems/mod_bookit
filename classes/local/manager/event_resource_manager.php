@@ -26,7 +26,7 @@
 namespace mod_bookit\local\manager;
 
 use dml_exception;
-use mod_bookit\local\entity\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_event_resource;
 
 /**
  * Event-resource relationship manager.
@@ -100,6 +100,9 @@ class event_resource_manager {
     /**
      * Add a resource to an event.
      *
+     * Note: When adding multiple resources at once, callers should wrap the calls
+     * in a database transaction using $DB->start_delegated_transaction().
+     *
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
      * @param int $amount Amount
@@ -113,7 +116,7 @@ class event_resource_manager {
         int $resourceid,
         int $amount,
         int $userid,
-        string $status = 'requested'
+        string $status = bookit_event_resource::STATUS_REQUESTED
     ): int {
         global $DB;
 
@@ -179,7 +182,7 @@ class event_resource_manager {
      * @throws dml_exception
      */
     public static function update_status(int $eventid, int $resourceid, string $status): bool {
-        global $DB;
+        global $DB, $USER;
 
         $record = $DB->get_record('bookit_event_resource', [
             'eventid'    => $eventid,
@@ -192,6 +195,7 @@ class event_resource_manager {
 
         $record->status       = $status;
         $record->timemodified = time();
+        $record->usermodified = (int)$USER->id;
 
         return $DB->update_record('bookit_event_resource', $record);
     }
@@ -238,7 +242,7 @@ class event_resource_manager {
             (int)$record->eventid,
             (int)$record->resourceid,
             (int)($record->amount ?? 1),
-            $record->status ?? 'requested',
+            $record->status ?? bookit_event_resource::STATUS_REQUESTED,
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0)
