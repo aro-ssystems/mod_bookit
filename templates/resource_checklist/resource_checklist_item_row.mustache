@@ -25,7 +25,7 @@
     * description - Item description
     * categoryid - Category ID
     * sortorder - Sort order
-    * active - Active status
+    * active - Active status (boolean)
     * duedate - Due date (timestamp or null)
     * duedatetype - Due date type
     * roomnames - Array of {roomid, roomname, shortname, eventcolor, textclass}
@@ -33,6 +33,26 @@
     * allroomnames - Comma-separated list of all room names (for tooltip)
     * amount - Amount value
     * amountirrelevant - Whether amount is unlimited
+
+    Example context (json):
+    {
+        "id": 1,
+        "resourceid": 1,
+        "name": "Projector setup",
+        "description": "Set up the projector before the event",
+        "categoryid": 1,
+        "sortorder": 0,
+        "active": true,
+        "duedate": "01.01.2026",
+        "duedatetype": "absolute",
+        "roomnames": [{"roomid": 1, "roomname": "Room A", "shortname": "A", "eventcolor": "#3498db", "textclass": "text-white"}],
+        "moreroomscount": 0,
+        "allroomnames": "Room A",
+        "amount": 1,
+        "amountirrelevant": false,
+        "isallrooms": false,
+        "hasrooms": true
+    }
 }}
 <tr class="resource-checklist-item-row {{^active}}opacity-50{{/active}}"
     data-region="checklist-item-row"
