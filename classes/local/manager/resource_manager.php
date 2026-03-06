@@ -115,6 +115,19 @@ class resource_manager {
         return $rooms;
     }
 
+    /**
+     * Get room names for a resource, resolved from its roomids.
+     *
+     * @param bookit_resource $resource
+     * @return string[] Array of room names
+     * @throws dml_exception
+     */
+    public static function get_room_names_for_resource(bookit_resource $resource): array {
+        $allrooms = self::get_rooms();
+        $roomids = $resource->get_roomids() ?? [];
+        return array_values(array_filter(array_map(fn($rid) => $allrooms[$rid] ?? null, $roomids)));
+    }
+
     // Category CRUD Methods.
 
     /**
