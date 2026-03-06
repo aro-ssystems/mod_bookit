@@ -103,7 +103,12 @@ class update_event_resource_status_form extends dynamic_form {
      * @return array Updated status value.
      */
     public function process_dynamic_submission(): array {
+        global $DB;
+
         $data = $this->get_data();
+
+        // Verify event exists before acting on it.
+        $DB->get_record('bookit_event', ['id' => (int)$data->eventid], '*', MUST_EXIST);
 
         event_resource_manager::update_status(
             (int)$data->eventid,

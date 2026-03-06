@@ -182,7 +182,7 @@ class event_resource_manager {
      * @throws dml_exception
      */
     public static function update_status(int $eventid, int $resourceid, string $status): bool {
-        global $DB;
+        global $DB, $USER;
 
         $record = $DB->get_record('bookit_event_resource', [
             'eventid'    => $eventid,
@@ -195,6 +195,7 @@ class event_resource_manager {
 
         $record->status       = $status;
         $record->timemodified = time();
+        $record->usermodified = (int)$USER->id;
 
         return $DB->update_record('bookit_event_resource', $record);
     }

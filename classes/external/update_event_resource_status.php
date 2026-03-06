@@ -64,6 +64,8 @@ class update_event_resource_status extends external_api {
      * @return array
      */
     public static function execute(int $cmid, int $eventid, int $resourceid, string $status): array {
+        global $DB;
+
         $params = self::validate_parameters(self::execute_parameters(), [
             'cmid'       => $cmid,
             'eventid'    => $eventid,
@@ -86,11 +88,18 @@ class update_event_resource_status extends external_api {
             throw new \invalid_parameter_exception('Invalid status value: ' . $params['status']);
         }
 
-        event_resource_manager::update_status(
+        // Verify event exists before acting on it.
+        $DB->get_record('bookit_event', ['id' => $params['eventid']], '*', MUST_EXIST);
+
+        $updated = event_resource_manager::update_status(
             $params['eventid'],
             $params['resourceid'],
             $params['status']
         );
+
+        if (!$updated) {
+            throw new \moodle_exception('invalidrecord', 'error');
+        }
 
         return ['status' => $params['status']];
     }
