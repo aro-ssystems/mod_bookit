@@ -26,7 +26,6 @@
 namespace mod_bookit\local\form\resource;
 
 use mod_bookit\local\entity\resource\bookit_event_resource;
-use mod_bookit\local\manager\resource_manager;
 
 defined('MOODLE_INTERNAL') || die();
 
