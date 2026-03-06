@@ -41,13 +41,18 @@ class resource_category_card implements renderable, templatable {
     /** @var bookit_resource_category */
     private $category;
 
+    /** @var int */
+    private $totalrooms;
+
     /**
      * Constructor
      *
      * @param bookit_resource_category $category
+     * @param int $totalrooms Total number of rooms (passed in to avoid repeated DB queries)
      */
-    public function __construct(bookit_resource_category $category) {
+    public function __construct(bookit_resource_category $category, int $totalrooms = 0) {
         $this->category = $category;
+        $this->totalrooms = $totalrooms;
     }
 
     /**
@@ -69,7 +74,7 @@ class resource_category_card implements renderable, templatable {
         $resources = resource_manager::get_all_resources($this->category->get_id());
 
         foreach ($resources as $resource) {
-            $itemcard = new resource_item_card($resource);
+            $itemcard = new resource_item_card($resource, $this->totalrooms);
             $data->resources[] = $itemcard->export_for_template($output);
         }
 

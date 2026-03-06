@@ -54,7 +54,7 @@ class resource_catalog implements renderable, templatable {
         $categories = resource_manager::get_all_categories();
 
         foreach ($categories as $category) {
-            $categorycard = new resource_category_card($category);
+            $categorycard = new resource_category_card($category, (int)$data->totalrooms);
             $data->categories[] = $categorycard->export_for_template($output);
         }
 
