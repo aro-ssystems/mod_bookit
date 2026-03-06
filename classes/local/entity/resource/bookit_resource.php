@@ -48,7 +48,7 @@ class bookit_resource {
     /** @var bool Active/inactive flag */
     private bool $active;
 
-    /** @var ?array Room IDs assigned to this resource */
+    /** @var ?array Room IDs assigned to this resource; stored as JSON in DB, null means available in all rooms */
     private ?array $roomids;
 
     /** @var int Unix timestamp of creation */
