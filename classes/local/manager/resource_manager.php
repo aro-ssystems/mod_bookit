@@ -209,10 +209,10 @@ class resource_manager {
     public static function delete_category(int $id): void {
         global $DB;
 
-        // Check if category has resources.
-        $count = $DB->count_records('bookit_resource', ['categoryid' => $id]);
-        if ($count > 0) {
-            throw new \moodle_exception('category_has_resources', 'mod_bookit');
+        // Delete all resources in this category (cascades to checklist + event_resource).
+        $resources = $DB->get_records('bookit_resource', ['categoryid' => $id], '', 'id');
+        foreach ($resources as $resource) {
+            self::delete_resource((int)$resource->id);
         }
 
         $DB->delete_records('bookit_resource_category', ['id' => $id]);
@@ -347,6 +347,8 @@ class resource_manager {
     public static function delete_resource(int $id): void {
         global $DB;
 
+        resource_checklist_manager::delete_checklist_item_by_resource($id);
+        $DB->delete_records('bookit_event_resource', ['resourceid' => $id]);
         $DB->delete_records('bookit_resource', ['id' => $id]);
     }
 

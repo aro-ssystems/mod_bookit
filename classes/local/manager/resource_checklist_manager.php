@@ -196,6 +196,18 @@ class resource_checklist_manager {
     }
 
     /**
+     * Delete checklist item by resource ID.
+     *
+     * @param int $resourceid Resource ID
+     * @return bool Success
+     * @throws dml_exception
+     */
+    public static function delete_checklist_item_by_resource(int $resourceid): bool {
+        global $DB;
+        return $DB->delete_records('bookit_resource_checklist', ['resourceid' => $resourceid]);
+    }
+
+    /**
      * Generate checklist entries for all resources that don't have one yet.
      *
      * Creates a checklist entry for each resource in the bookit_resource table
