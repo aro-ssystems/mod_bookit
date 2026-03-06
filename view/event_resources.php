@@ -40,6 +40,12 @@ $course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 $event  = $DB->get_record('bookit_event', ['id' => $eventid], '*', MUST_EXIST);
 
 require_login($course, true, $cm);
+
+// Verify the event belongs to this bookit instance.
+$bookit = $DB->get_record('bookit', ['id' => $cm->instance], '*', MUST_EXIST);
+if ($event->bookitid != $bookit->id) {
+    throw new moodle_exception('invalideventid', 'mod_bookit');
+}
 $context = context_module::instance($cm->id);
 require_capability('mod/bookit:view', $context);
 
