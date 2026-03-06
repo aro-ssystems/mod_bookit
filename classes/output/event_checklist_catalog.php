@@ -103,6 +103,10 @@ class event_checklist_catalog implements renderable, templatable {
 
         $eventresources = event_resource_manager::get_resources_for_event($this->eventid);
 
+        // Track progress: confirmed / total.
+        $totalcount = 0;
+        $confirmedcount = 0;
+
         // Group items by category.
         $categoriesmap = [];
 
@@ -168,11 +172,22 @@ class event_checklist_catalog implements renderable, templatable {
             $itemdata->isinprogress     = ($status === 'inprogress');
             $itemdata->isrejected       = ($status === 'rejected');
 
+            $totalcount++;
+            if ($status === 'confirmed') {
+                $confirmedcount++;
+            }
+
             $categoriesmap[$categoryid]['items'][] = $itemdata;
         }
 
         $data->categories = array_values($categoriesmap);
         $data->hasresources = !empty($data->categories);
+
+        // Progress bar data.
+        $data->progresstotal     = $totalcount;
+        $data->progressconfirmed = $confirmedcount;
+        $data->progresspercent   = $totalcount > 0 ? (int)round(($confirmedcount / $totalcount) * 100) : 0;
+        $data->progresscomplete  = ($totalcount > 0 && $confirmedcount === $totalcount);
 
         return $data;
     }

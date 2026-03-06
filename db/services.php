@@ -43,4 +43,10 @@ $functions = [
         'type'        => 'write',
         'ajax'        => true,
     ],
+    'mod_bookit_toggle_event_checklist_item' => [
+        'classname'   => 'mod_bookit\external\toggle_event_checklist_item',
+        'description' => 'Toggles the done state of a master checklist item for an event.',
+        'type'        => 'write',
+        'ajax'        => true,
+    ],
 ];

@@ -28,6 +28,7 @@
 import {BaseComponent} from 'core/reactive';
 import {getReactive} from 'mod_bookit/event_checklist/event_checklist_reactive';
 import EventChecklistItem from 'mod_bookit/event_checklist/event_checklist_item';
+import EventChecklistProgress from 'mod_bookit/event_checklist/event_checklist_progress';
 
 /**
  * Event checklist container component.
@@ -70,7 +71,7 @@ export default class EventChecklistContainer extends BaseComponent {
     }
 
     /**
-     * State ready: register all item components.
+     * State ready: register all item components and progress bar.
      */
     stateReady() {
         this.element.querySelectorAll('[data-region="event-checklist-item-row"]').forEach(row => {
@@ -79,6 +80,15 @@ export default class EventChecklistContainer extends BaseComponent {
                 reactive: this.reactive,
             });
         });
+
+        // Register the progress bar component if present.
+        const progressContainer = this.element.querySelector('[data-region="event-checklist-progress-container"]');
+        if (progressContainer) {
+            new EventChecklistProgress({
+                element: progressContainer,
+                reactive: this.reactive,
+            });
+        }
     }
 
     /**

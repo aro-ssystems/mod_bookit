@@ -108,9 +108,14 @@ echo $OUTPUT->header();
    3.  Fetch examiner’s events
    ======================================================================= */
 use mod_bookit\local\manager\event_manager;
+use mod_bookit\local\manager\event_checklist_state_manager;
 
-global $USER;
+global $USER, $DB;
 $events = event_manager::get_events_for_examiner($USER->id);
+
+// Fetch master checklist ID directly (no entity = no JS side effects).
+$masterrecord = $DB->get_record('bookit_checklist_master', ['isdefault' => 1], 'id', IGNORE_MULTIPLE);
+$masterid = $masterrecord ? (int)$masterrecord->id : 0;
 
 
 /* ----- status → label / colours -------------------------------------- */
@@ -156,6 +161,13 @@ $templatecontext = [
     'tableid' => (string)$tableid,
     'events'  => [],
 ];
+
+// Precompute checklist progress for all events in a single query.
+$progressmap = [];
+if ($masterid > 0 && !empty($events)) {
+    $eventids = array_map(fn($ev) => (int)$ev->id, $events);
+    $progressmap = event_checklist_state_manager::get_progress_percent_for_events($eventids, $masterid);
+}
 
 foreach ($events as $ev) {
     $room = $ev->room ?: '-';
@@ -208,10 +220,12 @@ foreach ($events as $ev) {
         'datestr' => $datestr,
         'starttime' => (int)$ev->starttime,
         'cmid' => (int)$cm->id,
-        'checklistprogress' => '--',
+        'checklistprogress' => $progressmap[(int)$ev->id] ?? 0,
+        'checklistprogress_available' => $masterid > 0,
         'checklistlabel' => get_string('checklist', 'mod_bookit'),
-        'checklisturl' => (new moodle_url('/mod/bookit/admin/master_checklist.php', [
-            'id' => 'master_checklist_items',
+        'checklisturl' => (new moodle_url('/mod/bookit/view/event_checklist_view.php', [
+            'id' => $cm->id,
+            'eventid' => (int)$ev->id,
         ]))->out(false),
         'resourceschecklistlabel' => get_string('resources', 'mod_bookit'),
         'resourceschecklisturl' => (new moodle_url('/mod/bookit/view/event_resources.php', [

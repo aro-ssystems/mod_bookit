@@ -35,6 +35,10 @@
         "cmid": 4,
         "canmanage": 1,
         "contextid": 1,
+        "progresspercent": 50,
+        "progresstotal": 2,
+        "progressconfirmed": 1,
+        "progresscomplete": false,
         "eventname": "Test Event",
         "starttime": "24 Feb 2026, 10:00",
         "endtime": "24 Feb 2026, 12:00",
@@ -94,6 +98,26 @@
             </dl>
         </div>
     </div>
+
+    {{#canmanage}}
+    <div class="card mb-4" data-region="event-checklist-progress-container">
+        <div class="card-body">
+            <h6 class="card-title mb-2">{{#str}}event_checklist:progress, mod_bookit{{/str}}</h6>
+            <div class="progress" style="height: 22px;">
+                <div class="progress-bar {{#progresscomplete}}bg-success{{/progresscomplete}}"
+                     role="progressbar"
+                     data-region="event-checklist-progressbar"
+                     style="width: {{progresspercent}}%; min-width: 2em;"
+                     aria-valuenow="{{progresspercent}}"
+                     aria-valuemin="0"
+                     aria-valuemax="100">{{progresspercent}}%</div>
+            </div>
+            <small class="text-muted mt-1 d-block">
+                <span data-region="event-checklist-progress-text">{{progressconfirmed}}</span> / {{progresstotal}} {{#str}}event_checklist:confirmed, mod_bookit{{/str}}
+            </small>
+        </div>
+    </div>
+    {{/canmanage}}
 
     {{#hasresources}}
     <table class="table table-borderless table-hover bg-white rounded w-100" id="event-checklist-table">

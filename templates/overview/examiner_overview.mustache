@@ -41,7 +41,7 @@
     * datestr - Date string for display (string).
     * starttime - Unix timestamp used for sorting (number).
     * cmid - Course module id for the modal (number).
-    * checklistprogress - Checklist progress label (string).
+    * checklistprogress - Checklist progress percent (int, -1 = no master checklist).
     * checklistlabel - Checklist button label (string).
 
     Example context (json):
@@ -59,7 +59,7 @@
           "datestr": "14.01.2026",
           "starttime": 1768425600,
           "cmid": 42,
-          "checklistprogress": "--",
+          "checklistprogress": 0,
           "checklistlabel": "Checklist"
         }
       ]
@@ -110,10 +110,22 @@
 
                     <td data-sort="{{starttime}}">{{datestr}}</td>
 
-                    <td><span class="badge bg-secondary">{{checklistprogress}}</span></td>
+                    <td>
+                        {{#checklistprogress_available}}
+                        <div class="progress position-relative" style="min-width:80px;">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width:{{checklistprogress}}%;"
+                                 aria-valuenow="{{checklistprogress}}"
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                            <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{checklistprogress}}%</span>
+                        </div>
+                        {{/checklistprogress_available}}
+                        {{^checklistprogress_available}}--{{/checklistprogress_available}}
+                    </td>
 
                     <td><a href="{{checklisturl}}" class="btn btn-sm btn-primary">{{checklistlabel}}</a></td>
-                    <td><a href="{{resourceschecklisturl}}" class="btn btn-sm btn-secondary">{{resourceschecklistlabel}}</a></td>
+                    <td><a href="{{resourceschecklisturl}}" class="btn btn-sm btn-primary">{{resourceschecklistlabel}}</a></td>
                 </tr>
             {{/events}}
         </tbody>
