@@ -28,8 +28,6 @@
 
 require_once(__DIR__ . '/../../../config.php');
 
-use mod_bookit\local\manager\checklist_manager;
-use mod_bookit\local\manager\event_checklist_state_manager;
 use mod_bookit\output\event_master_checklist_catalog;
 
 $eventid = required_param('eventid', PARAM_INT);

@@ -75,7 +75,7 @@ class toggle_event_checklist_item extends external_api {
         $cm = get_coursemodule_from_id('bookit', $params['cmid'], 0, false, MUST_EXIST);
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
-        require_capability('mod/bookit:view', $context);
+        require_capability('mod/bookit:editevent', $context);
 
         event_checklist_state_manager::set_item_state(
             $params['eventid'],

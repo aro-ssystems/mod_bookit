@@ -93,9 +93,10 @@ class event_checklist_state_manager {
     }
 
     /**
-     * Get progress for an event: how many items are done vs total.
+     * Get progress for an event: how many distinct items are done vs total.
      *
-     * Total is the count of checklist items applicable to the event's master checklist.
+     * State is global (not per-user): an item counts as done if any user marked it done.
+     * Only items belonging to the given master checklist are counted.
      *
      * @param int $eventid
      * @param int $masterid Master checklist ID
@@ -109,12 +110,56 @@ class event_checklist_state_manager {
             return ['done' => 0, 'total' => 0, 'percent' => 0];
         }
 
-        $done = $DB->count_records(self::TABLE, ['eventid' => $eventid, 'done' => 1]);
+        $sql = 'SELECT COUNT(DISTINCT s.checklistitemid)
+                  FROM {bookit_event_checklist_state} s
+                  JOIN {bookit_checklist_item} i ON i.id = s.checklistitemid
+                 WHERE s.eventid = :eventid AND s.done = 1 AND i.masterid = :masterid';
+        $done = (int)$DB->count_records_sql($sql, ['eventid' => $eventid, 'masterid' => $masterid]);
 
         return [
             'done'    => $done,
             'total'   => $total,
             'percent' => (int)round(($done / $total) * 100),
         ];
+    }
+
+    /**
+     * Get progress percent for multiple events in a single query.
+     *
+     * Returns a map of eventid => percent (0-100).
+     * State is global: an item counts as done if any user marked it done.
+     *
+     * @param int[] $eventids List of event IDs
+     * @param int $masterid Master checklist ID
+     * @return array Map of eventid => percent
+     */
+    public static function get_progress_percent_for_events(array $eventids, int $masterid): array {
+        global $DB;
+
+        if (empty($eventids) || $masterid <= 0) {
+            return [];
+        }
+
+        $total = $DB->count_records('bookit_checklist_item', ['masterid' => $masterid]);
+        if ($total === 0) {
+            return array_fill_keys($eventids, 0);
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($eventids, SQL_PARAMS_NAMED, 'eid');
+        $sql = "SELECT s.eventid, COUNT(DISTINCT s.checklistitemid) AS donecnt
+                  FROM {bookit_event_checklist_state} s
+                  JOIN {bookit_checklist_item} i ON i.id = s.checklistitemid
+                 WHERE s.eventid $insql AND s.done = 1 AND i.masterid = :masterid
+              GROUP BY s.eventid";
+        $inparams['masterid'] = $masterid;
+
+        $rows = $DB->get_records_sql($sql, $inparams);
+
+        $result = [];
+        foreach ($eventids as $eid) {
+            $done = isset($rows[$eid]) ? (int)$rows[$eid]->donecnt : 0;
+            $result[$eid] = (int)round(($done / $total) * 100);
+        }
+        return $result;
     }
 }

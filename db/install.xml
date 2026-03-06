@@ -345,7 +345,7 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="eventid_fk" TYPE="foreign" FIELDS="eventid" REFTABLE="bookit" REFFIELDS="id"/>
+        <KEY NAME="eventid_fk" TYPE="foreign" FIELDS="eventid" REFTABLE="bookit_event" REFFIELDS="id"/>
         <KEY NAME="checklistitemid_fk" TYPE="foreign" FIELDS="checklistitemid" REFTABLE="bookit_checklist_item" REFFIELDS="id"/>
         <KEY NAME="userid_fk" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
         <KEY NAME="usermodified_fk" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>

@@ -162,6 +162,13 @@ $templatecontext = [
     'events'  => [],
 ];
 
+// Precompute checklist progress for all events in a single query.
+$progressmap = [];
+if ($masterid > 0 && !empty($events)) {
+    $eventids = array_map(fn($ev) => (int)$ev->id, $events);
+    $progressmap = event_checklist_state_manager::get_progress_percent_for_events($eventids, $masterid);
+}
+
 foreach ($events as $ev) {
     $room = $ev->room ?: '-';
 
@@ -213,9 +220,7 @@ foreach ($events as $ev) {
         'datestr' => $datestr,
         'starttime' => (int)$ev->starttime,
         'cmid' => (int)$cm->id,
-        'checklistprogress' => $masterid > 0
-            ? event_checklist_state_manager::get_progress_for_event((int)$ev->id, $masterid)['percent']
-            : 0,
+        'checklistprogress' => $progressmap[(int)$ev->id] ?? 0,
         'checklistprogress_available' => $masterid > 0,
         'checklistlabel' => get_string('checklist', 'mod_bookit'),
         'checklisturl' => (new moodle_url('/mod/bookit/view/event_checklist_view.php', [
