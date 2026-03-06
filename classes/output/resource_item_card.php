@@ -91,23 +91,27 @@ class resource_item_card implements renderable, templatable {
             return [];
         }
 
+        [$insql, $inparams] = $DB->get_in_or_equal($roomids, SQL_PARAMS_NAMED);
+        $rooms = $DB->get_records_select('bookit_room', "id $insql", $inparams);
+
         $roomnames = [];
         foreach ($roomids as $roomid) {
-            $room = $DB->get_record('bookit_room', ['id' => $roomid]);
-            if ($room) {
-                $eventcolor = $room->eventcolor ?? '';
-                $textcolor = color_manager::get_textcolor_for_background($eventcolor);
-                $textclass = $textcolor === '#000' ? 'text-dark' : 'text-light';
-
-                $roomnames[] = [
-                    'roomid' => $room->id,
-                    'roomname' => format_string($room->name),
-                    'shortname' => $room->shortname ?? '',
-                    'eventcolor' => $eventcolor,
-                    'textclass' => $textclass,
-                    'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
-                ];
+            if (!isset($rooms[$roomid])) {
+                continue;
             }
+            $room = $rooms[$roomid];
+            $eventcolor = $room->eventcolor ?? '';
+            $textcolor = color_manager::get_textcolor_for_background($eventcolor);
+            $textclass = $textcolor === '#000' ? 'text-dark' : 'text-light';
+
+            $roomnames[] = [
+                'roomid' => $room->id,
+                'roomname' => format_string($room->name),
+                'shortname' => $room->shortname ?? '',
+                'eventcolor' => $eventcolor,
+                'textclass' => $textclass,
+                'roomurl' => (new \moodle_url('/mod/bookit/admin/edit_room.php', ['id' => $room->id]))->out(false),
+            ];
         }
 
         return $roomnames;
