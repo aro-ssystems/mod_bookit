@@ -155,7 +155,6 @@ class resource_checklist_manager {
             // Insert new.
             $record->timecreated = time();
             $id = $DB->insert_record('bookit_resource_checklist', $record);
-            $item->set_id($id);
             return $id;
         }
     }

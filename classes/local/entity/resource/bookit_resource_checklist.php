@@ -152,15 +152,6 @@ class bookit_resource_checklist {
     }
 
     /**
-     * Set database ID.
-     *
-     * @param int $id
-     */
-    public function set_id(int $id): void {
-        $this->id = $id;
-    }
-
-    /**
      * Get resource ID.
      *
      * @return int
@@ -338,15 +329,6 @@ class bookit_resource_checklist {
      */
     public function get_timemodified(): int {
         return $this->timemodified;
-    }
-
-    /**
-     * Set modification timestamp.
-     *
-     * @param int $timemodified
-     */
-    public function set_timemodified(int $timemodified): void {
-        $this->timemodified = $timemodified;
     }
 
     /**
