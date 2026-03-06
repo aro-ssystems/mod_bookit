@@ -90,7 +90,7 @@
     </div>
 
     {{! Hidden select element for form submission }}
-    <select name="{{name}}" id="{{id}}" multiple style="display: none;">
+    <select name="{{name}}" id="{{id}}" multiple class="d-none">
         {{#rooms_selected}}
         <option value="{{id}}" selected>{{name}}</option>
         {{/rooms_selected}}
