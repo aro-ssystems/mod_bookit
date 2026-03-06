@@ -27,8 +27,8 @@
 namespace mod_bookit\local\manager;
 
 use advanced_testcase;
-use mod_bookit\local\entity\bookit_resource;
-use mod_bookit\local\entity\bookit_resource_category;
+use mod_bookit\local\entity\resource\bookit_resource;
+use mod_bookit\local\entity\resource\bookit_resource_category;
 
 /**
  * Unit tests for resource_manager class.
