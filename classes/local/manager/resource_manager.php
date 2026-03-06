@@ -464,6 +464,8 @@ class resource_manager {
      * @throws dml_exception
      */
     private static function validate_resource(bookit_resource $resource): void {
+        global $DB;
+
         if (empty(trim($resource->get_name()))) {
             throw new \moodle_exception('resource_name_required', 'mod_bookit');
         }
@@ -473,8 +475,7 @@ class resource_manager {
         }
 
         // Check if category exists.
-        $category = self::get_category($resource->get_categoryid());
-        if ($category === null) {
+        if (!$DB->record_exists('bookit_resource_category', ['id' => $resource->get_categoryid()])) {
             throw new \moodle_exception('resource_category_not_found', 'mod_bookit');
         }
 
