@@ -36,6 +36,7 @@ use moodle_url;
  *
  * @package     mod_bookit
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
+ * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class edit_resource_form extends dynamic_form {
