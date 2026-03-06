@@ -62,18 +62,18 @@ Feature: Resource integration in the BookIt booking workflow
     Given I log in as "susiservice"
     And I am on "Course 1" course homepage
     And I follow "My BookIt Activity"
-    When I navigate to "Overview" in current page administration
+    When I navigate to "My booked events" in current page administration
     Then I should see "Resources"
     And I should see "Checklist"
 
   Scenario: Overview page shows resources column header
     Given the following "mod_bookit > events" exist:
-      | name       | startdate                         | enddate                              | bookingstatus | institution |
-      | Test Event | ##today noon##%Y-%m-%dT%H:%M:%S## | ##tomorrow noon##%Y-%m-%dT%H:%M:%S## | 1             | 1           |
+      | name       | username     | startdate                         | enddate                              | bookingstatus | institution |
+      | Test Event | susiservice  | ##today noon##%Y-%m-%dT%H:%M:%S## | ##tomorrow noon##%Y-%m-%dT%H:%M:%S## | 1             | 1           |
     And I log in as "susiservice"
     And I am on "Course 1" course homepage
     And I follow "My BookIt Activity"
-    When I navigate to "Overview" in current page administration
+    When I navigate to "My booked events" in current page administration
     Then I should see "Test Event"
     And I should see "Resources"
 
