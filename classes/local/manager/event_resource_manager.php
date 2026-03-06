@@ -100,6 +100,9 @@ class event_resource_manager {
     /**
      * Add a resource to an event.
      *
+     * Note: When adding multiple resources at once, callers should wrap the calls
+     * in a database transaction using $DB->start_delegated_transaction().
+     *
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
      * @param int $amount Amount
