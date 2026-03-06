@@ -26,31 +26,16 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent, Reactive} from 'core/reactive';
+import {BaseComponent} from 'core/reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
-import ResourceChecklistMutations from './resource_checklist_mutations';
 import ResourceChecklistCategory from './resource_checklist_category';
+import {initChecklistReactive} from './resource_checklist_reactive';
 
-const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
 const CATEGORY_REGION = 'resource-checklist-category';
 const ITEM_REGION = 'resource-checklist-item-row';
 const CATEGORY_MODAL_FORM = 'mod_bookit\\form\\edit_category_form';
 const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form';
-
-let resourceChecklistReactiveInstance = null;
-
-/**
- * Dispatch a resource checklist state event.
- *
- * @param {Object} detail - Event detail payload
- * @param {HTMLElement} target - Dispatch target (defaults to document)
- */
-function dispatchResourceChecklistStateEvent(detail, target) {
-    (target || document).dispatchEvent(
-        new CustomEvent(EVENTNAME, {bubbles: true, detail})
-    );
-}
 
 /**
  * Resource checklist container component.
@@ -84,22 +69,15 @@ export default class ResourceChecklistContainer extends BaseComponent {
 
         const initialData = ResourceChecklistContainer._parseInitialState(element);
 
-        if (!resourceChecklistReactiveInstance) {
-            resourceChecklistReactiveInstance = new Reactive({
-                name: 'Moodle Bookit Resource Checklist',
-                eventName: EVENTNAME,
-                eventDispatch: dispatchResourceChecklistStateEvent,
-                mutations: new ResourceChecklistMutations(),
-            });
-        }
+        const reactive = initChecklistReactive();
 
         // Register component BEFORE setting initial state so stateReady() fires.
         const instance = new ResourceChecklistContainer({
             element,
-            reactive: resourceChecklistReactiveInstance,
+            reactive,
         });
 
-        resourceChecklistReactiveInstance.setInitialState({
+        reactive.setInitialState({
             categories: initialData.categories,
             checklistitems: initialData.items,
         });
