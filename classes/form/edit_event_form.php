@@ -35,6 +35,7 @@ use core_user\fields;
 use dml_exception;
 use mod_bookit\local\entity\bookit_event;
 use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\manager\event_manager;
 use mod_bookit\local\manager\resource_manager;
 use mod_bookit\local\persistent\institution;
@@ -418,7 +419,7 @@ class edit_event_form extends dynamic_form {
                 foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
                     $bookedresources[$rid] = [
                         'amount' => $br->get_amount(),
-                        'status' => $br->get_status(),
+                        'status' => $br->get_status()->value,
                     ];
                 }
             }
@@ -746,13 +747,13 @@ class edit_event_form extends dynamic_form {
                     $bookedamount = $bookedinfo['amount'];
                     $bookedstatus = $bookedinfo['status'];
                     $statusclassmap = [
-                        bookit_event_resource::STATUS_REQUESTED  => 'badge-secondary',
-                        bookit_event_resource::STATUS_CONFIRMED  => 'badge-success',
-                        bookit_event_resource::STATUS_INPROGRESS => 'badge-primary',
-                        bookit_event_resource::STATUS_REJECTED   => 'badge-danger',
+                        bookit_resource_status::REQUESTED->value  => 'badge-secondary',
+                        bookit_resource_status::CONFIRMED->value  => 'badge-success',
+                        bookit_resource_status::INPROGRESS->value => 'badge-primary',
+                        bookit_resource_status::REJECTED->value   => 'badge-danger',
                     ];
                     $badgeclass = 'badge ' . ($statusclassmap[$bookedstatus] ?? 'badge-secondary');
-                    $statuslabel = get_string('resource_status_' . $bookedstatus, 'mod_bookit');
+                    $statuslabel = get_string('resources:status_' . $bookedstatus, 'mod_bookit');
                     $statichtml = '<span class="' . $badgeclass . '">' . $statuslabel . '</span>';
                     if (!$resource['amountirrelevant']) {
                         $statichtml .= ' &nbsp;' . get_string('booking:resource_amount', 'mod_bookit')

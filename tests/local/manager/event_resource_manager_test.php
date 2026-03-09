@@ -30,6 +30,7 @@ use advanced_testcase;
 use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\entity\resource\bookit_resource_category;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 
 /**
  * Unit tests for event_resource_manager class.
@@ -154,7 +155,7 @@ final class event_resource_manager_test extends advanced_testcase {
         $this->assertEquals($this->eventid, $entity->get_eventid());
         $this->assertEquals($this->resourceid, $entity->get_resourceid());
         $this->assertEquals(2, $entity->get_amount());
-        $this->assertEquals(bookit_event_resource::STATUS_REQUESTED, $entity->get_status());
+        $this->assertEquals(bookit_resource_status::REQUESTED, $entity->get_status());
     }
 
     /**
@@ -219,7 +220,7 @@ final class event_resource_manager_test extends advanced_testcase {
         $result = event_resource_manager::update_status(
             $this->eventid,
             $this->resourceid,
-            bookit_event_resource::STATUS_CONFIRMED
+            bookit_resource_status::CONFIRMED
         );
 
         $this->assertTrue($result);
@@ -229,7 +230,7 @@ final class event_resource_manager_test extends advanced_testcase {
             'resourceid' => $this->resourceid,
         ]);
 
-        $this->assertEquals(bookit_event_resource::STATUS_CONFIRMED, $record->status);
+        $this->assertEquals(bookit_resource_status::CONFIRMED->value, $record->status);
         // Usermodified should be the admin user ID (2).
         $this->assertEquals(2, (int)$record->usermodified);
     }
@@ -238,7 +239,7 @@ final class event_resource_manager_test extends advanced_testcase {
      * Test updating status for non-existent record returns false.
      */
     public function test_update_status_not_found(): void {
-        $result = event_resource_manager::update_status(999, 999, bookit_event_resource::STATUS_CONFIRMED);
+        $result = event_resource_manager::update_status(999, 999, bookit_resource_status::CONFIRMED);
         $this->assertFalse($result);
     }
 
@@ -249,10 +250,10 @@ final class event_resource_manager_test extends advanced_testcase {
         event_resource_manager::add_resource_to_event($this->eventid, $this->resourceid, 1, 2);
 
         $statuses = [
-            bookit_event_resource::STATUS_REQUESTED,
-            bookit_event_resource::STATUS_CONFIRMED,
-            bookit_event_resource::STATUS_INPROGRESS,
-            bookit_event_resource::STATUS_REJECTED,
+            bookit_resource_status::REQUESTED,
+            bookit_resource_status::CONFIRMED,
+            bookit_resource_status::INPROGRESS,
+            bookit_resource_status::REJECTED,
         ];
 
         foreach ($statuses as $status) {
@@ -341,10 +342,10 @@ final class event_resource_manager_test extends advanced_testcase {
             $this->resourceid,
             1,
             2,
-            bookit_event_resource::STATUS_CONFIRMED
+            bookit_resource_status::CONFIRMED
         );
 
         $entity = event_resource_manager::get_event_resource($this->eventid, $this->resourceid);
-        $this->assertEquals(bookit_event_resource::STATUS_CONFIRMED, $entity->get_status());
+        $this->assertEquals(bookit_resource_status::CONFIRMED, $entity->get_status());
     }
 }

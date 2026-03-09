@@ -75,7 +75,7 @@ if ($canmanage) {
     foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
         $bookedresources[$rid] = [
             'amount' => $br->get_amount(),
-            'status' => $br->get_status(),
+            'status' => $br->get_status()->value,
         ];
     }
 

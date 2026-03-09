@@ -25,7 +25,7 @@
 
 namespace mod_bookit\output;
 
-use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\manager\event_resource_manager;
 use mod_bookit\local\manager\resource_checklist_manager;
 use renderer_base;
@@ -165,16 +165,16 @@ class event_checklist_catalog implements renderable, templatable {
             $itemdata->amount           = $eventresource->get_amount();
             $itemdata->availableamount  = $availableamount;
             $itemdata->amountirrelevant = $amountirrelevant;
-            $itemdata->status           = $status;
+            $itemdata->status           = $status->value;
             $itemdata->duedate          = $duedate;
             $itemdata->canmanage        = (int)$this->canmanage;
-            $itemdata->isrequested      = ($status === bookit_event_resource::STATUS_REQUESTED);
-            $itemdata->isconfirmed      = ($status === bookit_event_resource::STATUS_CONFIRMED);
-            $itemdata->isinprogress     = ($status === bookit_event_resource::STATUS_INPROGRESS);
-            $itemdata->isrejected       = ($status === bookit_event_resource::STATUS_REJECTED);
+            $itemdata->isrequested      = ($status === bookit_resource_status::REQUESTED);
+            $itemdata->isconfirmed      = ($status === bookit_resource_status::CONFIRMED);
+            $itemdata->isinprogress     = ($status === bookit_resource_status::INPROGRESS);
+            $itemdata->isrejected       = ($status === bookit_resource_status::REJECTED);
 
             $totalcount++;
-            if ($status === bookit_event_resource::STATUS_CONFIRMED) {
+            if ($status === bookit_resource_status::CONFIRMED) {
                 $confirmedcount++;
             }
 

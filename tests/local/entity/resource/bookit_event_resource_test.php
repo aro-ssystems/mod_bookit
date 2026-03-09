@@ -40,13 +40,13 @@ use advanced_testcase;
  */
 final class bookit_event_resource_test extends advanced_testcase {
     /**
-     * Test status constants are defined correctly.
+     * Test status enum values are defined correctly.
      */
-    public function test_status_constants(): void {
-        $this->assertEquals('requested', bookit_event_resource::STATUS_REQUESTED);
-        $this->assertEquals('confirmed', bookit_event_resource::STATUS_CONFIRMED);
-        $this->assertEquals('inprogress', bookit_event_resource::STATUS_INPROGRESS);
-        $this->assertEquals('rejected', bookit_event_resource::STATUS_REJECTED);
+    public function test_status_enum_values(): void {
+        $this->assertEquals('requested', bookit_resource_status::REQUESTED->value);
+        $this->assertEquals('confirmed', bookit_resource_status::CONFIRMED->value);
+        $this->assertEquals('inprogress', bookit_resource_status::INPROGRESS->value);
+        $this->assertEquals('rejected', bookit_resource_status::REJECTED->value);
     }
 
     /**
@@ -59,7 +59,7 @@ final class bookit_event_resource_test extends advanced_testcase {
         $this->assertEquals(0, $entity->get_eventid());
         $this->assertEquals(0, $entity->get_resourceid());
         $this->assertEquals(1, $entity->get_amount());
-        $this->assertEquals(bookit_event_resource::STATUS_REQUESTED, $entity->get_status());
+        $this->assertEquals(bookit_resource_status::REQUESTED, $entity->get_status());
         $this->assertEquals(0, $entity->get_usermodified());
     }
 
@@ -72,7 +72,7 @@ final class bookit_event_resource_test extends advanced_testcase {
         $record->eventid = 100;
         $record->resourceid = 5;
         $record->amount = 2;
-        $record->status = bookit_event_resource::STATUS_CONFIRMED;
+        $record->status = bookit_resource_status::CONFIRMED->value;
         $record->usermodified = 1;
         $record->timecreated = 1000000;
         $record->timemodified = 1000001;
@@ -83,7 +83,7 @@ final class bookit_event_resource_test extends advanced_testcase {
         $this->assertEquals(100, $entity->get_eventid());
         $this->assertEquals(5, $entity->get_resourceid());
         $this->assertEquals(2, $entity->get_amount());
-        $this->assertEquals(bookit_event_resource::STATUS_CONFIRMED, $entity->get_status());
+        $this->assertEquals(bookit_resource_status::CONFIRMED, $entity->get_status());
         $this->assertEquals(1, $entity->get_usermodified());
         $this->assertEquals(1000000, $entity->get_timecreated());
         $this->assertEquals(1000001, $entity->get_timemodified());
@@ -101,7 +101,7 @@ final class bookit_event_resource_test extends advanced_testcase {
         $entity = bookit_event_resource::from_record($record);
 
         $this->assertEquals(1, $entity->get_amount());
-        $this->assertEquals(bookit_event_resource::STATUS_REQUESTED, $entity->get_status());
+        $this->assertEquals(bookit_resource_status::REQUESTED, $entity->get_status());
         $this->assertEquals(0, $entity->get_usermodified());
     }
 
@@ -115,14 +115,14 @@ final class bookit_event_resource_test extends advanced_testcase {
         $entity->set_eventid(200);
         $entity->set_resourceid(10);
         $entity->set_amount(3);
-        $entity->set_status(bookit_event_resource::STATUS_INPROGRESS);
+        $entity->set_status(bookit_resource_status::INPROGRESS);
         $entity->set_usermodified(5);
 
         $this->assertEquals(99, $entity->get_id());
         $this->assertEquals(200, $entity->get_eventid());
         $this->assertEquals(10, $entity->get_resourceid());
         $this->assertEquals(3, $entity->get_amount());
-        $this->assertEquals(bookit_event_resource::STATUS_INPROGRESS, $entity->get_status());
+        $this->assertEquals(bookit_resource_status::INPROGRESS, $entity->get_status());
         $this->assertEquals(5, $entity->get_usermodified());
     }
 }

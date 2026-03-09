@@ -25,7 +25,7 @@
 
 namespace mod_bookit\local\form\resource;
 
-use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -48,10 +48,10 @@ class view_event_resources_form extends moodleform {
         $resourcesdata   = $this->_customdata['resourcesdata'] ?? [];
 
         $statusclassmap = [
-            bookit_event_resource::STATUS_REQUESTED  => 'badge-secondary',
-            bookit_event_resource::STATUS_CONFIRMED  => 'badge-success',
-            bookit_event_resource::STATUS_INPROGRESS => 'badge-primary',
-            bookit_event_resource::STATUS_REJECTED   => 'badge-danger',
+            bookit_resource_status::REQUESTED->value  => 'badge-secondary',
+            bookit_resource_status::CONFIRMED->value  => 'badge-success',
+            bookit_resource_status::INPROGRESS->value => 'badge-primary',
+            bookit_resource_status::REJECTED->value   => 'badge-danger',
         ];
 
         foreach ($resourcesdata as $categorygroup) {
@@ -83,7 +83,7 @@ class view_event_resources_form extends moodleform {
                 $bookedstatus = $bookedinfo['status'];
 
                 $badgeclass  = 'badge ' . ($statusclassmap[$bookedstatus] ?? 'badge-secondary');
-                $statuslabel = get_string('resource_status_' . $bookedstatus, 'mod_bookit');
+                $statuslabel = get_string('resources:status_' . $bookedstatus, 'mod_bookit');
                 $html        = '<span class="' . $badgeclass . '">' . $statuslabel . '</span>';
 
                 if (!$resource['amountirrelevant']) {
