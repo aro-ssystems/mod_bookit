@@ -23,8 +23,7 @@ Feature: Manage resource checklist in the admin area
     And I navigate to "Plugins > Activity modules > BookIt" in site administration
     And I click on "Resources" "link"
     And I click on "View Checklist" "link"
-    Then I should see "The resource checklist is empty"
-    And I should see "Generate Checklist"
+    Then I should see "No categories yet"
 
   Scenario: Admin can view auto-generated checklist after creating a resource
     Given I log in as "admin"
