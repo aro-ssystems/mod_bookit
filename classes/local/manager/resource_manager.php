@@ -112,6 +112,17 @@ class resource_manager {
         foreach ($records as $r) {
             $rooms[(int)$r->id] = $r->name;
         }
+        if (!empty($rooms)) {
+            return $rooms;
+        }
+
+        // Fallback: legacy rooms stored as resources.
+        $resources = self::get_resources();
+        if (!empty($resources['Rooms']['resources'])) {
+            foreach ($resources['Rooms']['resources'] as $rid => $r) {
+                $rooms[$rid] = $r['name'];
+            }
+        }
         return $rooms;
     }
 
