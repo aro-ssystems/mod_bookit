@@ -161,10 +161,11 @@ class edit_resource_category_form extends dynamic_form {
             // Expecting JSON array.
             $itemids = json_decode($formdata->items, true);
             if (is_array($itemids)) {
+                global $DB;
                 $sortorder = 1;
                 foreach ($itemids as $itemid) {
                     if ($itemid = clean_param($itemid, PARAM_INT)) {
-                        resource_manager::update_resource_sortorder($itemid, $sortorder++);
+                        $DB->set_field('bookit_resource', 'sortorder', $sortorder++, ['id' => $itemid]);
                     }
                 }
             }

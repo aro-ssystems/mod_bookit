@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent} from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
@@ -55,9 +55,16 @@ export default class ResourceCategory extends BaseComponent {
         this.categoryElement = null;
         this.itemComponents = new Map();
         this.parentElement = element;
+        this._categoryDragDrop = null;
 
         // Note: _render() must be called explicitly when creating new categories.
         // When initializing from existing DOM, categoryElement is set externally.
+    }
+
+    destroy() {
+        if (this._categoryDragDrop) {
+            this._categoryDragDrop.unregister();
+        }
     }
 
     /**
@@ -260,6 +267,48 @@ export default class ResourceCategory extends BaseComponent {
     _attachEventListeners() {
         if (!this.categoryElement) {
             return;
+        }
+
+        // Setup DragDrop proxy for the category header row.
+        const categoryRowEl = this.categoryElement.querySelector('[data-region="resource-category-row"]');
+        if (categoryRowEl) {
+            if (this._categoryDragDrop) {
+                this._categoryDragDrop.unregister();
+            }
+            const self = this;
+            this._categoryDragDrop = new DragDrop({
+                element: categoryRowEl,
+                getDraggableData() {
+                    return {
+                        type: 'resource-category',
+                        id: self.categoryData.id,
+                    };
+                },
+                validateDropData(dropdata) {
+                    return dropdata?.type === 'resource-category';
+                },
+                showDropZone() {
+                    const primary = getComputedStyle(document.documentElement)
+                        .getPropertyValue('--primary').trim() || '#0f6cbf';
+                    categoryRowEl.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+                    categoryRowEl.style.transition = 'box-shadow 0.1s ease';
+                },
+                hideDropZone() {
+                    categoryRowEl.style.boxShadow = '';
+                    categoryRowEl.style.transition = '';
+                },
+                drop(dropdata) {
+                    dropdata.targetId = self.categoryData.id;
+
+                    const draggedEl = self.categoryElement.parentNode
+                        .querySelector(`[data-region="resource-category"][data-categoryid="${dropdata.id}"]`);
+                    if (draggedEl && draggedEl !== self.categoryElement) {
+                        self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement);
+                    }
+
+                    self.reactive.dispatch('reOrderCategories', dropdata);
+                },
+            });
         }
 
         // Add Item.

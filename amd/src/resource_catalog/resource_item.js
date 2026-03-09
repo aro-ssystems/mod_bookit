@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent} from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import {getResourceReactive, SELECTORS} from 'mod_bookit/resource_catalog/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
@@ -58,6 +58,8 @@ export default class ResourceItem extends BaseComponent {
     }
 
     stateReady() {
+        this.dragdrop = new DragDrop(this);
+
         const itemId = this.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
 
@@ -96,5 +98,48 @@ export default class ResourceItem extends BaseComponent {
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element);
         }
+    }
+
+    destroy() {
+        if (this.dragdrop !== undefined) {
+            this.dragdrop.unregister();
+        }
+    }
+
+    getDraggableData() {
+        return {
+            type: 'resource-item',
+            id: parseInt(this.element.dataset.bookitItemId),
+            parentId: parseInt(this.element.dataset.itemCategoryid),
+        };
+    }
+
+    validateDropData(dropdata) {
+        return dropdata?.type === 'resource-item';
+    }
+
+    showDropZone() {
+        const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0f6cbf';
+        this.element.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+        this.element.style.transition = 'box-shadow 0.1s ease';
+    }
+
+    hideDropZone() {
+        this.element.style.boxShadow = '';
+        this.element.style.transition = '';
+    }
+
+    drop(dropdata) {
+        if (dropdata.parentId !== parseInt(this.element.dataset.itemCategoryid)) {
+            return;
+        }
+        dropdata.targetId = parseInt(this.element.dataset.bookitItemId);
+
+        const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
+        if (draggedEl && draggedEl !== this.element) {
+            this.element.parentNode.insertBefore(draggedEl, this.element);
+        }
+
+        this.reactive.dispatch('reOrderItems', dropdata);
     }
 }
