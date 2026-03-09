@@ -72,6 +72,7 @@ Feature: Manage resources in the admin area
     And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
     And I wait "3" seconds
+    And I reload the page
     And I should see "Laptop"
     When I click on "[data-action='edit-item']" "css_element"
     Then I should see "Edit Resource"
