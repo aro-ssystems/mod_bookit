@@ -111,8 +111,8 @@ class event_checklist_catalog implements renderable, templatable {
         // Group items by category.
         $categoriesmap = [];
 
-        foreach ($eventresources as $er) {
-            $resource = $DB->get_record('bookit_resource', ['id' => $er->get_resourceid()]);
+        foreach ($eventresources as $eventresource) {
+            $resource = $DB->get_record('bookit_resource', ['id' => $eventresource->get_resourceid()]);
             if (!$resource) {
                 continue;
             }
@@ -134,7 +134,7 @@ class event_checklist_catalog implements renderable, templatable {
             }
 
             // Compute due date from checklist item relative to event start time.
-            $checklistitem = resource_checklist_manager::get_checklist_item_by_resource($er->get_resourceid());
+            $checklistitem = resource_checklist_manager::get_checklist_item_by_resource($eventresource->get_resourceid());
             $duedate = '';
             if ($checklistitem && $checklistitem->get_duedate()) {
                 $duedatetype = $checklistitem->get_duedatetype();
@@ -155,14 +155,14 @@ class event_checklist_catalog implements renderable, templatable {
             $availableamount = (int)$resource->amount;
             $amountirrelevant = (bool)$resource->amountirrelevant;
 
-            $status = $er->get_status();
+            $status = $eventresource->get_status();
 
             $itemdata = new stdClass();
-            $itemdata->id               = $er->get_id();
-            $itemdata->resourceid       = $er->get_resourceid();
+            $itemdata->id               = $eventresource->get_id();
+            $itemdata->resourceid       = $eventresource->get_resourceid();
             $itemdata->resourcename     = format_string($resource->name);
             $itemdata->categoryid       = $categoryid;
-            $itemdata->amount           = $er->get_amount();
+            $itemdata->amount           = $eventresource->get_amount();
             $itemdata->availableamount  = $availableamount;
             $itemdata->amountirrelevant = $amountirrelevant;
             $itemdata->status           = $status;
