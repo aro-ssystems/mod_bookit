@@ -320,6 +320,7 @@ $string['recipient'] = 'Empfänger';
 $string['recipient_help'] = 'Der Empfänger der Benachrichtigung.';
 $string['reset'] = 'Zurücksetzen';
 $string['resetmessagetoconfirm'] = 'Sind Sie sicher, dass Sie die Nachricht auf die Standardvorlage zurücksetzen möchten? Ihre Änderungen werden gelöscht.';
+$string['resource'] = 'Ressource';
 $string['resource_amount'] = 'Anzahl';
 $string['resources'] = 'Ressourcen';
 $string['resources:active'] = 'Aktiv';
