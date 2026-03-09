@@ -330,6 +330,7 @@ $string['recipient'] = 'Recipient';
 $string['recipient_help'] = 'The recipient of the notification.';
 $string['reset'] = 'Reset';
 $string['resetmessagetoconfirm'] = 'Are you sure you want to reset the message to the default template? Your changes will be deleted.';
+$string['resource'] = 'Resource';
 $string['resource_amount'] = 'Amount';
 $string['resources'] = 'Resources';
 $string['resources:active'] = 'Active';
