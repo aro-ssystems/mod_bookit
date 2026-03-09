@@ -153,10 +153,10 @@ export default class EventChecklistItem extends BaseComponent {
     async _loadStrings() {
         try {
             const strs = await getStrings([
-                {key: 'resource_status_requested', component: 'mod_bookit'},
-                {key: 'resource_status_confirmed', component: 'mod_bookit'},
-                {key: 'resource_status_inprogress', component: 'mod_bookit'},
-                {key: 'resource_status_rejected', component: 'mod_bookit'},
+                {key: 'resources:status_requested', component: 'mod_bookit'},
+                {key: 'resources:status_confirmed', component: 'mod_bookit'},
+                {key: 'resources:status_inprogress', component: 'mod_bookit'},
+                {key: 'resources:status_rejected', component: 'mod_bookit'},
             ]);
             this.strings = {
                 requested:  strs[0],

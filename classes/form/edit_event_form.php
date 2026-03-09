@@ -793,7 +793,7 @@ class edit_event_form extends dynamic_form {
                         . ' data-container="body" data-toggle="popover"'
                         . ' data-placement="right" data-content="' . $popovercontent . '"'
                         . ' data-html="true" data-trigger="focus"'
-                        . ' aria-label="' . get_string('resourceinfo', 'mod_bookit') . '">'
+                        . ' aria-label="' . get_string('resources:info', 'mod_bookit') . '">'
                         . '<i class="fa fa-info-circle text-info"></i>'
                         . '</a>';
                     $groupelements[] = $mform->createElement('static', 'info_' . $resource['id'], '', $infoicon);

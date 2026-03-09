@@ -234,7 +234,7 @@ class resource_manager {
         global $DB;
 
         if ($DB->record_exists('bookit_resource', ['categoryid' => $id])) {
-            throw new \moodle_exception('category_has_resources', 'mod_bookit');
+            throw new \moodle_exception('resources:category_has_resources', 'mod_bookit');
         }
 
         $DB->delete_records('bookit_resource_category', ['id' => $id]);
@@ -497,20 +497,20 @@ class resource_manager {
         global $DB;
 
         if (empty(trim($resource->get_name()))) {
-            throw new \moodle_exception('resource_name_required', 'mod_bookit');
+            throw new \moodle_exception('resources:name_required', 'mod_bookit');
         }
 
         if ($resource->get_categoryid() <= 0) {
-            throw new \moodle_exception('resource_category_required', 'mod_bookit');
+            throw new \moodle_exception('resources:category_required', 'mod_bookit');
         }
 
         // Check if category exists.
         if (!$DB->record_exists('bookit_resource_category', ['id' => $resource->get_categoryid()])) {
-            throw new \moodle_exception('resource_category_not_found', 'mod_bookit');
+            throw new \moodle_exception('resources:category_not_found', 'mod_bookit');
         }
 
         if (!$resource->is_amountirrelevant() && $resource->get_amount() < 0) {
-            throw new \moodle_exception('resource_amount_must_be_positive', 'mod_bookit');
+            throw new \moodle_exception('resources:amount_must_be_positive', 'mod_bookit');
         }
 
         if ($resource->get_sortorder() < 0) {
