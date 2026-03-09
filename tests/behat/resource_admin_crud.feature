@@ -54,8 +54,7 @@ Feature: Manage resources in the admin area
     And I set the field "Name" to "Projector"
     And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
-    And I wait "3" seconds
-    And I reload the page
+    And I wait "2" seconds
     And I should see "Projector"
 
   Scenario: Admin can edit a resource
@@ -71,16 +70,14 @@ Feature: Manage resources in the admin area
     And I set the field "Name" to "Laptop"
     And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
-    And I wait "3" seconds
-    And I reload the page
+    And I wait "2" seconds
     And I should see "Laptop"
     When I click on "[data-action='edit-item']" "css_element"
     Then I should see "Edit Resource"
-    And I set the field "Name" to "Laptop EDITED"
+    And I set the field "Name" to "Desktop"
     And I click on "button[data-action='save']" "css_element"
-    And I wait "3" seconds
-    And I reload the page
-    And I should see "Laptop EDITED"
+    And I wait "2" seconds
+    And I should see "Desktop"
     And I should not see "Laptop" in the "#mod-bookit-resource-table" "css_element"
 
   Scenario: Admin can toggle a resource active status
@@ -96,10 +93,8 @@ Feature: Manage resources in the admin area
     And I set the field "Name" to "Camera"
     And I set the field "Category" to "Equipment"
     And I click on "button[data-action='save']" "css_element"
-    And I wait "3" seconds
-    And I reload the page
+    And I wait "2" seconds
     And I should see "Camera"
     When I click on "[data-action='toggle-active']" "css_element"
     And I wait "2" seconds
-    And I reload the page
     Then I should see "Camera"
