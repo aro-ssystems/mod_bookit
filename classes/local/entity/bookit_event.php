@@ -27,6 +27,7 @@ namespace mod_bookit\local\entity;
 use coding_exception;
 use dml_exception;
 use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\persistent\room;
 
 /**
@@ -220,7 +221,7 @@ class bookit_event {
                     'eventid'      => $this->id,
                     'resourceid'   => $mapping->resourceid,
                     'amount'       => $mapping->amount,
-                    'status'       => bookit_event_resource::STATUS_REQUESTED,
+                    'status'       => bookit_resource_status::REQUESTED->value,
                     'usermodified' => $this->usermodified,
                     'timecreated'  => $time,
                     'timemodified' => $time,

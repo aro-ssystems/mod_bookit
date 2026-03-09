@@ -24,7 +24,6 @@
  */
 
 use mod_bookit\local\tabs;
-use mod_bookit\local\manager\resource_checklist_manager;
 
 require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -33,20 +32,6 @@ $context = context_system::instance();
 
 require_login();
 require_capability('mod/bookit:managebasics', $context);
-
-// Auto-generate checklist entries if they don't exist.
-$autogenerate = optional_param('autogenerate', false, PARAM_BOOL);
-if ($autogenerate && confirm_sesskey()) {
-    $count = resource_checklist_manager::auto_generate_checklist($USER->id);
-    if ($count > 0) {
-        redirect(
-            new moodle_url('/mod/bookit/admin/resource_checklist.php'),
-            get_string('resources:checklist_generated', 'mod_bookit', $count),
-            null,
-            \core\output\notification::NOTIFY_SUCCESS
-        );
-    }
-}
 
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/mod/bookit/admin/resource_checklist.php'));
@@ -63,33 +48,15 @@ $tabrow = tabs::get_tabrow($context);
 $id = 'resource_checklist';
 echo $renderer->tabs($tabrow, $id);
 
-// Check if checklist is empty and offer to auto-generate.
-$items = resource_checklist_manager::get_all_checklist_items();
-if (empty($items)) {
-    echo $OUTPUT->notification(
-        get_string('resources:checklist_empty', 'mod_bookit'),
-        \core\output\notification::NOTIFY_INFO
-    );
-    $generateurl = new moodle_url('/mod/bookit/admin/resource_checklist.php', [
-        'autogenerate' => 1,
-        'sesskey' => sesskey(),
-    ]);
-    echo html_writer::link(
-        $generateurl,
-        get_string('resources:generate_checklist', 'mod_bookit'),
-        ['class' => 'btn btn-primary mb-3']
-    );
-} else {
-    // Render via Output Class.
-    $catalog = new \mod_bookit\output\resource_checklist_catalog();
-    echo $renderer->render($catalog);
+// Render via Output Class.
+$catalog = new \mod_bookit\output\resource_checklist_catalog();
+echo $renderer->render($catalog);
 
-    // Init Reactive JS.
-    $PAGE->requires->js_call_amd(
-        'mod_bookit/resource_checklist/resource_checklist_container',
-        'init',
-        ['#mod-bookit-resource-checklist-container']
-    );
-}
+// Init Reactive JS.
+$PAGE->requires->js_call_amd(
+    'mod_bookit/resource_checklist/resource_checklist_container',
+    'init',
+    ['#mod-bookit-resource-checklist-container']
+);
 
 echo $OUTPUT->footer();

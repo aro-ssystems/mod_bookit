@@ -68,7 +68,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $mform->setDefault('action', 'put');
 
         // Resource name (read-only).
-        $mform->addElement('static', 'resourcename', get_string('resource', 'mod_bookit'), '');
+        $mform->addElement('static', 'resourcename', get_string('resources:resource', 'mod_bookit'), '');
 
         // Rooms (read-only info).
         $mform->addElement('static', 'roomslist', get_string('rooms', 'mod_bookit'), '');
@@ -240,7 +240,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
 
         $resource = resource_manager::get_resource_by_id($item->get_resourceid());
         if (!$resource) {
-            throw new \moodle_exception('resourcenotfound', 'mod_bookit');
+            throw new \moodle_exception('resources:notfound', 'mod_bookit');
         }
 
         // Build rooms display string.

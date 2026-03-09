@@ -47,7 +47,7 @@ echo $OUTPUT->heading(get_string('master_checklist', 'mod_bookit'));
 // Show tabs.
 $renderer = $PAGE->get_renderer('mod_bookit');
 $tabrow = tabs::get_tabrow($context);
-$id = 'master_checklist_items';
+$id = optional_param('active_tab', 'master_checklist_items', PARAM_ALPHANUMEXT);
 echo $renderer->tabs($tabrow, $id);
 
 echo html_writer::div(get_string('settings_master_checklist_desc', 'mod_bookit'));

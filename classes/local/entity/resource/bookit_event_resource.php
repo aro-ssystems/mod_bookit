@@ -32,18 +32,6 @@ namespace mod_bookit\local\entity\resource;
  * No business logic or persistence methods.
  */
 class bookit_event_resource {
-    /** @var string Status value: requested */
-    const STATUS_REQUESTED = 'requested';
-
-    /** @var string Status value: confirmed */
-    const STATUS_CONFIRMED = 'confirmed';
-
-    /** @var string Status value: in progress */
-    const STATUS_INPROGRESS = 'inprogress';
-
-    /** @var string Status value: rejected */
-    const STATUS_REJECTED = 'rejected';
-
     /** @var int|null Record ID */
     private ?int $id;
 
@@ -56,8 +44,8 @@ class bookit_event_resource {
     /** @var int Amount of resource units used */
     private int $amount;
 
-    /** @var string Status (requested, confirmed, inprogress, rejected) */
-    private string $status;
+    /** @var bookit_resource_status Resource status */
+    private bookit_resource_status $status;
 
     /** @var int User who created/modified */
     private int $usermodified;
@@ -75,7 +63,7 @@ class bookit_event_resource {
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
      * @param int $amount Amount
-     * @param string $status Status
+     * @param bookit_resource_status $status Status
      * @param int $usermodified User ID
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
@@ -85,7 +73,7 @@ class bookit_event_resource {
         int $eventid = 0,
         int $resourceid = 0,
         int $amount = 1,
-        string $status = self::STATUS_REQUESTED,
+        bookit_resource_status $status = bookit_resource_status::REQUESTED,
         int $usermodified = 0,
         int $timecreated = 0,
         int $timemodified = 0
@@ -112,7 +100,7 @@ class bookit_event_resource {
             (int)($record->eventid ?? 0),
             (int)($record->resourceid ?? 0),
             (int)($record->amount ?? 1),
-            $record->status ?? self::STATUS_REQUESTED,
+            bookit_resource_status::from($record->status ?? 'requested'),
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0)
@@ -194,18 +182,18 @@ class bookit_event_resource {
     /**
      * Get status.
      *
-     * @return string
+     * @return bookit_resource_status
      */
-    public function get_status(): string {
+    public function get_status(): bookit_resource_status {
         return $this->status;
     }
 
     /**
      * Set status.
      *
-     * @param string $status
+     * @param bookit_resource_status $status
      */
-    public function set_status(string $status): void {
+    public function set_status(bookit_resource_status $status): void {
         $this->status = $status;
     }
 

@@ -97,6 +97,36 @@ export default class ResourceCategory extends BaseComponent {
     }
 
     /**
+     * Build Mustache template context for a single resource item row.
+     *
+     * @param {Object} itemData - Item from reactive state
+     * @return {Object} Template context
+     */
+    _buildItemTemplateContext(itemData) {
+        const catalogEl = document.querySelector('[data-totalrooms]');
+        const totalrooms = catalogEl ? parseInt(catalogEl.dataset.totalrooms) || 0 : 0;
+        const roomids = itemData.roomids || [];
+        const isallrooms = totalrooms > 0 && roomids.length === totalrooms;
+
+        return {
+            id: itemData.id,
+            name: itemData.name,
+            description: itemData.description || '',
+            categoryid: itemData.categoryid,
+            amount: itemData.amount,
+            amountirrelevant: itemData.amountirrelevant,
+            sortorder: itemData.sortorder,
+            active: itemData.active,
+            roomids: JSON.stringify(roomids),
+            roomnames: isallrooms ? [] : (itemData.roomnames || []),
+            isallrooms: isallrooms,
+            hasmore: false,
+            moreroomscount: 0,
+            allroomnames: '',
+        };
+    }
+
+    /**
      * Render items in this category (table view: append rows to tbody).
      * Used when creating new items dynamically.
      */
@@ -119,16 +149,23 @@ export default class ResourceCategory extends BaseComponent {
             .filter(item => item.categoryid === this.categoryData.id)
             .sort((a, b) => a.sortorder - b.sortorder);
 
-        // Render each item as a table row.
+        // Render each item as a table row using Templates.
         for (const itemData of items) {
-            const itemComponent = new ResourceItem({
-                element: this.categoryElement,
-                reactive: this.reactive,
-                itemData: itemData,
-            });
-            // Explicitly call render for dynamically created items.
-            await itemComponent._render();
-            this.itemComponents.set(itemData.id, itemComponent);
+            const context = this._buildItemTemplateContext(itemData);
+            const {html, js} = await Templates.renderForPromise(
+                'mod_bookit/resource_catalog/resource_item_row',
+                context
+            );
+            await Templates.appendNodeContents(this.categoryElement, html, js);
+            const rowEl = this.categoryElement.querySelector(`#resource-item-row-${itemData.id}`);
+            if (rowEl) {
+                const itemComponent = new ResourceItem({
+                    element: rowEl,
+                    reactive: this.reactive,
+                    selectors: SELECTORS,
+                });
+                this.itemComponents.set(itemData.id, itemComponent);
+            }
         }
 
         // Restore collapse state after re-rendering items.

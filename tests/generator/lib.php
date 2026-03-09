@@ -39,6 +39,14 @@ class mod_bookit_generator extends testing_module_generator {
      * @throws dml_exception
      */
     final public function create_event(array $event) {
+        global $DB;
+
+        $userid = 2; // Default to admin.
+        if (!empty($event['username'])) {
+            $user = $DB->get_record('user', ['username' => $event['username']], 'id', MUST_EXIST);
+            $userid = $user->id;
+        }
+
         $e = new bookit_event(
             0,
             $event['name'],
@@ -61,16 +69,13 @@ class mod_bookit_generator extends testing_module_generator {
             15,
             15,
             null,
-            2,
+            $userid,
             time(),
             time(),
             [
-                    (object) ['resourceid' => rand(1, 5), 'amount' => 1], // Rooms.
-                    (object) ['resourceid' => rand(6, 7), 'amount' => rand(2, 85)], // Other resources.
-                    (object) ['resourceid' => rand(8, 10), 'amount' => rand(2, 85)], // Other resources.
-                ],
+            ],
         );
 
-        $e->save(2);
+        $e->save($userid);
     }
 }

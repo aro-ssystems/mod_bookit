@@ -169,7 +169,7 @@ final class resource_manager_test extends advanced_testcase {
             resource_manager::delete_category($categoryid);
             $this->fail('Expected moodle_exception not thrown.');
         } catch (\moodle_exception $e) {
-            $this->assertEquals('category_has_resources', $e->errorcode);
+            $this->assertEquals('resources:category_has_resources', $e->errorcode);
         }
     }
 
@@ -429,7 +429,7 @@ final class resource_manager_test extends advanced_testcase {
             resource_manager::save_resource($resource, 2);
             $this->fail('Expected moodle_exception not thrown.');
         } catch (\moodle_exception $e) {
-            $this->assertEquals('resource_name_required', $e->errorcode);
+            $this->assertEquals('resources:name_required', $e->errorcode);
         }
     }
 
@@ -448,7 +448,7 @@ final class resource_manager_test extends advanced_testcase {
             resource_manager::save_resource($resource, 2);
             $this->fail('Expected moodle_exception not thrown.');
         } catch (\moodle_exception $e) {
-            $this->assertEquals('resource_category_not_found', $e->errorcode);
+            $this->assertEquals('resources:category_not_found', $e->errorcode);
         }
     }
 }

@@ -48,9 +48,7 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
             if (!errorEl) {
                 errorEl = document.createElement('span');
                 errorEl.dataset.amountError = '1';
-                errorEl.style.color = '#c0392b';
-                errorEl.style.display = 'block';
-                errorEl.style.fontSize = '0.875em';
+                errorEl.className = 'text-danger d-block small';
                 input.after(errorEl);
             }
             errorEl.textContent = message;

@@ -28,7 +28,7 @@ namespace mod_bookit\local\form\resource;
 use context;
 use context_module;
 use core_form\dynamic_form;
-use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\manager\event_resource_manager;
 use moodle_url;
 
@@ -40,18 +40,6 @@ use moodle_url;
  * a custom external API endpoint.
  */
 class update_event_resource_status_form extends dynamic_form {
-    /**
-     * Allowed status values for event resource.
-     *
-     * @var string[]
-     */
-    const VALID_STATUSES = [
-        bookit_event_resource::STATUS_REQUESTED,
-        bookit_event_resource::STATUS_CONFIRMED,
-        bookit_event_resource::STATUS_INPROGRESS,
-        bookit_event_resource::STATUS_REJECTED,
-    ];
-
     /**
      * Form definition — all fields are hidden.
      */
@@ -81,7 +69,7 @@ class update_event_resource_status_form extends dynamic_form {
     public function validation($data, $files): array {
         $errors = parent::validation($data, $files);
 
-        if (!in_array($data['status'] ?? '', self::VALID_STATUSES, true)) {
+        if (bookit_resource_status::tryFrom($data['status'] ?? '') === null) {
             $errors['status'] = get_string('resources:invalid_status', 'mod_bookit');
         }
 
@@ -110,13 +98,15 @@ class update_event_resource_status_form extends dynamic_form {
         // Verify event exists before acting on it.
         $DB->get_record('bookit_event', ['id' => (int)$data->eventid], '*', MUST_EXIST);
 
+        $status = bookit_resource_status::from($data->status);
+
         event_resource_manager::update_status(
             (int)$data->eventid,
             (int)$data->resourceid,
-            $data->status
+            $status
         );
 
-        return ['status' => $data->status];
+        return ['status' => $status->value];
     }
 
     /**

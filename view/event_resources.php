@@ -41,11 +41,6 @@ $event  = $DB->get_record('bookit_event', ['id' => $eventid], '*', MUST_EXIST);
 
 require_login($course, true, $cm);
 
-// Verify the event belongs to this bookit instance.
-$bookit = $DB->get_record('bookit', ['id' => $cm->instance], '*', MUST_EXIST);
-if ($event->bookitid != $bookit->id) {
-    throw new moodle_exception('invalideventid', 'mod_bookit');
-}
 $context = context_module::instance($cm->id);
 require_capability('mod/bookit:view', $context);
 
@@ -80,7 +75,7 @@ if ($canmanage) {
     foreach (resource_manager::get_resources_of_event($eventid) as $rid => $br) {
         $bookedresources[$rid] = [
             'amount' => $br->get_amount(),
-            'status' => $br->get_status(),
+            'status' => $br->get_status()->value,
         ];
     }
 

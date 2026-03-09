@@ -56,11 +56,11 @@ class resource_manager {
             FROM {bookit_event_resource} er
             WHERE er.eventid = :eventid', ['eventid' => $eventid]);
 
-        $entities = [];
+        $resources = [];
         foreach ($records as $record) {
-            $entities[(int)$record->resourceid] = bookit_event_resource::from_record($record);
+            $resources[(int)$record->resourceid] = bookit_event_resource::from_record($record);
         }
-        return $entities;
+        return $resources;
     }
 
     /**
@@ -111,6 +111,17 @@ class resource_manager {
         $records = $DB->get_records('bookit_room', null, 'name ASC', 'id, name');
         foreach ($records as $r) {
             $rooms[(int)$r->id] = $r->name;
+        }
+        if (!empty($rooms)) {
+            return $rooms;
+        }
+
+        // Fallback: legacy rooms stored as resources.
+        $resources = self::get_resources();
+        if (!empty($resources['Rooms']['resources'])) {
+            foreach ($resources['Rooms']['resources'] as $rid => $r) {
+                $rooms[$rid] = $r['name'];
+            }
         }
         return $rooms;
     }
@@ -223,7 +234,7 @@ class resource_manager {
         global $DB;
 
         if ($DB->record_exists('bookit_resource', ['categoryid' => $id])) {
-            throw new \moodle_exception('category_has_resources', 'mod_bookit');
+            throw new \moodle_exception('resources:category_has_resources', 'mod_bookit');
         }
 
         $DB->delete_records('bookit_resource_category', ['id' => $id]);
@@ -486,20 +497,20 @@ class resource_manager {
         global $DB;
 
         if (empty(trim($resource->get_name()))) {
-            throw new \moodle_exception('resource_name_required', 'mod_bookit');
+            throw new \moodle_exception('resources:name_required', 'mod_bookit');
         }
 
         if ($resource->get_categoryid() <= 0) {
-            throw new \moodle_exception('resource_category_required', 'mod_bookit');
+            throw new \moodle_exception('resources:category_required', 'mod_bookit');
         }
 
         // Check if category exists.
         if (!$DB->record_exists('bookit_resource_category', ['id' => $resource->get_categoryid()])) {
-            throw new \moodle_exception('resource_category_not_found', 'mod_bookit');
+            throw new \moodle_exception('resources:category_not_found', 'mod_bookit');
         }
 
         if (!$resource->is_amountirrelevant() && $resource->get_amount() < 0) {
-            throw new \moodle_exception('resource_amount_must_be_positive', 'mod_bookit');
+            throw new \moodle_exception('resources:amount_must_be_positive', 'mod_bookit');
         }
 
         if ($resource->get_sortorder() < 0) {

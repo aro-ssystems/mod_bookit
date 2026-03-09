@@ -26,7 +26,7 @@
 namespace mod_bookit\local\formelement;
 
 use HTML_QuickForm_select;
-use renderer_base;
+use core\output\renderer_base;
 use mod_bookit\local\persistent\room;
 use mod_bookit\local\manager\color_manager;
 

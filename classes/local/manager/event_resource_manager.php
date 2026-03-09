@@ -27,6 +27,7 @@ namespace mod_bookit\local\manager;
 
 use dml_exception;
 use mod_bookit\local\entity\resource\bookit_event_resource;
+use mod_bookit\local\entity\resource\bookit_resource_status;
 
 /**
  * Event-resource relationship manager.
@@ -107,7 +108,7 @@ class event_resource_manager {
      * @param int $resourceid Resource ID
      * @param int $amount Amount
      * @param int $userid User ID
-     * @param string $status Status
+     * @param bookit_resource_status $status Status
      * @return int Record ID
      * @throws dml_exception
      */
@@ -116,7 +117,7 @@ class event_resource_manager {
         int $resourceid,
         int $amount,
         int $userid,
-        string $status = bookit_event_resource::STATUS_REQUESTED
+        bookit_resource_status $status = bookit_resource_status::REQUESTED
     ): int {
         global $DB;
 
@@ -125,7 +126,7 @@ class event_resource_manager {
         $record->eventid = $eventid;
         $record->resourceid = $resourceid;
         $record->amount = $amount;
-        $record->status = $status;
+        $record->status = $status->value;
         $record->usermodified = $userid;
         $record->timecreated = $time;
         $record->timemodified = $time;
@@ -140,7 +141,7 @@ class event_resource_manager {
      * @param int $resourceid Resource ID
      * @param int $amount New amount
      * @param int $userid User ID
-     * @param string|null $status Optional new status
+     * @param bookit_resource_status|null $status Optional new status
      * @return bool Success
      * @throws dml_exception
      */
@@ -149,7 +150,7 @@ class event_resource_manager {
         int $resourceid,
         int $amount,
         int $userid,
-        ?string $status = null
+        ?bookit_resource_status $status = null
     ): bool {
         global $DB;
 
@@ -164,7 +165,7 @@ class event_resource_manager {
 
         $record->amount = $amount;
         if ($status !== null) {
-            $record->status = $status;
+            $record->status = $status->value;
         }
         $record->usermodified = $userid;
         $record->timemodified = time();
@@ -177,11 +178,11 @@ class event_resource_manager {
      *
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
-     * @param string $status New status
+     * @param bookit_resource_status $status New status
      * @return bool Success
      * @throws dml_exception
      */
-    public static function update_status(int $eventid, int $resourceid, string $status): bool {
+    public static function update_status(int $eventid, int $resourceid, bookit_resource_status $status): bool {
         global $DB, $USER;
 
         $record = $DB->get_record('bookit_event_resource', [
@@ -193,7 +194,7 @@ class event_resource_manager {
             return false;
         }
 
-        $record->status       = $status;
+        $record->status       = $status->value;
         $record->timemodified = time();
         $record->usermodified = (int)$USER->id;
 
@@ -242,7 +243,7 @@ class event_resource_manager {
             (int)$record->eventid,
             (int)$record->resourceid,
             (int)($record->amount ?? 1),
-            $record->status ?? bookit_event_resource::STATUS_REQUESTED,
+            bookit_resource_status::from($record->status ?? 'requested'),
             (int)($record->usermodified ?? 0),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0)
