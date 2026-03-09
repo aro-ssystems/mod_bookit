@@ -56,11 +56,11 @@ class resource_manager {
             FROM {bookit_event_resource} er
             WHERE er.eventid = :eventid', ['eventid' => $eventid]);
 
-        $entities = [];
+        $resources = [];
         foreach ($records as $record) {
-            $entities[(int)$record->resourceid] = bookit_event_resource::from_record($record);
+            $resources[(int)$record->resourceid] = bookit_event_resource::from_record($record);
         }
-        return $entities;
+        return $resources;
     }
 
     /**
