@@ -86,6 +86,13 @@ class edit_resource_category_form extends dynamic_form {
         // Hidden field: items (for reordering items within category).
         $mform->addElement('hidden', 'items');
         $mform->setType('items', PARAM_TEXT);
+
+        // Hidden fields for cross-category item move.
+        $mform->addElement('hidden', 'targetcategoryid');
+        $mform->setType('targetcategoryid', PARAM_INT);
+
+        $mform->addElement('hidden', 'itemid');
+        $mform->setType('itemid', PARAM_INT);
     }
 
     /**
@@ -166,6 +173,14 @@ class edit_resource_category_form extends dynamic_form {
                 foreach ($itemids as $itemid) {
                     if ($itemid = clean_param($itemid, PARAM_INT)) {
                         $DB->set_field('bookit_resource', 'sortorder', $sortorder++, ['id' => $itemid]);
+                    }
+                }
+                // If item moved to a different category, update its categoryid.
+                if (!empty($formdata->itemid) && !empty($formdata->targetcategoryid)) {
+                    $itemid = clean_param($formdata->itemid, PARAM_INT);
+                    $targetcategoryid = clean_param($formdata->targetcategoryid, PARAM_INT);
+                    if ($itemid && $targetcategoryid) {
+                        $DB->set_field('bookit_resource', 'categoryid', $targetcategoryid, ['id' => $itemid]);
                     }
                 }
             }

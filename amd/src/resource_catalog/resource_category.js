@@ -278,6 +278,8 @@ export default class ResourceCategory extends BaseComponent {
             const self = this;
             this._categoryDragDrop = new DragDrop({
                 element: categoryRowEl,
+                // Keep drag image at mouse offset.
+                relativeDrag: true,
                 getDraggableData() {
                     return {
                         type: 'resource-category',
@@ -285,7 +287,7 @@ export default class ResourceCategory extends BaseComponent {
                     };
                 },
                 validateDropData(dropdata) {
-                    return dropdata?.type === 'resource-category';
+                    return dropdata?.type === 'resource-category' || dropdata?.type === 'resource-item';
                 },
                 showDropZone() {
                     const primary = getComputedStyle(document.documentElement)
@@ -298,14 +300,26 @@ export default class ResourceCategory extends BaseComponent {
                     categoryRowEl.style.transition = '';
                 },
                 drop(dropdata) {
-                    dropdata.targetId = self.categoryData.id;
+                    if (dropdata.type === 'resource-item') {
+                        // Item dropped on category header — append to end of this category.
+                        const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
+                        if (draggedEl) {
+                            self.categoryElement.appendChild(draggedEl);
+                            draggedEl.dataset.itemCategoryid = self.categoryData.id;
+                        }
+                        dropdata.targetCategoryId = self.categoryData.id;
+                        dropdata.targetId = null;
+                        self.reactive.dispatch('reOrderItems', dropdata);
+                        return;
+                    }
 
+                    // Category reorder: insert after target (matching masterchecklist pattern).
+                    dropdata.targetId = self.categoryData.id;
                     const draggedEl = self.categoryElement.parentNode
                         .querySelector(`[data-region="resource-category"][data-categoryid="${dropdata.id}"]`);
                     if (draggedEl && draggedEl !== self.categoryElement) {
-                        self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement);
+                        self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement.nextElementSibling);
                     }
-
                     self.reactive.dispatch('reOrderCategories', dropdata);
                 },
             });

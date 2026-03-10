@@ -33,6 +33,8 @@ export default class ResourceItem extends BaseComponent {
         const itemId = descriptor.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
         this.selectors[itemEditBtnSelector] = `#edit-item-${itemId}`;
+        // Keep drag image at mouse offset (fix: ghost snaps to corner without this).
+        this.relativeDrag = true;
     }
 
     static init(target, selectors) {
@@ -130,14 +132,17 @@ export default class ResourceItem extends BaseComponent {
     }
 
     drop(dropdata) {
-        if (dropdata.parentId !== parseInt(this.element.dataset.itemCategoryid)) {
-            return;
-        }
         dropdata.targetId = parseInt(this.element.dataset.bookitItemId);
+        dropdata.targetCategoryId = parseInt(this.element.dataset.itemCategoryid);
 
         const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
         if (draggedEl && draggedEl !== this.element) {
-            this.element.parentNode.insertBefore(draggedEl, this.element);
+            // Insert after target row (matching masterchecklist pattern).
+            this.element.parentNode.insertBefore(draggedEl, this.element.nextElementSibling);
+            // Update category data attribute if item moved to a different category.
+            if (dropdata.parentId !== dropdata.targetCategoryId) {
+                draggedEl.dataset.itemCategoryid = dropdata.targetCategoryId;
+            }
         }
 
         this.reactive.dispatch('reOrderItems', dropdata);
