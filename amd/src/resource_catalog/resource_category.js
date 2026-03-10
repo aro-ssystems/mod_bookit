@@ -233,16 +233,62 @@ export default class ResourceCategory extends BaseComponent {
     /**
      * Handle item category changed (item moved between categories).
      *
+     * For drag-and-drop operations, drop() already moved the DOM row via insertBefore
+     * before this watcher fires. In that case we only update bookkeeping (no re-render).
+     * For AJAX edits (category changed via edit form), the DOM has not been touched yet
+     * and we fall back to a full _renderItems() call.
+     *
      * @param {Object} args - Event args
      * @param {Object} args.element - Updated item data
      */
     async _handleItemCategoryChanged({element}) {
-        // Check if item moved to/from this category.
         const hadItem = this.itemComponents.has(element.id);
         const shouldHaveItem = element.categoryid === this.categoryData.id;
 
-        if (hadItem !== shouldHaveItem) {
-            // Item moved - re-render.
+        if (hadItem === shouldHaveItem) {
+            return;
+        }
+
+        const rowEl = document.getElementById(`resource-item-row-${element.id}`);
+
+        if (hadItem && !shouldHaveItem) {
+            // Item moved OUT of this category.
+            const isStillHere = rowEl && this.categoryElement.contains(rowEl);
+            if (!isStillHere) {
+                // Drag: DOM row already moved out by insertBefore - just clean up bookkeeping.
+                const component = this.itemComponents.get(element.id);
+                if (component) {
+                    component.unregister();
+                }
+                this.itemComponents.delete(element.id);
+            } else {
+                // AJAX edit: row still here - full re-render.
+                await this._renderItems();
+            }
+            return;
+        }
+
+        // Item moved INTO this category.
+        const isAlreadyHere = rowEl && this.categoryElement.contains(rowEl);
+        if (isAlreadyHere) {
+            // Drag: DOM row already moved in by insertBefore - just register new component.
+            const itemComponent = new ResourceItem({
+                element: rowEl,
+                reactive: this.reactive,
+                selectors: SELECTORS,
+            });
+            this.itemComponents.set(element.id, itemComponent);
+
+            // Apply collapse state if this category is collapsed.
+            const catId = this.categoryData.id;
+            const ctxEl = document.querySelector('[data-contextid]');
+            const contextId = ctxEl ? ctxEl.dataset.contextid : '';
+            const storageKey = `bookit_cat_${contextId}_collapsed_${catId}`;
+            if (localStorage.getItem(storageKey)) {
+                rowEl.classList.add('d-none');
+            }
+        } else {
+            // AJAX edit: full re-render.
             await this._renderItems();
         }
     }

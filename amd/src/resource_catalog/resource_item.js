@@ -105,6 +105,7 @@ export default class ResourceItem extends BaseComponent {
     destroy() {
         if (this.dragdrop !== undefined) {
             this.dragdrop.unregister();
+            this.dragdrop = null;
         }
     }
 
