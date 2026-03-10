@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent} from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
@@ -55,9 +55,16 @@ export default class ResourceCategory extends BaseComponent {
         this.categoryElement = null;
         this.itemComponents = new Map();
         this.parentElement = element;
+        this._categoryDragDrop = null;
 
         // Note: _render() must be called explicitly when creating new categories.
         // When initializing from existing DOM, categoryElement is set externally.
+    }
+
+    destroy() {
+        if (this._categoryDragDrop) {
+            this._categoryDragDrop.unregister();
+        }
     }
 
     /**
@@ -226,16 +233,62 @@ export default class ResourceCategory extends BaseComponent {
     /**
      * Handle item category changed (item moved between categories).
      *
+     * For drag-and-drop operations, drop() already moved the DOM row via insertBefore
+     * before this watcher fires. In that case we only update bookkeeping (no re-render).
+     * For AJAX edits (category changed via edit form), the DOM has not been touched yet
+     * and we fall back to a full _renderItems() call.
+     *
      * @param {Object} args - Event args
      * @param {Object} args.element - Updated item data
      */
     async _handleItemCategoryChanged({element}) {
-        // Check if item moved to/from this category.
         const hadItem = this.itemComponents.has(element.id);
         const shouldHaveItem = element.categoryid === this.categoryData.id;
 
-        if (hadItem !== shouldHaveItem) {
-            // Item moved - re-render.
+        if (hadItem === shouldHaveItem) {
+            return;
+        }
+
+        const rowEl = document.getElementById(`resource-item-row-${element.id}`);
+
+        if (hadItem && !shouldHaveItem) {
+            // Item moved OUT of this category.
+            const isStillHere = rowEl && this.categoryElement.contains(rowEl);
+            if (!isStillHere) {
+                // Drag: DOM row already moved out by insertBefore - just clean up bookkeeping.
+                const component = this.itemComponents.get(element.id);
+                if (component) {
+                    component.unregister();
+                }
+                this.itemComponents.delete(element.id);
+            } else {
+                // AJAX edit: row still here - full re-render.
+                await this._renderItems();
+            }
+            return;
+        }
+
+        // Item moved INTO this category.
+        const isAlreadyHere = rowEl && this.categoryElement.contains(rowEl);
+        if (isAlreadyHere) {
+            // Drag: DOM row already moved in by insertBefore - just register new component.
+            const itemComponent = new ResourceItem({
+                element: rowEl,
+                reactive: this.reactive,
+                selectors: SELECTORS,
+            });
+            this.itemComponents.set(element.id, itemComponent);
+
+            // Apply collapse state if this category is collapsed.
+            const catId = this.categoryData.id;
+            const ctxEl = document.querySelector('[data-contextid]');
+            const contextId = ctxEl ? ctxEl.dataset.contextid : '';
+            const storageKey = `bookit_cat_${contextId}_collapsed_${catId}`;
+            if (localStorage.getItem(storageKey)) {
+                rowEl.classList.add('d-none');
+            }
+        } else {
+            // AJAX edit: full re-render.
             await this._renderItems();
         }
     }
@@ -260,6 +313,62 @@ export default class ResourceCategory extends BaseComponent {
     _attachEventListeners() {
         if (!this.categoryElement) {
             return;
+        }
+
+        // Setup DragDrop proxy for the category header row.
+        const categoryRowEl = this.categoryElement.querySelector('[data-region="resource-category-row"]');
+        if (categoryRowEl) {
+            if (this._categoryDragDrop) {
+                this._categoryDragDrop.unregister();
+            }
+            const self = this;
+            this._categoryDragDrop = new DragDrop({
+                element: categoryRowEl,
+                // Keep drag image at mouse offset.
+                relativeDrag: true,
+                getDraggableData() {
+                    return {
+                        type: 'resource-category',
+                        id: self.categoryData.id,
+                    };
+                },
+                validateDropData(dropdata) {
+                    return dropdata?.type === 'resource-category' || dropdata?.type === 'resource-item';
+                },
+                showDropZone() {
+                    const primary = getComputedStyle(document.documentElement)
+                        .getPropertyValue('--primary').trim() || '#0f6cbf';
+                    categoryRowEl.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+                    categoryRowEl.style.transition = 'box-shadow 0.1s ease';
+                },
+                hideDropZone() {
+                    categoryRowEl.style.boxShadow = '';
+                    categoryRowEl.style.transition = '';
+                },
+                drop(dropdata) {
+                    if (dropdata.type === 'resource-item') {
+                        // Item dropped on category header — append to end of this category.
+                        const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
+                        if (draggedEl) {
+                            self.categoryElement.appendChild(draggedEl);
+                            draggedEl.dataset.itemCategoryid = self.categoryData.id;
+                        }
+                        dropdata.targetCategoryId = self.categoryData.id;
+                        dropdata.targetId = null;
+                        self.reactive.dispatch('reOrderItems', dropdata);
+                        return;
+                    }
+
+                    // Category reorder: insert after target (matching masterchecklist pattern).
+                    dropdata.targetId = self.categoryData.id;
+                    const draggedEl = self.categoryElement.parentNode
+                        .querySelector(`[data-region="resource-category"][data-categoryid="${dropdata.id}"]`);
+                    if (draggedEl && draggedEl !== self.categoryElement) {
+                        self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement.nextElementSibling);
+                    }
+                    self.reactive.dispatch('reOrderCategories', dropdata);
+                },
+            });
         }
 
         // Add Item.

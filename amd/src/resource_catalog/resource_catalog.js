@@ -102,7 +102,9 @@ export default class extends BaseComponent {
     /**
      * Parse a single item element into a data object.
      *
-     * Parses roomids from the JSON string stored in the data attribute.
+     * Parses roomids from the JSON string stored in the data attribute,
+     * and roomnames from the server-rendered badge elements so that
+     * cross-category re-renders can reproduce the badges from state.
      *
      * @param {HTMLElement} itemEl - Item DOM element
      * @return {Object} Item data object
@@ -121,6 +123,16 @@ export default class extends BaseComponent {
             }
         }
 
+        const roomElements = itemEl.querySelectorAll('[data-bookit-resource-tabledata-is-room-element]');
+        const roomnames = Array.from(roomElements).map(el => ({
+            roomid: parseInt(el.dataset.bookitResourceTabledataRoomId),
+            roomname: el.dataset.bookitResourceRoomname || '',
+            eventcolor: el.dataset.bookitResourceTabledataRoomColor || '',
+            textclass: el.dataset.bookitResourceTabledataRoomTextclass || '',
+            shortname: el.textContent.trim(),
+            roomurl: el.href || '',
+        }));
+
         return {
             id: parseInt(itemEl.dataset.itemid),
             name: itemEl.dataset.itemName || '',
@@ -131,6 +143,7 @@ export default class extends BaseComponent {
             active: itemEl.dataset.itemActive === '1',
             sortorder: parseInt(itemEl.dataset.itemSortorder) || 0,
             roomids: roomids,
+            roomnames: roomnames,
         };
     }
 

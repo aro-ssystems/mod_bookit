@@ -22,7 +22,115 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import Ajax from 'core/ajax';
+
 export default class {
+
+    _callDynamicForm(stateManager, formData) {
+        formData['_qf__mod_bookit_local_form_resource_edit_resource_category_form'] = 1; // eslint-disable-line dot-notation
+        const encoded = new URLSearchParams(formData).toString();
+        Ajax.call([{
+            methodname: 'core_form_dynamic_form',
+            args: {
+                formdata: encoded,
+                form: 'mod_bookit\\local\\form\\resource\\edit_resource_category_form',
+            },
+        }])[0].catch(exception => {
+            window.console.error('AJAX error in resource reorder:', exception);
+        });
+    }
+
+    reOrderItems(stateManager, data) {
+        const state = stateManager.state;
+
+        const draggedId = parseInt(data.id);
+        const targetId = data.targetId ? parseInt(data.targetId) : null;
+        const sourceCategoryId = parseInt(data.parentId);
+        const targetCategoryId = data.targetCategoryId ? parseInt(data.targetCategoryId) : sourceCategoryId;
+
+        stateManager.setReadOnly(false);
+
+        // If item moved to a different category, update its categoryid in state.
+        if (sourceCategoryId !== targetCategoryId) {
+            const draggedItem = state.items.get(draggedId);
+            if (draggedItem) {
+                draggedItem.categoryid = targetCategoryId;
+            }
+        }
+
+        // Reorder items within the target category.
+        const items = Array.from(state.items.values())
+            .filter(item => item.categoryid === targetCategoryId)
+            .sort((a, b) => a.sortorder - b.sortorder);
+
+        const dragged = items.find(item => item.id === draggedId);
+        const ordered = items.filter(item => item.id !== draggedId);
+
+        if (targetId) {
+            const targetIdx = ordered.findIndex(item => item.id === targetId);
+            if (targetIdx !== -1) {
+                // Insert after target (matching DOM insertBefore(el, target.nextSibling)).
+                ordered.splice(targetIdx + 1, 0, dragged);
+            } else {
+                ordered.push(dragged);
+            }
+        } else {
+            // No target — append to end of category.
+            ordered.push(dragged);
+        }
+
+        ordered.forEach((item, idx) => {
+            const stateItem = state.items.get(item.id);
+            if (stateItem) {
+                stateItem.sortorder = idx + 1;
+            }
+        });
+
+        stateManager.setReadOnly(true);
+
+        this._callDynamicForm(stateManager, {
+            id: 0,
+            name: 'reorder',
+            items: JSON.stringify(ordered.map(item => item.id)),
+            targetcategoryid: targetCategoryId,
+            itemid: draggedId,
+        });
+    }
+
+    reOrderCategories(stateManager, data) {
+        const state = stateManager.state;
+
+        const categories = Array.from(state.categories.values())
+            .sort((a, b) => a.sortorder - b.sortorder);
+
+        const draggedId = parseInt(data.id);
+        const targetId = parseInt(data.targetId);
+        const dragged = categories.find(cat => cat.id === draggedId);
+        const ordered = categories.filter(cat => cat.id !== draggedId);
+        const targetIdx = ordered.findIndex(cat => cat.id === targetId);
+
+        if (targetIdx !== -1) {
+            // Insert after target (matching DOM insertBefore(el, target.nextSibling)).
+            ordered.splice(targetIdx + 1, 0, dragged);
+        } else {
+            ordered.push(dragged);
+        }
+
+        stateManager.setReadOnly(false);
+        ordered.forEach((cat, idx) => {
+            const stateCat = state.categories.get(cat.id);
+            if (stateCat) {
+                stateCat.sortorder = idx + 1;
+            }
+        });
+        stateManager.setReadOnly(true);
+
+        this._callDynamicForm(stateManager, {
+            id: 0,
+            name: 'reorder',
+            categoryorder: ordered.map(cat => cat.id).join(','),
+        });
+    }
     /**
      * Handle category updated (called by processUpdates for action: 'put').
      *

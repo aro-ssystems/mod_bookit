@@ -25,7 +25,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent} from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
@@ -60,6 +60,13 @@ export default class ResourceChecklistCategory extends BaseComponent {
         this.categoryId = parseInt(element.dataset.categoryid);
         this.categoryData = null;
         this.itemComponents = new Map();
+        this._categoryDragDrop = null;
+    }
+
+    destroy() {
+        if (this._categoryDragDrop) {
+            this._categoryDragDrop.unregister();
+        }
     }
 
     /**
@@ -230,6 +237,47 @@ export default class ResourceChecklistCategory extends BaseComponent {
      * Attach category and item button event listeners.
      */
     _attachEventListeners() {
+        const categoryRowEl = this.element.querySelector('[data-region="resource-checklist-category-row"]');
+        if (categoryRowEl) {
+            if (this._categoryDragDrop) {
+                this._categoryDragDrop.unregister();
+            }
+            const self = this;
+            this._categoryDragDrop = new DragDrop({
+                element: categoryRowEl,
+                getDraggableData() {
+                    return {
+                        type: 'checklist-category',
+                        id: self.categoryId,
+                    };
+                },
+                validateDropData(dropdata) {
+                    return dropdata?.type === 'checklist-category';
+                },
+                showDropZone() {
+                    const primary = getComputedStyle(document.documentElement)
+                        .getPropertyValue('--primary').trim() || '#0f6cbf';
+                    categoryRowEl.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+                    categoryRowEl.style.transition = 'box-shadow 0.1s ease';
+                },
+                hideDropZone() {
+                    categoryRowEl.style.boxShadow = '';
+                    categoryRowEl.style.transition = '';
+                },
+                drop(dropdata) {
+                    dropdata.targetId = self.categoryId;
+
+                    const draggedEl = self.element.parentNode
+                        .querySelector(`[data-region="resource-checklist-category"][data-categoryid="${dropdata.id}"]`);
+                    if (draggedEl && draggedEl !== self.element) {
+                        self.element.parentNode.insertBefore(draggedEl, self.element);
+                    }
+
+                    self.reactive.dispatch('reOrderCategories', dropdata);
+                },
+            });
+        }
+
         const addBtn = this.element.querySelector('[data-action="add-item"]');
         if (addBtn) {
             this.addEventListener(addBtn, 'click', this._handleAddItem.bind(this));
