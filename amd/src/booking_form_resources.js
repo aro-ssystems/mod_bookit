@@ -322,10 +322,10 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
             return;
         }
 
-        // Find the room select element.
+        // Find the room select element; form body may not be rendered yet — retry.
         const roomSelect = modalRoot.querySelector('select[name="roomid"]');
-
         if (!roomSelect) {
+            setTimeout(() => init(modalRoot), 50);
             return;
         }
 
