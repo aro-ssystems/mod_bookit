@@ -193,7 +193,7 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         });
 
         // Check if any checked resource is not available in the new room.
-        // An empty rooms array means the resource is available in all rooms (no conflict).
+        // null roomids means available in all rooms (no conflict).
         const hasConflict = checkedGroups.some(group => {
             const roomsJson = group.getAttribute('data-resource-rooms');
             if (!roomsJson) {
@@ -201,8 +201,11 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
             }
             try {
                 const rooms = JSON.parse(roomsJson);
-                if (!Array.isArray(rooms) || rooms.length === 0) {
-                    return false; // Available in all rooms.
+                if (rooms === null) {
+                    return false; // Null = available in all rooms, no conflict.
+                }
+                if (!Array.isArray(rooms)) {
+                    return false;
                 }
                 return !rooms.includes(roomId);
             } catch (e) {
@@ -238,9 +241,10 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         resourceGroups.forEach(group => {
             const roomsJson = group.getAttribute('data-resource-rooms');
             try {
-                const rooms = JSON.parse(roomsJson || '[]');
-                // Empty rooms array means available in all rooms.
-                const isAvailable = !Array.isArray(rooms) || rooms.length === 0 || rooms.includes(roomId);
+                const rooms = JSON.parse(roomsJson);
+                // Null = available in all rooms (always enable).
+                // Array with room IDs = available only in those rooms.
+                const isAvailable = rooms === null || (Array.isArray(rooms) && rooms.includes(roomId));
 
                 if (isAvailable) {
                     enableResource(group);
@@ -328,9 +332,19 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
         // Collect all resource groups.
         const resourceGroups = modalRoot.querySelectorAll('[data-resource-rooms]');
 
-        // If no room is selected yet, disable all resources initially.
+        // If no room is selected yet, disable room-restricted resources; null-roomids stay enabled.
         if (!roomSelect.value) {
-            resourceGroups.forEach(group => disableResource(group));
+            resourceGroups.forEach(group => {
+                const roomsJson = group.getAttribute('data-resource-rooms');
+                try {
+                    const rooms = JSON.parse(roomsJson);
+                    if (rooms !== null) {
+                        disableResource(group);
+                    }
+                } catch (e) {
+                    disableResource(group);
+                }
+            });
             updateCategoryVisibility(modalRoot);
         }
 
@@ -341,8 +355,18 @@ define(['core/notification', 'core/str'], function(Notification, Str) {
             if (selectedRoomId) {
                 await checkConflictAndFilter(modalRoot, selectedRoomId, resourceGroups);
             } else {
-                // No room selected - disable all resources.
-                resourceGroups.forEach(group => disableResource(group));
+                // No room selected - disable room-restricted resources; null-roomids stay enabled.
+                resourceGroups.forEach(group => {
+                    const roomsJson = group.getAttribute('data-resource-rooms');
+                    try {
+                        const rooms = JSON.parse(roomsJson);
+                        if (rooms !== null) {
+                            disableResource(group);
+                        }
+                    } catch (e) {
+                        disableResource(group);
+                    }
+                });
                 updateCategoryVisibility(modalRoot);
             }
         });

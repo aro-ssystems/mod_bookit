@@ -763,9 +763,14 @@ class edit_event_form extends dynamic_form {
                     continue;
                 }
 
-                // Parse roomids JSON. Empty means available in all rooms.
-                $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
-                $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+                // Parse roomids JSON. NULL means available in all rooms (null sentinel passed to JS).
+                // A non-null array restricts the resource to those specific rooms.
+                if ($resource['roomids'] !== null && $resource['roomids'] !== '') {
+                    $roomidsarray = json_decode($resource['roomids'], true);
+                    $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+                } else {
+                    $roomidsarray = null; // Null → JS treats as "available in all rooms".
+                }
 
                 $groupelements = [];
 
