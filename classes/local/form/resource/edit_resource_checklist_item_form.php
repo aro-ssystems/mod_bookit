@@ -67,6 +67,9 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $mform->setType('action', PARAM_TEXT);
         $mform->setDefault('action', 'put');
 
+        $mform->addElement('hidden', 'items');
+        $mform->setType('items', PARAM_TEXT);
+
         // Resource name (read-only).
         $mform->addElement('static', 'resourcename', get_string('resources:resource', 'mod_bookit'), '');
 
@@ -228,6 +231,13 @@ class edit_resource_checklist_item_form extends dynamic_form {
      * Populate form with existing item data.
      */
     public function set_data_for_dynamic_submission(): void {
+        // Skip item loading when processing a reorder request.
+        if (!empty($this->optional_param('items', null, PARAM_TEXT))) {
+            return;
+        }
+        if (!empty($this->optional_param('categoryorder', null, PARAM_TEXT))) {
+            return;
+        }
         $id = $this->optional_param('id', null, PARAM_INT);
         if (empty($id)) {
             throw new \moodle_exception('invalidchecklistitemid', 'mod_bookit');
@@ -301,7 +311,22 @@ class edit_resource_checklist_item_form extends dynamic_form {
      * @return array processUpdates array
      */
     public function process_dynamic_submission(): array {
-        global $USER;
+        global $USER, $DB;
+
+        $itemsparam = $this->optional_param('items', null, PARAM_TEXT);
+        if (!empty($itemsparam)) {
+            $itemids = json_decode($itemsparam, true);
+            if (is_array($itemids)) {
+                $sortorder = 1;
+                foreach ($itemids as $itemid) {
+                    $itemid = clean_param($itemid, PARAM_INT);
+                    if ($itemid) {
+                        $DB->set_field('bookit_resource_checklist', 'sortorder', $sortorder++, ['id' => $itemid]);
+                    }
+                }
+            }
+            return [];
+        }
 
         $data = (array)$this->get_data();
         $id = (int)$data['id'];

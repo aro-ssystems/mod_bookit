@@ -22,7 +22,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent} from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import {getResourceReactive, SELECTORS} from 'mod_bookit/resource_catalog/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
@@ -33,6 +33,8 @@ export default class ResourceItem extends BaseComponent {
         const itemId = descriptor.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
         this.selectors[itemEditBtnSelector] = `#edit-item-${itemId}`;
+        // Keep drag image at mouse offset (fix: ghost snaps to corner without this).
+        this.relativeDrag = true;
     }
 
     static init(target, selectors) {
@@ -58,6 +60,8 @@ export default class ResourceItem extends BaseComponent {
     }
 
     stateReady() {
+        this.dragdrop = new DragDrop(this);
+
         const itemId = this.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
 
@@ -96,5 +100,52 @@ export default class ResourceItem extends BaseComponent {
         if (this.element && this.element.parentNode) {
             this.element.parentNode.removeChild(this.element);
         }
+    }
+
+    destroy() {
+        if (this.dragdrop !== undefined) {
+            this.dragdrop.unregister();
+            this.dragdrop = null;
+        }
+    }
+
+    getDraggableData() {
+        return {
+            type: 'resource-item',
+            id: parseInt(this.element.dataset.bookitItemId),
+            parentId: parseInt(this.element.dataset.itemCategoryid),
+        };
+    }
+
+    validateDropData(dropdata) {
+        return dropdata?.type === 'resource-item';
+    }
+
+    showDropZone() {
+        const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0f6cbf';
+        this.element.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+        this.element.style.transition = 'box-shadow 0.1s ease';
+    }
+
+    hideDropZone() {
+        this.element.style.boxShadow = '';
+        this.element.style.transition = '';
+    }
+
+    drop(dropdata) {
+        dropdata.targetId = parseInt(this.element.dataset.bookitItemId);
+        dropdata.targetCategoryId = parseInt(this.element.dataset.itemCategoryid);
+
+        const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
+        if (draggedEl && draggedEl !== this.element) {
+            // Insert after target row (matching masterchecklist pattern).
+            this.element.parentNode.insertBefore(draggedEl, this.element.nextElementSibling);
+            // Update category data attribute if item moved to a different category.
+            if (dropdata.parentId !== dropdata.targetCategoryId) {
+                draggedEl.dataset.itemCategoryid = dropdata.targetCategoryId;
+            }
+        }
+
+        this.reactive.dispatch('reOrderItems', dropdata);
     }
 }

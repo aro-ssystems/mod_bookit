@@ -25,7 +25,7 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {BaseComponent} from 'core/reactive';
+import {BaseComponent, DragDrop} from 'core/reactive';
 import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
@@ -89,6 +89,12 @@ export default class ResourceChecklistItem extends BaseComponent {
         if (editBtn) {
             this.addEventListener(editBtn, 'click', this._handleEdit.bind(this));
         }
+
+        // DragDrop — reinit each render since this.element changes.
+        if (this.dragdrop !== undefined) {
+            this.dragdrop.unregister();
+        }
+        this.dragdrop = new DragDrop(this);
     }
 
     /**
@@ -192,6 +198,50 @@ export default class ResourceChecklistItem extends BaseComponent {
         this.element = itemElement;
         this._editBtnSelector = `#edit-item-${this.itemData.id}`;
         this._attachEventListeners();
+    }
+
+    destroy() {
+        if (this.dragdrop !== undefined) {
+            this.dragdrop.unregister();
+        }
+    }
+
+    getDraggableData() {
+        return {
+            type: 'checklist-item',
+            id: parseInt(this.element.dataset.itemid),
+            parentId: parseInt(this.element.dataset.itemCategoryid),
+        };
+    }
+
+    validateDropData(dropdata) {
+        return dropdata?.type === 'checklist-item';
+    }
+
+    showDropZone() {
+        const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0f6cbf';
+        this.element.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+        this.element.style.transition = 'box-shadow 0.1s ease';
+    }
+
+    hideDropZone() {
+        this.element.style.boxShadow = '';
+        this.element.style.transition = '';
+    }
+
+    drop(dropdata) {
+        if (dropdata.parentId !== parseInt(this.element.dataset.itemCategoryid)) {
+            return;
+        }
+        dropdata.targetId = parseInt(this.element.dataset.itemid);
+
+        const draggedEl = this.element.parentNode
+            .querySelector(`[data-region="resource-checklist-item-row"][data-itemid="${dropdata.id}"]`);
+        if (draggedEl && draggedEl !== this.element) {
+            this.element.parentNode.insertBefore(draggedEl, this.element);
+        }
+
+        this.reactive.dispatch('reOrderItems', dropdata);
     }
 }
 
