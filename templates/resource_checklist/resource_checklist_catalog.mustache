@@ -85,7 +85,8 @@
                data-category-name="{{name}}"
                data-category-description="{{description}}"
                data-category-sortorder="{{sortorder}}">
-            <tr class="table-active bg-light border-bottom" data-region="resource-checklist-category-row">
+            <tr class="table-active bg-light border-bottom" data-region="resource-checklist-category-row"
+                draggable="true">
                 <td colspan="6" class="font-weight-bold text-dark py-3">
                     <span data-field="category-name">{{{name}}}</span>
                 </td>
@@ -93,6 +94,7 @@
             {{#items}}
             <tr class="resource-checklist-item-row {{^active}}opacity-50{{/active}}"
                 data-region="resource-checklist-item-row"
+                draggable="true"
                 data-itemid="{{id}}"
                 data-item-resourceid="{{resourceid}}"
                 data-item-name="{{name}}"
