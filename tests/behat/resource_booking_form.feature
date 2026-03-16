@@ -84,3 +84,78 @@ Feature: Resource integration in the BookIt booking workflow
     Then I should see "Technical Equipment"
     And I should see "Projector"
     And I should see "Laptop"
+
+  @javascript
+  Scenario: Resources not assigned to the selected room are disabled in the booking form
+    Given the following "mod_bookit > rooms" exist:
+      | name   | shortname |
+      | Room A | RA        |
+      | Room B | RB        |
+    And the following "mod_bookit > resource_categories" exist:
+      | name       |
+      | Filter Cat |
+    And the following "mod_bookit > resources" exist:
+      | name       | category_name | rooms  |
+      | Resource A | Filter Cat    | Room A |
+      | Resource B | Filter Cat    | Room B |
+    And I log in as "susiservice"
+    And I am on "Course 1" course homepage
+    And I follow "My BookIt Activity"
+    And I change window size to "large"
+    When I click on ".ec-addButton" "css_element"
+    And I wait "2" seconds
+    And I select "Room A" from the "Room" field
+    And I wait "2" seconds
+    Then the resource "Resource A" should be enabled in the booking form
+    And the resource "Resource B" should be disabled in the booking form
+
+  @javascript
+  Scenario: All-rooms resources remain enabled regardless of room selection
+    Given the following "mod_bookit > rooms" exist:
+      | name   | shortname |
+      | Room X | RX        |
+    And the following "mod_bookit > resource_categories" exist:
+      | name          |
+      | AllRooms Cat  |
+    And the following "mod_bookit > resources" exist:
+      | name             | category_name | rooms  |
+      | Room X Only      | AllRooms Cat  | Room X |
+      | Universal Res    | AllRooms Cat  |        |
+    And I log in as "susiservice"
+    And I am on "Course 1" course homepage
+    And I follow "My BookIt Activity"
+    And I change window size to "large"
+    When I click on ".ec-addButton" "css_element"
+    And I wait "2" seconds
+    And I select "Room X" from the "Room" field
+    And I wait "2" seconds
+    Then the resource "Room X Only" should be enabled in the booking form
+    And the resource "Universal Res" should be enabled in the booking form
+
+  @javascript
+  Scenario: Switching rooms updates resource availability
+    Given the following "mod_bookit > rooms" exist:
+      | name   | shortname |
+      | Room P | RP        |
+      | Room Q | RQ        |
+    And the following "mod_bookit > resource_categories" exist:
+      | name      |
+      | Switch Cat |
+    And the following "mod_bookit > resources" exist:
+      | name       | category_name | rooms  |
+      | Resource P | Switch Cat    | Room P |
+      | Resource Q | Switch Cat    | Room Q |
+    And I log in as "susiservice"
+    And I am on "Course 1" course homepage
+    And I follow "My BookIt Activity"
+    And I change window size to "large"
+    When I click on ".ec-addButton" "css_element"
+    And I wait "2" seconds
+    And I select "Room P" from the "Room" field
+    And I wait "2" seconds
+    Then the resource "Resource P" should be enabled in the booking form
+    And the resource "Resource Q" should be disabled in the booking form
+    When I select "Room Q" from the "Room" field
+    And I wait "2" seconds
+    Then the resource "Resource P" should be disabled in the booking form
+    And the resource "Resource Q" should be enabled in the booking form

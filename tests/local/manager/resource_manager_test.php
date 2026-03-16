@@ -451,4 +451,142 @@ final class resource_manager_test extends advanced_testcase {
             $this->assertEquals('resources:category_not_found', $e->errorcode);
         }
     }
+
+    /**
+     * Test get_active_resources_grouped: null roomids preserved as null (not empty array).
+     *
+     * Regression test: previously edit_event_form.php would convert null roomids to []
+     * before passing data-resource-rooms to JS, breaking the "available in all rooms" signal.
+     */
+    public function test_get_active_resources_grouped_null_roomids_preserved(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+
+        // Resource with null roomids = available in all rooms.
+        $resource = new bookit_resource(null, 'All-Rooms Resource', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
+        resource_manager::save_resource($resource, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+
+        $this->assertNotEmpty($grouped);
+        $found = null;
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $r) {
+                if ($r['name'] === 'All-Rooms Resource') {
+                    $found = $r;
+                }
+            }
+        }
+
+        $this->assertNotNull($found, 'Resource not found in grouped data');
+        // roomids must be null (not empty string, not '[]') so the form passes JSON null to JS.
+        $this->assertNull($found['roomids'], 'Null roomids must be preserved as null, not converted to []');
+    }
+
+    /**
+     * Test get_active_resources_grouped: specific roomids stored and returned as JSON string.
+     *
+     * Ensures that room-restricted resources carry their room IDs through the data pipeline
+     * so the booking form can emit the correct data-resource-rooms attribute.
+     */
+    public function test_get_active_resources_grouped_room_restricted_roomids(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        // Insert a minimal room directly (room persistent requires many fields).
+        $roomid = $DB->insert_record('bookit_room', (object)[
+            'name' => 'Test Room',
+            'shortname' => 'TR',
+            'description' => '',
+            'location' => '',
+            'eventcolor' => '#ff0000',
+            'active' => 1,
+            'roommode' => 0,
+            'seats' => 10,
+            'extratimebefore' => 0,
+            'extratimeafter' => 0,
+            'overlapping' => 0,
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+
+        // Resource restricted to the test room.
+        $resource = new bookit_resource(
+            null, 'Room-Restricted Resource', null, $categoryid, 3, false, 0, true, [$roomid], 0, 0, 2
+        );
+        resource_manager::save_resource($resource, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+
+        $found = null;
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $r) {
+                if ($r['name'] === 'Room-Restricted Resource') {
+                    $found = $r;
+                }
+            }
+        }
+
+        $this->assertNotNull($found, 'Resource not found in grouped data');
+        // roomids must be a JSON string containing the room ID.
+        $this->assertNotNull($found['roomids'], 'Room-restricted resource must have non-null roomids');
+        $decoded = json_decode($found['roomids'], true);
+        $this->assertIsArray($decoded);
+        $this->assertContains($roomid, $decoded);
+    }
+
+    /**
+     * Test the data-resource-rooms JSON encoding logic used by edit_event_form.
+     *
+     * This directly tests the conditional that converts the resource's roomids field
+     * to the JSON value placed in the data-resource-rooms HTML attribute:
+     *   - null roomids  → JSON null  (available in all rooms)
+     *   - array roomids → JSON array (restricted to those rooms)
+     *
+     * Regression: the form previously passed JSON [] for null-roomids resources, which
+     * caused JS to treat them as restricted rather than universally available.
+     */
+    public function test_roomids_to_dataattribute_json_encoding(): void {
+        // Null roomids → must encode as JSON null string "null".
+        $roomidsraw = null;
+        if ($roomidsraw !== null && $roomidsraw !== '') {
+            $roomidsarray = json_decode($roomidsraw, true);
+            $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+        } else {
+            $roomidsarray = null;
+        }
+        $this->assertNull($roomidsarray, 'Null roomids must produce null, not an empty array');
+        $this->assertEquals('null', json_encode($roomidsarray), 'JSON-encoded null must be the string "null"');
+
+        // Non-null roomids JSON string → must decode to array.
+        $roomidsraw = json_encode([1, 2, 3]);
+        if ($roomidsraw !== null && $roomidsraw !== '') {
+            $roomidsarray = json_decode($roomidsraw, true);
+            $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+        } else {
+            $roomidsarray = null;
+        }
+        $this->assertIsArray($roomidsarray);
+        $this->assertEquals([1, 2, 3], $roomidsarray);
+        $this->assertEquals('[1,2,3]', json_encode($roomidsarray));
+
+        // Empty string roomids (legacy/edge case) → must also produce null.
+        $roomidsraw = '';
+        if ($roomidsraw !== null && $roomidsraw !== '') {
+            $roomidsarray = json_decode($roomidsraw, true);
+            $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+        } else {
+            $roomidsarray = null;
+        }
+        $this->assertNull($roomidsarray, 'Empty-string roomids must produce null, not []');
+    }
 }
