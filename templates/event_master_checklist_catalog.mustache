@@ -99,20 +99,20 @@
     {{#hasitems}}
     <div class="list-group">
         {{#categories}}
-        <div class="list-group-item list-group-item-secondary font-weight-bold py-2">
+        <div class="list-group-item list-group-item-secondary font-weight-bold py-2 px-3">
             {{{name}}}
         </div>
         {{#items}}
-        <div class="list-group-item d-flex align-items-center"
+        <div class="list-group-item d-flex align-items-center px-3 py-2"
              data-region="event-master-checklist-item-row"
              data-itemid="{{id}}"
              data-itemdone="{{done}}">
             <input type="checkbox"
-                   class="form-check-input mr-3"
+                   class="mr-3"
                    data-region="event-master-checklist-item-checkbox"
                    id="event-master-checklist-item-{{id}}"
                    {{#done}}checked{{/done}}
-                   style="width: 1.2em; height: 1.2em; cursor: pointer;">
+                   style="width: 1.2em; height: 1.2em; cursor: pointer; flex-shrink: 0;">
             <label class="form-check-label mb-0 flex-grow-1 {{#done}}text-decoration-line-through text-muted{{/done}}"
                    for="event-master-checklist-item-{{id}}"
                    data-region="event-master-checklist-item-label">

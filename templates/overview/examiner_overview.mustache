@@ -83,6 +83,7 @@
                 <th>Booking status</th>
                 <th>Date</th>
                 <th>Checklist progress</th>
+                <th>Resources progress</th>
                 <th>Checklist</th>
                 <th>Resources</th>
             </tr>
@@ -125,6 +126,19 @@
                     </td>
 
                     <td><a href="{{checklisturl}}" class="btn btn-sm btn-primary">{{checklistlabel}}</a></td>
+                    <td>
+                        {{#resourcesprogress_available}}
+                        <div class="progress position-relative" style="min-width:80px;">
+                            <div class="progress-bar" role="progressbar"
+                                 style="width:{{resourcesprogress}}%;"
+                                 aria-valuenow="{{resourcesprogress}}"
+                                 aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                            <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{resourcesprogress}}%</span>
+                        </div>
+                        {{/resourcesprogress_available}}
+                        {{^resourcesprogress_available}}--{{/resourcesprogress_available}}
+                    </td>
                     <td><a href="{{resourceschecklisturl}}" class="btn btn-sm btn-primary">{{resourceschecklistlabel}}</a></td>
                 </tr>
             {{/events}}

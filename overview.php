@@ -109,6 +109,7 @@ echo $OUTPUT->header();
    ======================================================================= */
 use mod_bookit\local\manager\event_manager;
 use mod_bookit\local\manager\event_checklist_state_manager;
+use mod_bookit\local\manager\event_resource_manager;
 
 global $USER, $DB;
 $events = event_manager::get_events_for_examiner($USER->id);
@@ -164,9 +165,13 @@ $templatecontext = [
 
 // Precompute checklist progress for all events in a single query.
 $progressmap = [];
-if ($masterid > 0 && !empty($events)) {
+$resourceprogressmap = [];
+if (!empty($events)) {
     $eventids = array_map(fn($ev) => (int)$ev->id, $events);
-    $progressmap = event_checklist_state_manager::get_progress_percent_for_events($eventids, $masterid);
+    if ($masterid > 0) {
+        $progressmap = event_checklist_state_manager::get_progress_percent_for_events($eventids, $masterid);
+    }
+    $resourceprogressmap = event_resource_manager::get_resource_progress_for_events($eventids);
 }
 
 foreach ($events as $ev) {
@@ -232,6 +237,8 @@ foreach ($events as $ev) {
             'id' => $cm->id,
             'eventid' => (int)$ev->id,
         ]))->out(false),
+        'resourcesprogress' => $resourceprogressmap[(int)$ev->id]['percent'] ?? 0,
+        'resourcesprogress_available' => ($resourceprogressmap[(int)$ev->id]['total'] ?? 0) > 0,
     ];
 }
 

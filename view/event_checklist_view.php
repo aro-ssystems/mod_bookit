@@ -48,10 +48,19 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_title(get_string('event_checklist_view_title', 'mod_bookit'));
 
 echo $OUTPUT->header();
+
+echo html_writer::start_tag('div', ['class' => 'container-fluid py-3']);
 echo $OUTPUT->heading(get_string('event_checklist_view_heading', 'mod_bookit', format_string($event->name)));
 
 $output = new event_master_checklist_catalog($eventid, $cmid, $context->id);
 echo $OUTPUT->render($output);
+
+echo html_writer::start_tag('div', ['class' => 'mt-3 mb-4']);
+$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
+echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
+echo html_writer::end_tag('div');
+
+echo html_writer::end_tag('div');
 
 $PAGE->requires->js_call_amd(
     'mod_bookit/event_master_checklist/event_master_checklist_container',
