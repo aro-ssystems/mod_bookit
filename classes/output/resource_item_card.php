@@ -76,7 +76,8 @@ class resource_item_card implements renderable, templatable {
         $data->roomnames = $this->get_room_names();
 
         $assignedcount = count($this->resource->get_roomids() ?? []);
-        $data->isallrooms = $this->totalrooms > 0 && ($this->resource->get_roomids() === null || $assignedcount === $this->totalrooms);
+        $data->isallrooms = $this->totalrooms > 0 &&
+            ($this->resource->get_roomids() === null || $assignedcount === $this->totalrooms);
 
         return $data;
     }

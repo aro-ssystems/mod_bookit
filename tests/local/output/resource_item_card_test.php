@@ -24,12 +24,13 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_bookit\output;
+namespace mod_bookit\local\output;
 
 use advanced_testcase;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\entity\resource\bookit_resource_category;
 use mod_bookit\local\manager\resource_manager;
+use mod_bookit\output\resource_item_card;
 
 /**
  * Unit tests for resource_item_card output class.
@@ -47,7 +48,6 @@ use mod_bookit\local\manager\resource_manager;
  * @covers      \mod_bookit\output\resource_item_card
  */
 final class resource_item_card_test extends advanced_testcase {
-
     /**
      * Test that a resource with null roomids exports JSON null to the template.
      *
@@ -76,8 +76,11 @@ final class resource_item_card_test extends advanced_testcase {
         $data = $card->export_for_template($output);
 
         // The roomids field in the template data must be "null" (not "[]").
-        $this->assertEquals('null', $data->roomids,
-            'Null roomids must be encoded as JSON "null" for the room filter to work correctly');
+        $this->assertEquals(
+            'null',
+            $data->roomids,
+            'Null roomids must be encoded as JSON "null" for the room filter to work correctly'
+        );
 
         // Also verify it decodes back to null.
         $decoded = json_decode($data->roomids);
@@ -114,7 +117,18 @@ final class resource_item_card_test extends advanced_testcase {
         $categoryid = resource_manager::save_category($category, 2);
 
         $resource = new bookit_resource(
-            null, 'Room-Only Resource', null, $categoryid, 1, false, 0, true, [$roomid], 0, 0, 2
+            null,
+            'Room-Only Resource',
+            null,
+            $categoryid,
+            1,
+            false,
+            0,
+            true,
+            [$roomid],
+            0,
+            0,
+            2
         );
         resource_manager::save_resource($resource, 2);
 
@@ -125,7 +139,7 @@ final class resource_item_card_test extends advanced_testcase {
         $output = $this->get_renderer();
         $data = $card->export_for_template($output);
 
-        // roomids must be a JSON array containing the room ID.
+        // JSON array with room ID expected for room-restricted resource.
         $decoded = json_decode($data->roomids, true);
         $this->assertIsArray($decoded, 'Room-restricted resource must have array roomids');
         $this->assertContains($roomid, $decoded);
@@ -158,12 +172,14 @@ final class resource_item_card_test extends advanced_testcase {
         resource_manager::save_resource($resource, 2);
         $res = resource_manager::get_all_resources($categoryid, true)[0];
 
-        $card = new resource_item_card($res, 1); // totalrooms = 1.
+        $card = new resource_item_card($res, 1); // 1 total room in system.
         $output = $this->get_renderer();
         $data = $card->export_for_template($output);
 
-        $this->assertTrue($data->isallrooms,
-            'Resource with null roomids must have isallrooms=true when rooms exist');
+        $this->assertTrue(
+            $data->isallrooms,
+            'Resource with null roomids must have isallrooms=true when rooms exist'
+        );
     }
 
     /**

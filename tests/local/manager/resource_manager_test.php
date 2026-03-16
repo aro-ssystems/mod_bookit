@@ -482,7 +482,7 @@ final class resource_manager_test extends advanced_testcase {
         }
 
         $this->assertNotNull($found, 'Resource not found in grouped data');
-        // roomids must be null (not empty string, not '[]') so the form passes JSON null to JS.
+        // Null roomids must be preserved as null, not converted to empty array.
         $this->assertNull($found['roomids'], 'Null roomids must be preserved as null, not converted to []');
     }
 
@@ -521,7 +521,18 @@ final class resource_manager_test extends advanced_testcase {
 
         // Resource restricted to the test room.
         $resource = new bookit_resource(
-            null, 'Room-Restricted Resource', null, $categoryid, 3, false, 0, true, [$roomid], 0, 0, 2
+            null,
+            'Room-Restricted Resource',
+            null,
+            $categoryid,
+            3,
+            false,
+            0,
+            true,
+            [$roomid],
+            0,
+            0,
+            2
         );
         resource_manager::save_resource($resource, 2);
 
@@ -537,7 +548,7 @@ final class resource_manager_test extends advanced_testcase {
         }
 
         $this->assertNotNull($found, 'Resource not found in grouped data');
-        // roomids must be a JSON string containing the room ID.
+        // Room ID JSON string expected for room-restricted resource.
         $this->assertNotNull($found['roomids'], 'Room-restricted resource must have non-null roomids');
         $decoded = json_decode($found['roomids'], true);
         $this->assertIsArray($decoded);
