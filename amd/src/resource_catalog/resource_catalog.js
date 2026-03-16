@@ -926,26 +926,33 @@ export default class extends BaseComponent {
     _getResourceRooms(row) {
         const roomsData = row.dataset.rooms;
         if (!roomsData) {
-            return [];
+            return null;
         }
 
         try {
-            return JSON.parse(roomsData);
+            const parsed = JSON.parse(roomsData);
+            // null means available in all rooms (canonical: null roomids = no room restriction).
+            return Array.isArray(parsed) ? parsed : null;
         } catch (e) {
-            return [];
+            return null;
         }
     }
 
     /**
      * Check if resource has any matching room.
      *
-     * Resources with no rooms assigned cannot match any filter.
+     * null roomids means available in all rooms — always matches any active filter.
      *
-     * @param {Array} resourceRooms - Array of room IDs (strings from JSON)
-     * @return {boolean} True if any room matches
+     * @param {Array|null} resourceRooms - Array of room IDs, or null for all-rooms
+     * @return {boolean} True if resource should be shown for current filter
      */
     _hasMatchingRoom(resourceRooms) {
-        // Resources with no rooms cannot match filters.
+        // null means available in all rooms: always visible regardless of filter.
+        if (resourceRooms === null) {
+            return true;
+        }
+
+        // Empty array (restricted to no specific rooms) cannot match any filter.
         if (resourceRooms.length === 0) {
             return false;
         }
