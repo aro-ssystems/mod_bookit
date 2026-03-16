@@ -125,7 +125,6 @@
                         {{^checklistprogress_available}}--{{/checklistprogress_available}}
                     </td>
 
-                    <td><a href="{{checklisturl}}" class="btn btn-sm btn-primary">{{checklistlabel}}</a></td>
                     <td>
                         {{#resourcesprogress_available}}
                         <div class="progress position-relative" style="min-width:80px;">
@@ -139,6 +138,8 @@
                         {{/resourcesprogress_available}}
                         {{^resourcesprogress_available}}--{{/resourcesprogress_available}}
                     </td>
+
+                    <td><a href="{{checklisturl}}" class="btn btn-sm btn-primary">{{checklistlabel}}</a></td>
                     <td><a href="{{resourceschecklisturl}}" class="btn btn-sm btn-primary">{{resourceschecklistlabel}}</a></td>
                 </tr>
             {{/events}}
