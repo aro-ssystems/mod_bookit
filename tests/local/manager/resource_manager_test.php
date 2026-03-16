@@ -600,4 +600,96 @@ final class resource_manager_test extends advanced_testcase {
         }
         $this->assertNull($roomidsarray, 'Empty-string roomids must produce null, not []');
     }
+
+    /**
+     * Test that saving a resource with amountirrelevant=true stores amount=1 (not 0 or null).
+     */
+    public function test_save_resource_amountirrelevant_stores_valid_amount(): void {
+        global $DB;
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat AI', null, 0, true, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        $resource = new bookit_resource(null, 'WiFi', '', $catid, 1, true, 0, true, null, 0, 0, 2);
+        $id = resource_manager::save_resource($resource, 2);
+
+        $record = $DB->get_record('bookit_resource', ['id' => $id]);
+        $this->assertEquals(1, $record->amountirrelevant);
+        // Amount must be a positive integer, not 0 or null.
+        $this->assertGreaterThan(0, $record->amount, 'Amountirrelevant resource must store amount > 0');
+    }
+
+    /**
+     * Test that validation skips amount check when amountirrelevant is true.
+     */
+    public function test_validate_resource_amountirrelevant_skips_amount_check(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat AI2', null, 0, true, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        // Amount=0 with amountirrelevant=true must pass validation and save successfully.
+        $resource = new bookit_resource(null, 'Whiteboard', '', $catid, 0, true, 0, true, null, 0, 0, 2);
+        $id = resource_manager::save_resource($resource, 2);
+        $this->assertNotEmpty($id);
+    }
+
+    /**
+     * Test that validation rejects amount=0 for non-amountirrelevant resources.
+     */
+    public function test_validate_resource_amount_zero_rejected_when_not_amountirrelevant(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat V', null, 0, true, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        $resource = new bookit_resource(null, 'Projector', '', $catid, 0, false, 0, true, null, 0, 0, 2);
+
+        $this->expectException(\moodle_exception::class);
+        resource_manager::save_resource($resource, 2);
+    }
+
+    /**
+     * Test that get_active_resources_grouped includes amountirrelevant flag.
+     */
+    public function test_get_active_resources_grouped_includes_amountirrelevant(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat Grouped', null, 0, true, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        $resamount = new bookit_resource(null, 'Projector', '', $catid, 5, false, 0, true, null, 0, 0, 2);
+        resource_manager::save_resource($resamount, 2);
+
+        $resirrelevant = new bookit_resource(null, 'WiFi', '', $catid, 1, true, 1, true, null, 0, 0, 2);
+        resource_manager::save_resource($resirrelevant, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+
+        $projector = null;
+        $wifi = null;
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $r) {
+                if ($r['name'] === 'Projector') {
+                    $projector = $r;
+                }
+                if ($r['name'] === 'WiFi') {
+                    $wifi = $r;
+                }
+            }
+        }
+
+        $this->assertNotNull($projector, 'Projector resource must appear in grouped data');
+        $this->assertArrayHasKey('amountirrelevant', $projector);
+        $this->assertFalse($projector['amountirrelevant']);
+
+        $this->assertNotNull($wifi, 'WiFi resource must appear in grouped data');
+        $this->assertArrayHasKey('amountirrelevant', $wifi);
+        $this->assertTrue($wifi['amountirrelevant']);
+    }
 }

@@ -136,7 +136,12 @@ class mod_bookit_generator extends testing_module_generator {
         // Resolve category by name.
         $catname = $resource['category_name'] ?? ($resource['category'] ?? null);
         if ($catname) {
-            $catrec = $DB->get_record('bookit_resource_category', ['name' => $catname], 'id', MUST_EXIST);
+            $catrec = $DB->get_record_sql(
+                "SELECT id FROM {bookit_resource_category} WHERE "
+                . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name'),
+                ['name' => $catname],
+                MUST_EXIST
+            );
             $categoryid = $catrec->id;
         } else {
             throw new \coding_exception('Generator: resource requires category_name');
@@ -148,7 +153,12 @@ class mod_bookit_generator extends testing_module_generator {
             $names = array_filter(array_map('trim', explode(',', $resource['rooms'])));
             $roomids = [];
             foreach ($names as $rname) {
-                $room = $DB->get_record('bookit_room', ['name' => $rname], 'id', MUST_EXIST);
+                $room = $DB->get_record_sql(
+                    "SELECT id FROM {bookit_room} WHERE "
+                    . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name'),
+                    ['name' => $rname],
+                    MUST_EXIST
+                );
                 $roomids[] = (int)$room->id;
             }
         }
@@ -159,7 +169,7 @@ class mod_bookit_generator extends testing_module_generator {
             $resource['description'] ?? null,
             $categoryid,
             (int)($resource['amount'] ?? 1),
-            false,
+            isset($resource['amountirrelevant']) ? (bool)$resource['amountirrelevant'] : false,
             0,
             isset($resource['active']) ? (bool)$resource['active'] : true,
             $roomids,

@@ -38,7 +38,6 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_mod_bookit extends behat_base {
-
     /**
      * Checks that the given resource row has the bookit-resource-disabled class (is greyed out).
      *
@@ -76,29 +75,30 @@ class behat_mod_bookit extends behat_base {
      * @throws ExpectationException
      */
     private function assert_resource_state(string $name, bool $expectdisabled): void {
-        // Run JavaScript inside the browser to find the resource row and inspect its class.
+        // In Moodle 4.5/Boost, addGroup() renders the group label as a <p id="fgroup_id_..._label">.
+        // The bookit-resource-disabled class is applied to the outer [id^="fgroup_id_resourcegroup_"] div.
         $js = <<<JS
             (function(resourceName) {
-                // Find all labels inside the booking modal that match the resource name.
-                var labels = document.querySelectorAll('.modal-body .fgroup label, .mform .fgroup label');
-                for (var i = 0; i < labels.length; i++) {
-                    if (labels[i].textContent.trim() === resourceName) {
-                        // Walk up to the fgroup container div.
-                        var row = labels[i].closest('div[id^="fgroup_id_"]');
-                        if (row) {
-                            return row.classList.contains('bookit-resource-disabled') ? 'disabled' : 'enabled';
-                        }
+                var groups = document.querySelectorAll('[id^="fgroup_id_resourcegroup_"]');
+                for (var i = 0; i < groups.length; i++) {
+                    var labelEl = groups[i].querySelector('[id$="_label"]');
+                    if (labelEl && labelEl.textContent.trim() === resourceName) {
+                        return groups[i].classList.contains('bookit-resource-disabled') ? 'disabled' : 'enabled';
                     }
                 }
-                return 'not_found';
+                var found = Array.from(groups).map(function(g) {
+                    var l = g.querySelector('[id$="_label"]');
+                    return l ? l.textContent.trim() : '(no label)';
+                });
+                return 'not_found:labels=' + JSON.stringify(found);
             })('$name')
         JS;
 
         $result = $this->getSession()->evaluateScript($js);
 
-        if ($result === 'not_found') {
+        if (strpos($result, 'not_found') === 0) {
             throw new ExpectationException(
-                "Resource \"$name\" was not found in the booking form.",
+                "Resource \"$name\" was not found in the booking form. JS info: $result",
                 $this->getSession()
             );
         }
@@ -116,5 +116,21 @@ class behat_mod_bookit extends behat_base {
                 $this->getSession()
             );
         }
+    }
+
+    /**
+     * Selects an option from a named select field in the booking form.
+     *
+     * This step selects a room (or other option) from a Moodle select element identified
+     * by its visible label. It is equivalent to the built-in "I select ... from the ... field"
+     * but targets the Moodle form element by label text.
+     *
+     * @When I select :value from the :field field
+     * @param string $value The option text to select.
+     * @param string $field The visible label of the select field.
+     */
+    public function i_select_from_the_field(string $value, string $field): void {
+        $selectnode = $this->find_field($field);
+        $selectnode->selectOption($value);
     }
 }

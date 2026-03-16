@@ -474,10 +474,13 @@ class resource_manager {
         $params = ['name' => $category->get_name()];
         if ($category->get_id() !== null) {
             // Exclude current category when editing.
-            $sql = "SELECT id FROM {bookit_resource_category} WHERE name = :name AND id != :id";
+            $sql = "SELECT id FROM {bookit_resource_category} WHERE "
+                . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name')
+                . " AND id != :id";
             $params['id'] = $category->get_id();
         } else {
-            $sql = "SELECT id FROM {bookit_resource_category} WHERE name = :name";
+            $sql = "SELECT id FROM {bookit_resource_category} WHERE "
+                . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name');
         }
 
         if ($DB->record_exists_sql($sql, $params)) {
@@ -509,7 +512,7 @@ class resource_manager {
             throw new \moodle_exception('resources:category_not_found', 'mod_bookit');
         }
 
-        if (!$resource->is_amountirrelevant() && $resource->get_amount() < 0) {
+        if (!$resource->is_amountirrelevant() && $resource->get_amount() <= 0) {
             throw new \moodle_exception('resources:amount_must_be_positive', 'mod_bookit');
         }
 

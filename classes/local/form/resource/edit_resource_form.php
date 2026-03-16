@@ -260,8 +260,9 @@ class edit_resource_form extends dynamic_form {
             return $this->process_delete_request($formdata->id);
         }
 
-        // If amountirrelevant is checked, set amount to 0.
-        $amount = $formdata->amountirrelevant ? 0 : ($formdata->amount ?? 1);
+        // When amountirrelevant is checked the amount field is disabled and not submitted.
+        // Use 1 as a neutral stored value; the actual number has no meaning for these resources.
+        $amount = (bool)$formdata->amountirrelevant ? 1 : (int)($formdata->amount ?? 1);
 
         // Handle roomids - convert empty to null, otherwise keep as array.
         $roomids = !empty($formdata->roomids) ? $formdata->roomids : null;

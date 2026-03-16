@@ -931,7 +931,7 @@ export default class extends BaseComponent {
 
         try {
             const parsed = JSON.parse(roomsData);
-            // null means available in all rooms (canonical: null roomids = no room restriction).
+            // Null means available in all rooms (canonical: null roomids = no room restriction).
             return Array.isArray(parsed) ? parsed : null;
         } catch (e) {
             return null;
@@ -941,13 +941,13 @@ export default class extends BaseComponent {
     /**
      * Check if resource has any matching room.
      *
-     * null roomids means available in all rooms — always matches any active filter.
+     * Null roomids means available in all rooms — always matches any active filter.
      *
      * @param {Array|null} resourceRooms - Array of room IDs, or null for all-rooms
      * @return {boolean} True if resource should be shown for current filter
      */
     _hasMatchingRoom(resourceRooms) {
-        // null means available in all rooms: always visible regardless of filter.
+        // Null means available in all rooms: always visible regardless of filter.
         if (resourceRooms === null) {
             return true;
         }
