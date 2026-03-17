@@ -31,6 +31,7 @@ use core_external\external_single_structure;
 use core_external\external_value;
 use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\manager\event_resource_manager;
+use mod_bookit\local\manager\resource_notification_manager;
 
 defined('MOODLE_INTERNAL') || die;
 
@@ -95,6 +96,13 @@ class update_event_resource_status extends external_api {
         if (!$updated) {
             throw new \moodle_exception('invalidrecord', 'error');
         }
+
+        resource_notification_manager::notify_status_changed(
+            $params['cmid'],
+            $params['eventid'],
+            $params['resourceid'],
+            $status
+        );
 
         return ['status' => $status->value];
     }
