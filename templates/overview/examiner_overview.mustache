@@ -42,6 +42,9 @@
     * starttime - Unix timestamp used for sorting (number).
     * cmid - Course module id for the modal (number).
     * checklistprogress - Checklist progress percent (int, -1 = no master checklist).
+    * checklistprogress_available - Whether checklist progress is available (bool).
+    * resourcesprogress - Resources progress percent (int).
+    * resourcesprogress_available - Whether resources progress is available (bool).
     * checklistlabel - Checklist button label (string).
 
     Example context (json):
@@ -59,7 +62,10 @@
           "datestr": "14.01.2026",
           "starttime": 1768425600,
           "cmid": 42,
-          "checklistprogress": 0,
+          "checklistprogress": 50,
+          "checklistprogress_available": true,
+          "resourcesprogress": 75,
+          "resourcesprogress_available": true,
           "checklistlabel": "Checklist"
         }
       ]
@@ -82,8 +88,7 @@
                 <th>My role</th>
                 <th>Booking status</th>
                 <th>Date</th>
-                <th>Checklist progress</th>
-                <th>Resources progress</th>
+                <th>Progress</th>
                 <th>Checklist</th>
                 <th>Resources</th>
             </tr>
@@ -113,30 +118,32 @@
 
                     <td>
                         {{#checklistprogress_available}}
-                        <div class="progress position-relative" style="min-width:80px;">
-                            <div class="progress-bar" role="progressbar"
-                                 style="width:{{checklistprogress}}%;"
-                                 aria-valuenow="{{checklistprogress}}"
-                                 aria-valuemin="0" aria-valuemax="100">
+                        <div class="mb-1">
+                            <div class="small text-muted mb-1">Checklist</div>
+                            <div class="progress position-relative" style="min-width:80px;">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width:{{checklistprogress}}%;"
+                                     aria-valuenow="{{checklistprogress}}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                                <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{checklistprogress}}%</span>
                             </div>
-                            <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{checklistprogress}}%</span>
                         </div>
                         {{/checklistprogress_available}}
-                        {{^checklistprogress_available}}--{{/checklistprogress_available}}
-                    </td>
-
-                    <td>
                         {{#resourcesprogress_available}}
-                        <div class="progress position-relative" style="min-width:80px;">
-                            <div class="progress-bar" role="progressbar"
-                                 style="width:{{resourcesprogress}}%;"
-                                 aria-valuenow="{{resourcesprogress}}"
-                                 aria-valuemin="0" aria-valuemax="100">
+                        <div>
+                            <div class="small text-muted mb-1">Resources</div>
+                            <div class="progress position-relative" style="min-width:80px;">
+                                <div class="progress-bar" role="progressbar"
+                                     style="width:{{resourcesprogress}}%;"
+                                     aria-valuenow="{{resourcesprogress}}"
+                                     aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                                <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{resourcesprogress}}%</span>
                             </div>
-                            <span class="position-absolute w-100 text-center" style="font-size:0.75rem;line-height:1rem;">{{resourcesprogress}}%</span>
                         </div>
                         {{/resourcesprogress_available}}
-                        {{^resourcesprogress_available}}--{{/resourcesprogress_available}}
+                        {{^checklistprogress_available}}{{^resourcesprogress_available}}--{{/resourcesprogress_available}}{{/checklistprogress_available}}
                     </td>
 
                     <td><a href="{{checklisturl}}" class="btn btn-sm btn-primary">{{checklistlabel}}</a></td>
