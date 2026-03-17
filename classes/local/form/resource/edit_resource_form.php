@@ -86,6 +86,14 @@ class edit_resource_form extends dynamic_form {
         $mform->setType('description', PARAM_TEXT);
         $mform->addHelpButton('description', 'resources:description', 'mod_bookit');
 
+        // Field: internalinfo.
+        $mform->addElement('textarea', 'internalinfo', get_string('resources:internalinfo', 'mod_bookit'), [
+            'rows' => 4,
+            'cols' => 50,
+        ]);
+        $mform->setType('internalinfo', PARAM_TEXT);
+        $mform->addHelpButton('internalinfo', 'resources:internalinfo', 'mod_bookit');
+
         // Field: amountirrelevant (checkbox).
         $mform->addElement('advcheckbox', 'amountirrelevant', get_string('resources:amountirrelevant', 'mod_bookit'));
         $mform->setDefault('amountirrelevant', 0);
@@ -216,6 +224,7 @@ class edit_resource_form extends dynamic_form {
                 'name' => $resource->get_name(),
                 'categoryid' => $resource->get_categoryid(),
                 'description' => $resource->get_description(),
+                'internalinfo' => $resource->get_internalinfo(),
                 'amount' => $resource->get_amount(),
                 'amountirrelevant' => $resource->is_amountirrelevant() ? 1 : 0,
                 'active' => $resource->is_active() ? 1 : 0,
@@ -279,7 +288,9 @@ class edit_resource_form extends dynamic_form {
             (bool) $formdata->active,
             $roomids,
             time(), // Timecreated.
-            time()   // Timemodified.
+            time(), // Timemodified.
+            0, // Usermodified (set by manager).
+            $formdata->internalinfo ?? null
         );
 
         // Save via manager.
@@ -301,6 +312,7 @@ class edit_resource_form extends dynamic_form {
                     'id' => $savedid,
                     'name' => $formdata->name,
                     'description' => $formdata->description ?? '',
+                    'internalinfo' => $formdata->internalinfo ?? null,
                     'categoryid' => (int) $formdata->categoryid,
                     'amount' => $amount,
                     'amountirrelevant' => (bool) $formdata->amountirrelevant,

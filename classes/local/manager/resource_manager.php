@@ -332,6 +332,7 @@ class resource_manager {
         $record->sortorder = $resource->get_sortorder();
         $record->active = $resource->is_active() ? 1 : 0;
         $record->roomids = ($resource->get_roomids() !== null) ? json_encode($resource->get_roomids()) : null;
+        $record->internalinfo = $resource->get_internalinfo();
         $record->usermodified = $userid;
 
         if ($resource->get_id() === null) {

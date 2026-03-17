@@ -51,6 +51,9 @@ class bookit_resource {
     /** @var ?array Room IDs assigned to this resource; stored as JSON in DB, null means available in all rooms */
     private ?array $roomids;
 
+    /** @var ?string Internal information visible only to admins */
+    private ?string $internalinfo;
+
     /** @var int Unix timestamp of creation */
     private int $timecreated;
 
@@ -72,6 +75,7 @@ class bookit_resource {
      * @param int $sortorder Sort order
      * @param bool $active Active flag
      * @param ?array $roomids Room IDs or null if available in all rooms
+     * @param ?string $internalinfo Internal information for admins
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
      * @param int $usermodified User ID
@@ -88,7 +92,8 @@ class bookit_resource {
         ?array $roomids = null,
         int $timecreated = 0,
         int $timemodified = 0,
-        int $usermodified = 0
+        int $usermodified = 0,
+        ?string $internalinfo = null
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -99,6 +104,7 @@ class bookit_resource {
         $this->sortorder = $sortorder;
         $this->active = $active;
         $this->roomids = $roomids;
+        $this->internalinfo = $internalinfo;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->usermodified = $usermodified;
@@ -129,7 +135,8 @@ class bookit_resource {
             $roomids,
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0),
-            (int)($record->usermodified ?? 0)
+            (int)($record->usermodified ?? 0),
+            $record->internalinfo ?? null
         );
     }
 
@@ -212,6 +219,15 @@ class bookit_resource {
      */
     public function get_roomids(): ?array {
         return $this->roomids;
+    }
+
+    /**
+     * Get internal information.
+     *
+     * @return ?string
+     */
+    public function get_internalinfo(): ?string {
+        return $this->internalinfo;
     }
 
     /**
@@ -319,5 +335,15 @@ class bookit_resource {
      */
     public function set_roomids(?array $roomids): void {
         $this->roomids = $roomids;
+    }
+
+    /**
+     * Set internal information.
+     *
+     * @param ?string $internalinfo
+     * @return void
+     */
+    public function set_internalinfo(?string $internalinfo): void {
+        $this->internalinfo = $internalinfo;
     }
 }
