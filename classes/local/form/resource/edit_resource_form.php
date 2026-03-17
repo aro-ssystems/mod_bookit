@@ -312,33 +312,6 @@ class edit_resource_form extends dynamic_form {
             ],
         ];
 
-        // Auto-deactivate category if all its resources are now inactive.
-        if (!$formdata->active) {
-            $categoryid = (int) $formdata->categoryid;
-            $activecount = $DB->count_records_select(
-                'bookit_resource',
-                'categoryid = ? AND active = 1',
-                [$categoryid]
-            );
-            if ($activecount === 0) {
-                $DB->set_field('bookit_resource_category', 'active', 0, ['id' => $categoryid]);
-                $category = resource_manager::get_category($categoryid);
-                if ($category) {
-                    $updates[] = [
-                        'name' => 'categories',
-                        'action' => 'put',
-                        'fields' => [
-                            'id' => $category->get_id(),
-                            'name' => $category->get_name(),
-                            'description' => $category->get_description() ?? '',
-                            'sortorder' => $category->get_sortorder() ?? 0,
-                            'active' => false,
-                        ],
-                    ];
-                }
-            }
-        }
-
         return $updates;
     }
 

@@ -144,19 +144,13 @@ class resource_manager {
     /**
      * Get all resource categories.
      *
-     * @param bool $activeonly Filter only active categories
      * @return array Array of bookit_resource_category objects
      * @throws dml_exception
      */
-    public static function get_all_categories(bool $activeonly = false): array {
+    public static function get_all_categories(): array {
         global $DB;
 
-        $conditions = [];
-        if ($activeonly) {
-            $conditions['active'] = 1;
-        }
-
-        $records = $DB->get_records('bookit_resource_category', $conditions, 'sortorder ASC');
+        $records = $DB->get_records('bookit_resource_category', [], 'sortorder ASC');
 
         $categories = [];
         foreach ($records as $record) {
@@ -203,7 +197,6 @@ class resource_manager {
         $record->name = $category->get_name();
         $record->description = $category->get_description();
         $record->sortorder = $category->get_sortorder();
-        $record->active = $category->is_active() ? 1 : 0;
         $record->usermodified = $userid;
 
         if ($category->get_id() === null) {
@@ -557,7 +550,7 @@ class resource_manager {
                 c.sortorder as category_sortorder
             FROM {bookit_resource} r
             JOIN {bookit_resource_category} c ON c.id = r.categoryid
-            WHERE r.active = 1 AND c.active = 1
+            WHERE r.active = 1
             ORDER BY c.sortorder ASC, r.sortorder ASC
         ";
 

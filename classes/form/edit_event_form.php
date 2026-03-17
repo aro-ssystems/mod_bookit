@@ -770,7 +770,7 @@ class edit_event_form extends dynamic_form {
                 // A non-null array restricts the resource to those specific rooms.
                 if ($resource['roomids'] !== null && $resource['roomids'] !== '') {
                     $roomidsarray = json_decode($resource['roomids'], true);
-                    $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+                    $roomidsarray = is_array($roomidsarray) ? array_map('intval', $roomidsarray) : [];
                 } else {
                     $roomidsarray = null; // Null → JS treats as "available in all rooms".
                 }

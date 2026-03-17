@@ -23,15 +23,13 @@
     * name - Category name
     * description - Category description (optional)
     * sortorder - Sort order
-    * active - Active status
 
     Example context (json):
     {
         "id": 1,
         "name": "Technical Equipment",
         "description": "Audio and video equipment",
-        "sortorder": 0,
-        "active": true
+        "sortorder": 0
     }
 }}
 <tr class="table-active bg-light border-bottom resource-category-row"
@@ -39,7 +37,6 @@
     data-region="resource-category-row"
     data-categoryid="{{id}}"
     data-category-sortorder="{{sortorder}}"
-    data-category-active="{{active}}"
     draggable="true">
 
     <td class="font-weight-bold text-dark py-3">

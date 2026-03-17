@@ -69,10 +69,7 @@ class edit_resource_category_form extends dynamic_form {
         $mform->setType('description', PARAM_TEXT);
         $mform->addHelpButton('description', 'resources:description', 'mod_bookit');
 
-        // Field: active.
-        $mform->addElement('advcheckbox', 'active', get_string('resources:active', 'mod_bookit'));
-        $mform->setDefault('active', 1);
-        $mform->addHelpButton('active', 'resources:active', 'mod_bookit');
+        // Field: active is removed; categories are always active.
 
         // Hidden field: sortorder (set automatically).
         $mform->addElement('hidden', 'sortorder');
@@ -111,14 +108,12 @@ class edit_resource_category_form extends dynamic_form {
                 'id' => $category->get_id(),
                 'name' => $category->get_name(),
                 'description' => $category->get_description(),
-                'active' => $category->is_active() ? 1 : 0,
                 'sortorder' => $category->get_sortorder(),
             ];
         } else {
             // Create mode: Set defaults.
             $data = (object) [
                 'id' => 0,
-                'active' => 1,
                 'sortorder' => 0,
             ];
         }
@@ -194,7 +189,6 @@ class edit_resource_category_form extends dynamic_form {
             $formdata->name,
             $formdata->description ?? '',
             $formdata->sortorder ?? 0,
-            (bool) $formdata->active,
             time(), // Timecreated (will be set by manager if new).
             time()   // Timemodified.
         );
