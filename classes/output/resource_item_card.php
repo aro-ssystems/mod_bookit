@@ -64,7 +64,7 @@ class resource_item_card implements renderable, templatable {
     public function export_for_template(renderer_base $output): stdClass {
         $data = new stdClass();
         $data->id = $this->resource->get_id();
-        $data->name = format_string($this->resource->get_name());
+        $data->name = $this->resource->get_name();
         $data->description = format_text($this->resource->get_description() ?? '');
         $data->description_raw = $this->resource->get_description() ?? '';
         $data->categoryid = $this->resource->get_categoryid();
@@ -110,7 +110,7 @@ class resource_item_card implements renderable, templatable {
 
             $roomnames[] = [
                 'roomid' => $room->id,
-                'roomname' => format_string($room->name),
+                'roomname' => $room->name,
                 'shortname' => $room->shortname ?? '',
                 'eventcolor' => $eventcolor,
                 'textclass' => $textclass,

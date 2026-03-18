@@ -64,7 +64,7 @@ class resource_category_card implements renderable, templatable {
     public function export_for_template(renderer_base $output): stdClass {
         $data = new stdClass();
         $data->id = $this->category->get_id();
-        $data->name = format_string($this->category->get_name());
+        $data->name = $this->category->get_name();
         $data->description = format_text($this->category->get_description() ?? '');
         $data->description_raw = $this->category->get_description() ?? '';
         $data->sortorder = $this->category->get_sortorder();
