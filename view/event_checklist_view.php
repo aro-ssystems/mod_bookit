@@ -28,7 +28,7 @@
 
 require_once(__DIR__ . '/../../../config.php');
 
-use mod_bookit\output\event_master_checklist_catalog;
+use mod_bookit\output\event_checklist_catalog;
 
 $eventid = required_param('eventid', PARAM_INT);
 $cmid    = required_param('id', PARAM_INT);
@@ -45,14 +45,14 @@ $PAGE->set_url(new moodle_url('/mod/bookit/view/event_checklist_view.php', ['id'
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_heading($course->fullname);
-$PAGE->set_title(get_string('event_checklist_view_title', 'mod_bookit'));
+$PAGE->set_title(get_string('event_checklist_title', 'mod_bookit'));
 
 echo $OUTPUT->header();
 
 echo html_writer::start_tag('div', ['class' => 'container-fluid py-3']);
-echo $OUTPUT->heading(get_string('event_checklist_view_heading', 'mod_bookit', format_string($event->name)));
+echo $OUTPUT->heading(get_string('event_checklist_heading', 'mod_bookit', format_string($event->name)));
 
-$output = new event_master_checklist_catalog($eventid, $cmid, $context->id);
+$output = new event_checklist_catalog($eventid, $cmid, $context->id);
 echo $OUTPUT->render($output);
 
 echo html_writer::start_tag('div', ['class' => 'mt-3 mb-4']);
@@ -63,9 +63,9 @@ echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
 $PAGE->requires->js_call_amd(
-    'mod_bookit/event_master_checklist/event_master_checklist_container',
+    'mod_bookit/event_checklist/event_checklist_container',
     'init',
-    ['[data-region="event-master-checklist-container"]']
+    ['[data-region="event-checklist-container"]']
 );
 
 echo $OUTPUT->footer();
