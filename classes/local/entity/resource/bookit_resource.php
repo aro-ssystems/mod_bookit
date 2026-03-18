@@ -75,10 +75,10 @@ class bookit_resource {
      * @param int $sortorder Sort order
      * @param bool $active Active flag
      * @param ?array $roomids Room IDs or null if available in all rooms
-     * @param ?string $internalinfo Internal information for admins
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
      * @param int $usermodified User ID
+     * @param ?string $internalinfo Internal information for admins
      */
     public function __construct(
         ?int $id = null,
