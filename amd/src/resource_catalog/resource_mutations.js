@@ -69,8 +69,9 @@ export default class {
         if (targetId) {
             const targetIdx = ordered.findIndex(item => item.id === targetId);
             if (targetIdx !== -1) {
-                // Insert before target (matching DOM insertBefore(el, target)).
-                ordered.splice(targetIdx, 0, dragged);
+                // Respect dropBefore flag to match DOM position (before or after target).
+                const insertAt = (data.dropBefore !== false) ? targetIdx : targetIdx + 1;
+                ordered.splice(insertAt, 0, dragged);
             } else {
                 ordered.push(dragged);
             }
@@ -110,8 +111,9 @@ export default class {
         const targetIdx = ordered.findIndex(cat => cat.id === targetId);
 
         if (targetIdx !== -1) {
-            // Insert after target (matching DOM insertBefore(el, target.nextSibling)).
-            ordered.splice(targetIdx + 1, 0, dragged);
+            // Respect dropBefore flag to match DOM position (before or after target).
+            const insertAt = (data.dropBefore !== false) ? targetIdx : targetIdx + 1;
+            ordered.splice(insertAt, 0, dragged);
         } else {
             ordered.push(dragged);
         }

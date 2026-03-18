@@ -58,6 +58,21 @@ export default class ResourceItem extends BaseComponent {
     }
 
     stateReady() {
+        // Track whether cursor is in the upper or lower half of this row during dragover.
+        // Upper half → insert before (top shadow), lower half → insert after (bottom shadow).
+        this._dropBefore = true;
+        this._onDragOver = (e) => {
+            const rect = this.element.getBoundingClientRect();
+            this._dropBefore = e.clientY < rect.top + rect.height / 2;
+            // Re-paint indicator on every dragover so it tracks cursor across the midpoint.
+            // showDropZone() is only called once on dragenter, so we must update here too.
+            const primary = getComputedStyle(document.documentElement)
+                .getPropertyValue('--primary').trim() || '#0f6cbf';
+            const offset = this._dropBefore ? '-5px' : '5px';
+            this.element.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
+        };
+        this.element.addEventListener('dragover', this._onDragOver);
+
         // Drop-only DragDrop on the row (no getDraggableData = not draggable from row).
         this.dragdrop = new DragDrop(this);
 
@@ -117,6 +132,10 @@ export default class ResourceItem extends BaseComponent {
     }
 
     destroy() {
+        if (this._onDragOver) {
+            this.element.removeEventListener('dragover', this._onDragOver);
+            this._onDragOver = null;
+        }
         if (this.dragdrop !== undefined) {
             this.dragdrop.unregister();
             this.dragdrop = null;
@@ -133,7 +152,9 @@ export default class ResourceItem extends BaseComponent {
 
     showDropZone() {
         const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0f6cbf';
-        this.element.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+        // Shadow matches cursor position: top border = drop before, bottom border = drop after.
+        const offset = this._dropBefore ? '-5px' : '5px';
+        this.element.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
         this.element.style.transition = 'box-shadow 0.1s ease';
     }
 
@@ -145,12 +166,15 @@ export default class ResourceItem extends BaseComponent {
     drop(dropdata) {
         dropdata.targetId = parseInt(this.element.dataset.bookitItemId);
         dropdata.targetCategoryId = parseInt(this.element.dataset.itemCategoryid);
+        dropdata.dropBefore = this._dropBefore;
 
         const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
         if (draggedEl && draggedEl !== this.element) {
-            // Insert BEFORE target row — shadow at top matches "before" semantics (fixes first-position).
-            this.element.parentNode.insertBefore(draggedEl, this.element);
-            // Update category data attribute if item moved to a different category.
+            if (this._dropBefore) {
+                this.element.parentNode.insertBefore(draggedEl, this.element);
+            } else {
+                this.element.parentNode.insertBefore(draggedEl, this.element.nextElementSibling);
+            }
             if (dropdata.parentId !== dropdata.targetCategoryId) {
                 draggedEl.dataset.itemCategoryid = dropdata.targetCategoryId;
             }

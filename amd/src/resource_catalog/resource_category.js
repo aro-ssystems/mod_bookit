@@ -329,16 +329,32 @@ export default class ResourceCategory extends BaseComponent {
                 this._categoryHandleDragDrop.unregister();
             }
             const self = this;
+            let dropBefore = true;
+
+            const onDragOver = (e) => {
+                const rect = categoryRowEl.getBoundingClientRect();
+                dropBefore = e.clientY < rect.top + rect.height / 2;
+                // Re-paint indicator on every dragover so it tracks cursor across the midpoint.
+                // showDropZone() is only called once on dragenter, so we must update here too.
+                const primary = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--primary').trim() || '#0f6cbf';
+                const offset = dropBefore ? '-5px' : '5px';
+                categoryRowEl.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
+            };
+            categoryRowEl.addEventListener('dragover', onDragOver);
+
             this._categoryDragDrop = new DragDrop({
                 element: categoryRowEl,
+                reactive: self.reactive,
                 validateDropData(dropdata) {
                     return dropdata?.type === 'resource-category' || dropdata?.type === 'resource-item';
                 },
                 showDropZone() {
                     const primary = getComputedStyle(document.documentElement)
                         .getPropertyValue('--primary').trim() || '#0f6cbf';
-                    // Bottom shadow = "drop after this category" (enables last-position drop).
-                    categoryRowEl.style.boxShadow = `0px 5px 0px 0px ${primary} inset`;
+                    // Shadow follows cursor: top = drop before, bottom = drop after.
+                    const offset = dropBefore ? '-5px' : '5px';
+                    categoryRowEl.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
                     categoryRowEl.style.transition = 'box-shadow 0.1s ease';
                 },
                 hideDropZone() {
@@ -359,12 +375,19 @@ export default class ResourceCategory extends BaseComponent {
                         return;
                     }
 
-                    // Category reorder: insert after target.
+                    // Category reorder: insert before or after based on cursor position.
                     dropdata.targetId = self.categoryData.id;
+                    dropdata.dropBefore = dropBefore;
                     const draggedEl = self.categoryElement.parentNode
                         .querySelector(`[data-region="resource-category"][data-categoryid="${dropdata.id}"]`);
                     if (draggedEl && draggedEl !== self.categoryElement) {
-                        self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement.nextElementSibling);
+                        if (dropBefore) {
+                            self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement);
+                        } else {
+                            self.categoryElement.parentNode.insertBefore(
+                                draggedEl, self.categoryElement.nextElementSibling
+                            );
+                        }
                     }
                     self.reactive.dispatch('reOrderCategories', dropdata);
                 },
@@ -375,6 +398,7 @@ export default class ResourceCategory extends BaseComponent {
             if (handleBtn) {
                 this._categoryHandleDragDrop = new DragDrop({
                     element: handleBtn,
+                    reactive: self.reactive,
                     fullregion: categoryRowEl,
                     relativeDrag: true,
                     getDraggableData() {
