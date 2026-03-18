@@ -334,8 +334,11 @@ export default class ResourceCategory extends BaseComponent {
             const onDragOver = (e) => {
                 const rect = categoryRowEl.getBoundingClientRect();
                 dropBefore = e.clientY < rect.top + rect.height / 2;
-                // Re-paint indicator on every dragover so it tracks cursor across the midpoint.
-                // showDropZone() is only called once on dragenter, so we must update here too.
+                // Re-paint indicator only when this row is already an active drop zone.
+                // Moodle DragDrop adds 'dragover' class only when validateDropData returns true.
+                if (!categoryRowEl.classList.contains('dragover')) {
+                    return;
+                }
                 const primary = getComputedStyle(document.documentElement)
                     .getPropertyValue('--primary').trim() || '#0f6cbf';
                 const offset = dropBefore ? '-5px' : '5px';
