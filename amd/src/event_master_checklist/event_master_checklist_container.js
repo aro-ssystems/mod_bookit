@@ -72,6 +72,13 @@ export default class EventMasterChecklistContainer extends BaseComponent {
      * State ready: register item and progress components.
      */
     stateReady() {
+        // Hide spinner and reveal content.
+        const spinner = document.getElementById('mod-bookit-event-master-checklist-spinner');
+        if (spinner) {
+            spinner.classList.add('d-none');
+        }
+        this.element.classList.remove('d-none');
+
         this.element.querySelectorAll('[data-region="event-master-checklist-item-row"]').forEach(row => {
             new EventMasterChecklistItem({element: row, reactive: this.reactive});
         });

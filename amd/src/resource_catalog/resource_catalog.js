@@ -192,6 +192,16 @@ export default class extends BaseComponent {
      * Called when reactive state is ready.
      */
     stateReady() {
+        // Hide spinner and reveal content.
+        const spinner = document.getElementById('mod-bookit-resource-spinner');
+        const content = document.getElementById('mod-bookit-resource-content');
+        if (spinner) {
+            spinner.classList.add('d-none');
+        }
+        if (content) {
+            content.classList.remove('d-none');
+        }
+
         this._initializeCategoryComponents();
         this._attachEventListeners();
         this._initializeRoomFilter();
