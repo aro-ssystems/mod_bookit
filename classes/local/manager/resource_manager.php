@@ -200,7 +200,9 @@ class resource_manager {
         $record->usermodified = $userid;
 
         if ($category->get_id() === null) {
-            // Insert new category.
+            // Insert new category: append at end by assigning max sortorder + 1.
+            $maxsort = $DB->get_field_sql('SELECT MAX(sortorder) FROM {bookit_resource_category}');
+            $record->sortorder = ($maxsort !== null && $maxsort !== false) ? (int)$maxsort + 1 : 1;
             $record->timecreated = time();
             $record->timemodified = time();
             $id = $DB->insert_record('bookit_resource_category', $record);
@@ -336,7 +338,12 @@ class resource_manager {
         $record->usermodified = $userid;
 
         if ($resource->get_id() === null) {
-            // Insert new resource.
+            // Insert new resource: append at end within the category.
+            $maxsort = $DB->get_field_sql(
+                'SELECT MAX(sortorder) FROM {bookit_resource} WHERE categoryid = ?',
+                [$resource->get_categoryid()]
+            );
+            $record->sortorder = ($maxsort !== null && $maxsort !== false) ? (int)$maxsort + 1 : 1;
             $record->timecreated = time();
             $record->timemodified = time();
             $id = $DB->insert_record('bookit_resource', $record);
