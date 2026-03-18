@@ -51,21 +51,23 @@ $PAGE->set_context($context);
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_heading($course->fullname);
 
-$titlestr = $canmanage ? get_string('event_checklist_title', 'mod_bookit') : get_string('event_resources_title', 'mod_bookit');
+$titlestr = $canmanage
+    ? get_string('event_resources_checklist_title', 'mod_bookit')
+    : get_string('event_resources_title', 'mod_bookit');
 $PAGE->set_title($titlestr);
 
 echo $OUTPUT->header();
 
 if ($canmanage) {
-    echo $OUTPUT->heading(get_string('event_checklist_heading', 'mod_bookit', format_string($event->name)));
+    echo $OUTPUT->heading(get_string('event_resources_checklist_heading', 'mod_bookit', format_string($event->name)));
 
-    $catalog = new \mod_bookit\output\event_checklist_catalog($eventid, $cmid, $canmanage, $event);
+    $catalog = new \mod_bookit\output\event_resources_checklist_catalog($eventid, $cmid, $canmanage, $event);
     echo $OUTPUT->render($catalog);
 
     $PAGE->requires->js_call_amd(
-        'mod_bookit/event_checklist/event_checklist_container',
+        'mod_bookit/event_resources_checklist/event_resources_checklist_container',
         'init',
-        ['#mod-bookit-event-checklist-container']
+        ['#mod-bookit-event-resources-checklist-container']
     );
 } else {
     // Bookers and examiners: read-only form matching the booking form layout.
@@ -80,7 +82,7 @@ if ($canmanage) {
     }
 
     if (empty($bookedresources)) {
-        echo $OUTPUT->notification(get_string('event_checklist_no_resources', 'mod_bookit'), 'info');
+        echo $OUTPUT->notification(get_string('event_resources_checklist_no_resources', 'mod_bookit'), 'info');
     } else {
         $resourcesdata = resource_manager::get_active_resources_grouped();
         $form = new view_event_resources_form(null, [

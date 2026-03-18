@@ -17,6 +17,9 @@
 /**
  * Event checklist catalog output class.
  *
+ * Renders the per-event checklist with check-off checkboxes and a
+ * reactive progress bar. Used by view/event_checklist_view.php.
+ *
  * @package     mod_bookit
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
@@ -25,9 +28,8 @@
 
 namespace mod_bookit\output;
 
-use mod_bookit\local\entity\resource\bookit_resource_status;
-use mod_bookit\local\manager\event_resource_manager;
-use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\checklist_manager;
+use mod_bookit\local\manager\event_checklist_state_manager;
 use renderer_base;
 use renderable;
 use templatable;
@@ -35,8 +37,6 @@ use stdClass;
 
 /**
  * Event checklist catalog output class.
- *
- * Prepares data for the event_checklist_catalog template.
  */
 class event_checklist_catalog implements renderable, templatable {
     /** @var int Event ID */
@@ -45,29 +45,24 @@ class event_checklist_catalog implements renderable, templatable {
     /** @var int Course module ID */
     private int $cmid;
 
-    /** @var bool Whether current user can manage */
-    private bool $canmanage;
-
-    /** @var stdClass Event record */
-    private stdClass $event;
+    /** @var int Context ID */
+    private int $contextid;
 
     /**
      * Constructor.
      *
      * @param int $eventid Event ID
      * @param int $cmid Course module ID
-     * @param bool $canmanage Whether current user can manage checklist
-     * @param stdClass $event Event database record
+     * @param int $contextid Context ID
      */
-    public function __construct(int $eventid, int $cmid, bool $canmanage, stdClass $event) {
-        $this->eventid = $eventid;
-        $this->cmid = $cmid;
-        $this->canmanage = $canmanage;
-        $this->event = $event;
+    public function __construct(int $eventid, int $cmid, int $contextid) {
+        $this->eventid   = $eventid;
+        $this->cmid      = $cmid;
+        $this->contextid = $contextid;
     }
 
     /**
-     * Export data for template.
+     * Export template data.
      *
      * @param renderer_base $output
      * @return stdClass
@@ -76,119 +71,86 @@ class event_checklist_catalog implements renderable, templatable {
         global $DB;
 
         $data = new stdClass();
-        $data->eventid = $this->eventid;
-        $data->cmid = $this->cmid;
-        $data->canmanage = (int)$this->canmanage;
-        $data->contextid = \context_system::instance()->id;
-        $data->eventname = format_string($this->event->name);
-        $data->starttime = !empty($this->event->starttime) ? userdate($this->event->starttime) : '';
-        $data->endtime = !empty($this->event->endtime) ? userdate($this->event->endtime) : '';
+        $data->eventid   = $this->eventid;
+        $data->cmid      = $this->cmid;
+        $data->contextid = $this->contextid;
 
-        // Room name.
-        $data->roomname = '';
-        if (!empty($this->event->roomid)) {
-            $room = $DB->get_record('bookit_room', ['id' => $this->event->roomid], 'name');
-            $data->roomname = $room ? format_string($room->name) : '';
+        // Load event details for header.
+        $event = $DB->get_record('bookit_event', ['id' => $this->eventid]);
+        $data->eventname = $event ? format_string($event->name) : '';
+
+        $data->starttime = '';
+        if ($event && !empty($event->starttime)) {
+            $data->starttime = userdate($event->starttime, get_string('strftimedatetimeshort', 'langconfig'));
         }
 
-        // Booking status label.
-        $statusmap = [
-            0 => get_string('event_bookingstatus_0', 'mod_bookit'),
-            1 => get_string('event_bookingstatus_1', 'mod_bookit'),
-            2 => get_string('event_bookingstatus_2', 'mod_bookit'),
-            3 => get_string('event_bookingstatus_3', 'mod_bookit'),
-            4 => get_string('event_bookingstatus_4', 'mod_bookit'),
-        ];
-        $bookingstatus = (int)($this->event->bookingstatus ?? 0);
-        $data->bookingstatus = $statusmap[$bookingstatus] ?? '';
+        // Default master checklist.
+        $master = checklist_manager::get_default_master();
+        if (!$master) {
+            $data->categories   = [];
+            $data->hasitems     = false;
+            $data->progresstotal     = 0;
+            $data->progressdone      = 0;
+            $data->progresspercent   = 0;
+            $data->progresscomplete  = false;
+            return $data;
+        }
 
-        $eventresources = event_resource_manager::get_resources_for_event($this->eventid);
+        $masterid = $master->id;
 
-        // Track progress: confirmed / total.
+        // Load global state for this event (an item counts as done if any user marked it done).
+        $statebyitem = event_checklist_state_manager::get_global_state_for_event($this->eventid);
+
+        $categories = checklist_manager::get_categories_by_master_id($masterid);
+
         $totalcount = 0;
-        $confirmedcount = 0;
+        $donecount  = 0;
+        $categoriesdata = [];
 
-        // Group items by category.
-        $categoriesmap = [];
+        foreach ($categories as $category) {
+            $categoryid   = $category->id;
+            $categoryname = format_string($category->name);
 
-        foreach ($eventresources as $eventresource) {
-            $resource = $DB->get_record('bookit_resource', ['id' => $eventresource->get_resourceid()]);
-            if (!$resource) {
+            $items = checklist_manager::get_items_by_category_id($categoryid);
+            if (empty($items)) {
                 continue;
             }
 
-            $categoryid = (int)($resource->categoryid ?? 0);
-            if ($categoryid > 0) {
-                $category = $DB->get_record('bookit_resource_category', ['id' => $categoryid]);
-                $categoryname = $category ? format_string($category->name) : '';
-            } else {
-                $categoryname = '';
-            }
+            $itemsdata = [];
+            foreach ($items as $item) {
+                $itemid = $item->id;
+                $done   = $statebyitem[$itemid] ?? false;
 
-            if (!isset($categoriesmap[$categoryid])) {
-                $categoriesmap[$categoryid] = [
-                    'id'    => $categoryid,
-                    'name'  => $categoryname,
-                    'items' => [],
-                ];
-            }
+                $itemdata = new stdClass();
+                $itemdata->id    = $itemid;
+                $itemdata->title = format_string($item->title);
+                $itemdata->done  = $done;
 
-            // Compute due date from checklist item relative to event start time.
-            $checklistitem = resource_checklist_manager::get_checklist_item_by_resource($eventresource->get_resourceid());
-            $duedate = '';
-            if ($checklistitem && $checklistitem->get_duedate()) {
-                $duedatetype = $checklistitem->get_duedatetype();
-                $rawduedate = $checklistitem->get_duedate();
-                $dateformat = get_string('strftimedate', 'langconfig');
-                if ($duedatetype === 'before_event' && !empty($this->event->starttime)) {
-                    $duetimestamp = (int)$this->event->starttime - (int)$rawduedate;
-                    $duedate = userdate($duetimestamp, $dateformat);
-                } else if ($duedatetype === 'after_event' && !empty($this->event->endtime)) {
-                    $duetimestamp = (int)$this->event->endtime + (int)$rawduedate;
-                    $duedate = userdate($duetimestamp, $dateformat);
-                } else if ($rawduedate > 0) {
-                    $duedate = userdate($rawduedate, $dateformat);
+                $totalcount++;
+                if ($done) {
+                    $donecount++;
                 }
+
+                $itemsdata[] = $itemdata;
             }
 
-            // Available amount from resource (max available).
-            $availableamount = (int)$resource->amount;
-            $amountirrelevant = (bool)$resource->amountirrelevant;
-
-            $status = $eventresource->get_status();
-
-            $itemdata = new stdClass();
-            $itemdata->id               = $eventresource->get_id();
-            $itemdata->resourceid       = $eventresource->get_resourceid();
-            $itemdata->resourcename     = format_string($resource->name);
-            $itemdata->categoryid       = $categoryid;
-            $itemdata->amount           = $eventresource->get_amount();
-            $itemdata->availableamount  = $availableamount;
-            $itemdata->amountirrelevant = $amountirrelevant;
-            $itemdata->status           = $status->value;
-            $itemdata->duedate          = $duedate;
-            $itemdata->canmanage        = (int)$this->canmanage;
-            $itemdata->isrequested      = ($status === bookit_resource_status::REQUESTED);
-            $itemdata->isconfirmed      = ($status === bookit_resource_status::CONFIRMED);
-            $itemdata->isinprogress     = ($status === bookit_resource_status::INPROGRESS);
-            $itemdata->isrejected       = ($status === bookit_resource_status::REJECTED);
-
-            $totalcount++;
-            if ($status === bookit_resource_status::CONFIRMED) {
-                $confirmedcount++;
+            if (!empty($itemsdata)) {
+                $catdata = new stdClass();
+                $catdata->id    = $categoryid;
+                $catdata->name  = $categoryname;
+                $catdata->items = $itemsdata;
+                $categoriesdata[] = $catdata;
             }
-
-            $categoriesmap[$categoryid]['items'][] = $itemdata;
         }
 
-        $data->categories = array_values($categoriesmap);
-        $data->hasresources = !empty($data->categories);
+        $data->categories  = $categoriesdata;
+        $data->hasitems    = !empty($categoriesdata);
 
         // Progress bar data.
-        $data->progresstotal     = $totalcount;
-        $data->progressconfirmed = $confirmedcount;
-        $data->progresspercent   = $totalcount > 0 ? (int)round(($confirmedcount / $totalcount) * 100) : 0;
-        $data->progresscomplete  = ($totalcount > 0 && $confirmedcount === $totalcount);
+        $data->progresstotal    = $totalcount;
+        $data->progressdone     = $donecount;
+        $data->progresspercent  = $totalcount > 0 ? (int)round(($donecount / $totalcount) * 100) : 0;
+        $data->progresscomplete = ($totalcount > 0 && $donecount === $totalcount);
 
         return $data;
     }

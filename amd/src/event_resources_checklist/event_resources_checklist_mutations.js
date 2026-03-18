@@ -14,34 +14,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Mutations for event master checklist reactive state.
+ * Mutations for event resources checklist reactive state.
  *
- * @module mod_bookit/event_master_checklist/event_master_checklist_mutations
+ * @module mod_bookit/event_resources_checklist/event_resources_checklist_mutations
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Event master checklist mutations.
+ * Event resources checklist mutations.
+ *
+ * Only mutation needed: update the status of one event-resource item.
  */
-export default class EventMasterChecklistMutations {
+export default class EventResourcesChecklistMutations {
     /**
-     * Toggle the done state of a checklist item.
+     * Update the status of an event resource item.
      *
-     * @param {Object} stateManager
-     * @param {Object} args
-     * @param {number} args.id - bookit_checklist_item ID
-     * @param {boolean} args.done - New done state
+     * @param {Object} stateManager - Moodle reactive state manager
+     * @param {Object} args - Mutation arguments
+     * @param {number} args.id - bookit_event_resource record ID
+     * @param {string} args.status - New status value
      */
-    toggleDone(stateManager, {id, done}) {
+    updateStatus(stateManager, {id, status}) {
         const state = stateManager.state;
         const item = state.items.get(parseInt(id));
         if (!item) {
             return;
         }
         stateManager.setReadOnly(false);
-        item.done = done;
+        item.status = status;
         stateManager.setReadOnly(true);
     }
 }
