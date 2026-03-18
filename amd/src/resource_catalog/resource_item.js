@@ -33,8 +33,6 @@ export default class ResourceItem extends BaseComponent {
         const itemId = descriptor.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
         this.selectors[itemEditBtnSelector] = `#edit-item-${itemId}`;
-        // Keep drag image at mouse offset (fix: ghost snaps to corner without this).
-        this.relativeDrag = true;
     }
 
     static init(target, selectors) {
@@ -60,7 +58,23 @@ export default class ResourceItem extends BaseComponent {
     }
 
     stateReady() {
+        // Drop-only DragDrop on the row (no getDraggableData = not draggable from row).
         this.dragdrop = new DragDrop(this);
+
+        // Drag-only DragDrop on the drag handle button (masterchecklist pattern).
+        const handleBtn = this.element.querySelector('[data-action="drag-handle"]');
+        if (handleBtn) {
+            this.handleDragDrop = new DragDrop({
+                element: handleBtn,
+                fullregion: this.element,
+                relativeDrag: true,
+                getDraggableData: () => ({
+                    type: 'resource-item',
+                    id: parseInt(this.element.dataset.bookitItemId),
+                    parentId: parseInt(this.element.dataset.itemCategoryid),
+                }),
+            });
+        }
 
         const itemId = this.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
@@ -107,14 +121,10 @@ export default class ResourceItem extends BaseComponent {
             this.dragdrop.unregister();
             this.dragdrop = null;
         }
-    }
-
-    getDraggableData() {
-        return {
-            type: 'resource-item',
-            id: parseInt(this.element.dataset.bookitItemId),
-            parentId: parseInt(this.element.dataset.itemCategoryid),
-        };
+        if (this.handleDragDrop !== undefined) {
+            this.handleDragDrop.unregister();
+            this.handleDragDrop = null;
+        }
     }
 
     validateDropData(dropdata) {
@@ -138,8 +148,8 @@ export default class ResourceItem extends BaseComponent {
 
         const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
         if (draggedEl && draggedEl !== this.element) {
-            // Insert after target row (matching masterchecklist pattern).
-            this.element.parentNode.insertBefore(draggedEl, this.element.nextElementSibling);
+            // Insert BEFORE target row — shadow at top matches "before" semantics (fixes first-position).
+            this.element.parentNode.insertBefore(draggedEl, this.element);
             // Update category data attribute if item moved to a different category.
             if (dropdata.parentId !== dropdata.targetCategoryId) {
                 draggedEl.dataset.itemCategoryid = dropdata.targetCategoryId;

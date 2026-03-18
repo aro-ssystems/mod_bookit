@@ -56,6 +56,7 @@ export default class ResourceCategory extends BaseComponent {
         this.itemComponents = new Map();
         this.parentElement = element;
         this._categoryDragDrop = null;
+        this._categoryHandleDragDrop = null;
 
         // Note: _render() must be called explicitly when creating new categories.
         // When initializing from existing DOM, categoryElement is set externally.
@@ -64,6 +65,9 @@ export default class ResourceCategory extends BaseComponent {
     destroy() {
         if (this._categoryDragDrop) {
             this._categoryDragDrop.unregister();
+        }
+        if (this._categoryHandleDragDrop) {
+            this._categoryHandleDragDrop.unregister();
         }
     }
 
@@ -315,30 +319,26 @@ export default class ResourceCategory extends BaseComponent {
             return;
         }
 
-        // Setup DragDrop proxy for the category header row.
+        // Setup drop-only DragDrop on the category header row (no getDraggableData = not draggable from row).
         const categoryRowEl = this.categoryElement.querySelector('[data-region="resource-category-row"]');
         if (categoryRowEl) {
             if (this._categoryDragDrop) {
                 this._categoryDragDrop.unregister();
             }
+            if (this._categoryHandleDragDrop) {
+                this._categoryHandleDragDrop.unregister();
+            }
             const self = this;
             this._categoryDragDrop = new DragDrop({
                 element: categoryRowEl,
-                // Keep drag image at mouse offset.
-                relativeDrag: true,
-                getDraggableData() {
-                    return {
-                        type: 'resource-category',
-                        id: self.categoryData.id,
-                    };
-                },
                 validateDropData(dropdata) {
                     return dropdata?.type === 'resource-category' || dropdata?.type === 'resource-item';
                 },
                 showDropZone() {
                     const primary = getComputedStyle(document.documentElement)
                         .getPropertyValue('--primary').trim() || '#0f6cbf';
-                    categoryRowEl.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+                    // Bottom shadow = "drop after this category" (enables last-position drop).
+                    categoryRowEl.style.boxShadow = `0px 5px 0px 0px ${primary} inset`;
                     categoryRowEl.style.transition = 'box-shadow 0.1s ease';
                 },
                 hideDropZone() {
@@ -359,7 +359,7 @@ export default class ResourceCategory extends BaseComponent {
                         return;
                     }
 
-                    // Category reorder: insert after target (matching masterchecklist pattern).
+                    // Category reorder: insert after target.
                     dropdata.targetId = self.categoryData.id;
                     const draggedEl = self.categoryElement.parentNode
                         .querySelector(`[data-region="resource-category"][data-categoryid="${dropdata.id}"]`);
@@ -369,6 +369,22 @@ export default class ResourceCategory extends BaseComponent {
                     self.reactive.dispatch('reOrderCategories', dropdata);
                 },
             });
+
+            // Drag-only DragDrop on the drag handle button (restrict drag to handle, masterchecklist pattern).
+            const handleBtn = categoryRowEl.querySelector('[data-action="drag-handle"]');
+            if (handleBtn) {
+                this._categoryHandleDragDrop = new DragDrop({
+                    element: handleBtn,
+                    fullregion: categoryRowEl,
+                    relativeDrag: true,
+                    getDraggableData() {
+                        return {
+                            type: 'resource-category',
+                            id: self.categoryData.id,
+                        };
+                    },
+                });
+            }
         }
 
         // Add Item.

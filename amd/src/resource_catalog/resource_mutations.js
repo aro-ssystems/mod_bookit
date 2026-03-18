@@ -69,8 +69,8 @@ export default class {
         if (targetId) {
             const targetIdx = ordered.findIndex(item => item.id === targetId);
             if (targetIdx !== -1) {
-                // Insert after target (matching DOM insertBefore(el, target.nextSibling)).
-                ordered.splice(targetIdx + 1, 0, dragged);
+                // Insert before target (matching DOM insertBefore(el, target)).
+                ordered.splice(targetIdx, 0, dragged);
             } else {
                 ordered.push(dragged);
             }
