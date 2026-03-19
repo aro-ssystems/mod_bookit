@@ -115,6 +115,14 @@ export default class ResourceChecklistContainer extends BaseComponent {
      * Creates category sub-components for all categories present in the DOM.
      */
     stateReady() {
+        const spinner = document.getElementById('mod-bookit-resource-checklist-spinner');
+        const content = document.getElementById('mod-bookit-resource-checklist-content');
+        if (spinner) {
+            spinner.classList.add('d-none');
+        }
+        if (content) {
+            content.classList.remove('d-none');
+        }
         this._initializeCategoryComponents();
         this._attachEventListeners();
     }

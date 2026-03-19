@@ -72,7 +72,7 @@ class resource_checklist_catalog implements renderable, templatable {
         foreach ($categories as $category) {
             $categorydata = new stdClass();
             $categorydata->id = $category->get_id();
-            $categorydata->name = format_string($category->get_name());
+            $categorydata->name = $category->get_name();
             $categorydata->description = format_text($category->get_description() ?? '', FORMAT_HTML);
             $categorydata->sortorder = $category->get_sortorder();
             $categorydata->items = [];
@@ -101,7 +101,7 @@ class resource_checklist_catalog implements renderable, templatable {
         $itemdata = new stdClass();
         $itemdata->id = $item->id;
         $itemdata->resourceid = $item->resourceid;
-        $itemdata->name = format_string($item->name);
+        $itemdata->name = $item->name;
         $itemdata->description = format_text($item->description ?? '', FORMAT_HTML);
         $itemdata->categoryid = $item->categoryid;
         $itemdata->amount = $item->amountirrelevant ? null : (int)$item->amount;
