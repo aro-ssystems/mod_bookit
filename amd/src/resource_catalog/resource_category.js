@@ -352,7 +352,12 @@ export default class ResourceCategory extends BaseComponent {
                 validateDropData(dropdata) {
                     return dropdata?.type === 'resource-category' || dropdata?.type === 'resource-item';
                 },
-                showDropZone() {
+                showDropZone(dropdata, event) {
+                    // Update dropBefore from the enter event so the initial indicator is correct.
+                    if (event) {
+                        const rect = categoryRowEl.getBoundingClientRect();
+                        dropBefore = event.clientY < rect.top + rect.height / 2;
+                    }
                     const primary = getComputedStyle(document.documentElement)
                         .getPropertyValue('--primary').trim() || '#0f6cbf';
                     // Shadow follows cursor: top = drop before, bottom = drop after.
@@ -409,6 +414,51 @@ export default class ResourceCategory extends BaseComponent {
                             type: 'resource-category',
                             id: self.categoryData.id,
                         };
+                    },
+                });
+            }
+
+            // Register thead as first-position drop zone (only once per table).
+            const tableEl = self.categoryElement.parentNode;
+            const theadEl = tableEl ? tableEl.querySelector('thead') : null;
+            if (theadEl && !theadEl.dataset.bookitDdRegistered) {
+                theadEl.dataset.bookitDdRegistered = '1';
+                new DragDrop({
+                    element: theadEl,
+                    reactive: self.reactive,
+                    validateDropData(dropdata) {
+                        return dropdata?.type === 'resource-category';
+                    },
+                    showDropZone() {
+                        const primary = getComputedStyle(document.documentElement)
+                            .getPropertyValue('--primary').trim() || '#0f6cbf';
+                        theadEl.style.boxShadow = `0px 5px 0px 0px ${primary} inset`;
+                        theadEl.style.transition = 'box-shadow 0.1s ease';
+                    },
+                    hideDropZone() {
+                        theadEl.style.boxShadow = '';
+                        theadEl.style.transition = '';
+                    },
+                    drop(dropdata) {
+                        const firstTbody = tableEl.querySelector('[data-region="resource-category"]');
+                        if (!firstTbody) {
+                            return;
+                        }
+                        const firstCatId = parseInt(firstTbody.dataset.categoryid);
+                        if (firstCatId === dropdata.id) {
+                            return;
+                        }
+                        const draggedEl = tableEl.querySelector(
+                            `[data-region="resource-category"][data-categoryid="${dropdata.id}"]`
+                        );
+                        if (draggedEl) {
+                            firstTbody.parentNode.insertBefore(draggedEl, firstTbody);
+                        }
+                        self.reactive.dispatch('reOrderCategories', {
+                            id: dropdata.id,
+                            targetId: firstCatId,
+                            dropBefore: true,
+                        });
                     },
                 });
             }
