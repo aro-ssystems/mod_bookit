@@ -205,7 +205,6 @@ export default class extends BaseComponent {
         this._initializeCategoryComponents();
         this._attachEventListeners();
         this._initializeRoomFilter();
-        this._restoreCategoryCollapseState();
         this._initializeAllRoomBadges();
     }
 
@@ -702,40 +701,16 @@ export default class extends BaseComponent {
         const itemRows = tableView
             ? tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`)
             : [];
-        const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
 
         if (isExpanded) {
             itemRows.forEach(row => row.classList.add('d-none'));
             btn.setAttribute('aria-expanded', 'false');
-            localStorage.setItem(storageKey, '1');
+            btn.classList.add('collapsed');
         } else {
             itemRows.forEach(row => row.classList.remove('d-none'));
             btn.setAttribute('aria-expanded', 'true');
-            localStorage.removeItem(storageKey);
+            btn.classList.remove('collapsed');
         }
-    }
-
-    /**
-     * Restore category collapse state from localStorage.
-     */
-    _restoreCategoryCollapseState() {
-        const tableView = document.querySelector(this.selectors.tableView);
-        if (!tableView) {
-            return;
-        }
-        const categoryRows = tableView.querySelectorAll('[data-region="resource-category-row"]');
-        categoryRows.forEach(row => {
-            const categoryId = row.dataset.categoryid;
-            const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
-            if (localStorage.getItem(storageKey)) {
-                const itemRows = tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
-                itemRows.forEach(r => r.classList.add('d-none'));
-                const btn = row.querySelector('[data-action="toggle-category"]');
-                if (btn) {
-                    btn.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
     }
 
     /**
