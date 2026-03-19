@@ -133,4 +133,267 @@ class behat_mod_bookit extends behat_base {
         $selectnode = $this->find_field($field);
         $selectnode->selectOption($value);
     }
+
+    // Resource drag-and-drop step definitions.
+
+    /**
+     * Drags a resource item to appear immediately after another resource item.
+     *
+     * Uses JavaScript to dispatch HTML5 drag events. Both items must be visible
+     * on the resource catalog page. Waits 3 seconds after drag for reactive updates.
+     *
+     * @When I drag resource item :source after resource item :target
+     * @param string $source Visible name of the item to drag.
+     * @param string $target Visible name of the item to drop after.
+     * @throws ExpectationException
+     */
+    public function i_drag_resource_item_after(string $source, string $target): void {
+        $this->drag_resource_item($source, $target, false);
+    }
+
+    /**
+     * Drags a resource item to appear immediately before another resource item.
+     *
+     * @When I drag resource item :source before resource item :target
+     * @param string $source Visible name of the item to drag.
+     * @param string $target Visible name of the item to drop before.
+     * @throws ExpectationException
+     */
+    public function i_drag_resource_item_before(string $source, string $target): void {
+        $this->drag_resource_item($source, $target, true);
+    }
+
+    /**
+     * Drags a resource category to appear immediately after another category.
+     *
+     * @When I drag resource category :source after resource category :target
+     * @param string $source Visible name of the category to drag.
+     * @param string $target Visible name of the category to drop after.
+     * @throws ExpectationException
+     */
+    public function i_drag_resource_category_after(string $source, string $target): void {
+        $this->drag_resource_category($source, $target, false);
+    }
+
+    /**
+     * Drags a resource category to appear immediately before another category.
+     *
+     * @When I drag resource category :source before resource category :target
+     * @param string $source Visible name of the category to drag.
+     * @param string $target Visible name of the category to drop before.
+     * @throws ExpectationException
+     */
+    public function i_drag_resource_category_before(string $source, string $target): void {
+        $this->drag_resource_category($source, $target, true);
+    }
+
+    /**
+     * Asserts that a resource item appears before another in the catalog.
+     *
+     * @Then resource item :first should appear before resource item :second
+     * @param string $first Visible name of the item expected to appear first.
+     * @param string $second Visible name of the item expected to appear second.
+     * @throws ExpectationException
+     */
+    public function resource_item_should_appear_before(string $first, string $second): void {
+        $js = <<<JS
+            (function(a, b) {
+                var rows = document.querySelectorAll('tr[id^="resource-item-row-"]');
+                var ai = -1, bi = -1;
+                for (var i = 0; i < rows.length; i++) {
+                    var span = rows[i].querySelector('span[data-bookit-resource-tabledata-name-id]');
+                    if (!span) continue;
+                    var name = span.textContent.trim();
+                    if (name === a) ai = i;
+                    if (name === b) bi = i;
+                }
+                if (ai === -1) return 'not_found_a';
+                if (bi === -1) return 'not_found_b';
+                return ai < bi ? 'ok' : 'fail:a=' + ai + ',b=' + bi;
+            })('$first', '$second')
+        JS;
+
+        $result = $this->getSession()->evaluateScript($js);
+        if ($result !== 'ok') {
+            throw new ExpectationException(
+                "Expected \"$first\" to appear before \"$second\" but got: $result",
+                $this->getSession()
+            );
+        }
+    }
+
+    /**
+     * Asserts that no resource item row currently shows a drag-drop indicator.
+     *
+     * During a category drag, item rows must not display any box-shadow indicator.
+     * This step should be called after initiating a category drag and before releasing.
+     *
+     * @Then no resource item should have a drop indicator
+     * @throws ExpectationException
+     */
+    public function no_resource_item_should_have_a_drop_indicator(): void {
+        $js = <<<'JS'
+            (function() {
+                var rows = document.querySelectorAll('tr[id^="resource-item-row-"]');
+                var stray = [];
+                for (var i = 0; i < rows.length; i++) {
+                    if (rows[i].style.boxShadow && rows[i].style.boxShadow !== '') {
+                        stray.push(rows[i].id);
+                    }
+                }
+                return stray.length === 0 ? 'ok' : 'stray:' + stray.join(',');
+            })()
+        JS;
+
+        $result = $this->getSession()->evaluateScript($js);
+        if ($result !== 'ok') {
+            throw new ExpectationException(
+                "Expected no resource item drop indicators, but found: $result",
+                $this->getSession()
+            );
+        }
+    }
+
+    /**
+     * Simulate a drag of a resource item using HTML5 DragEvents via JavaScript.
+     *
+     * Temporarily patches DataTransfer.prototype.setDragImage to avoid a NotSupportedError
+     * that browsers may throw when setDragImage is called on a synthetic DragEvent.
+     *
+     * @param string $source Visible name of the item to drag.
+     * @param string $target Visible name of the item to drop on.
+     * @param bool $dropbefore True to drop before the target, false to drop after.
+     * @throws ExpectationException
+     */
+    private function drag_resource_item(string $source, string $target, bool $dropbefore): void {
+        $droptop = $dropbefore ? 'true' : 'false';
+        $src = addslashes($source);
+        $tgt = addslashes($target);
+
+        $js = <<<JS
+            (function(srcName, tgtName, dropBefore) {
+                function findItemRow(name) {
+                    var rows = document.querySelectorAll('tr[id^="resource-item-row-"]');
+                    for (var i = 0; i < rows.length; i++) {
+                        var span = rows[i].querySelector('span[data-bookit-resource-tabledata-name-id]');
+                        if (span && span.textContent.trim() === name) return rows[i];
+                    }
+                    return null;
+                }
+                var srcRow = findItemRow(srcName);
+                var tgtRow = findItemRow(tgtName);
+                if (!srcRow) return 'not_found_src:' + srcName;
+                if (!tgtRow) return 'not_found_tgt:' + tgtName;
+                var handle = srcRow.querySelector('button[data-action="drag-handle"]');
+                if (!handle) return 'no_handle';
+
+                tgtRow.scrollIntoView({block: 'center'});
+                handle.scrollIntoView({block: 'nearest'});
+
+                var hr = handle.getBoundingClientRect();
+                var tr = tgtRow.getBoundingClientRect();
+                var sx = hr.left + hr.width / 2;
+                var sy = hr.top + hr.height / 2;
+                var tx = tr.left + tr.width / 2;
+                var ty = dropBefore ? tr.top + tr.height * 0.2 : tr.top + tr.height * 0.8;
+
+                var origSDI = DataTransfer.prototype.setDragImage;
+                DataTransfer.prototype.setDragImage = function() {};
+                var dt;
+                try { dt = new DataTransfer(); } catch(e) { dt = null; }
+                function fire(el, type, x, y) {
+                    el.dispatchEvent(new DragEvent(type, {
+                        bubbles: true, cancelable: true,
+                        clientX: x || 0, clientY: y || 0,
+                        dataTransfer: dt
+                    }));
+                }
+                fire(handle, 'dragstart', sx, sy);
+                fire(tgtRow, 'dragover', tx, ty);
+                fire(tgtRow, 'drop', tx, ty);
+                fire(handle, 'dragend', sx, sy);
+                DataTransfer.prototype.setDragImage = origSDI;
+                return 'ok';
+            })('$src', '$tgt', $droptop)
+        JS;
+
+        $result = $this->getSession()->evaluateScript($js);
+        if ($result !== 'ok') {
+            throw new ExpectationException(
+                "Could not drag resource item \"$source\" to \"$target\": $result",
+                $this->getSession()
+            );
+        }
+        $this->getSession()->wait(3000);
+    }
+
+    /**
+     * Simulate a drag of a resource category using HTML5 DragEvents via JavaScript.
+     *
+     * @param string $source Visible name of the category to drag.
+     * @param string $target Visible name of the category to drop on.
+     * @param bool $dropbefore True to drop before the target, false to drop after.
+     * @throws ExpectationException
+     */
+    private function drag_resource_category(string $source, string $target, bool $dropbefore): void {
+        $droptop = $dropbefore ? 'true' : 'false';
+        $src = addslashes($source);
+        $tgt = addslashes($target);
+
+        $js = <<<JS
+            (function(srcName, tgtName, dropBefore) {
+                function findCategoryRow(name) {
+                    var rows = document.querySelectorAll('tr[id^="resource-category-row-"]');
+                    for (var i = 0; i < rows.length; i++) {
+                        var span = rows[i].querySelector('td:first-child > div > span');
+                        if (span && span.textContent.trim() === name) return rows[i];
+                    }
+                    return null;
+                }
+                var srcRow = findCategoryRow(srcName);
+                var tgtRow = findCategoryRow(tgtName);
+                if (!srcRow) return 'not_found_src:' + srcName;
+                if (!tgtRow) return 'not_found_tgt:' + tgtName;
+                var handle = srcRow.querySelector('button[data-action="drag-handle"]');
+                if (!handle) return 'no_handle';
+
+                tgtRow.scrollIntoView({block: 'center'});
+                handle.scrollIntoView({block: 'nearest'});
+
+                var hr = handle.getBoundingClientRect();
+                var tr = tgtRow.getBoundingClientRect();
+                var sx = hr.left + hr.width / 2;
+                var sy = hr.top + hr.height / 2;
+                var tx = tr.left + tr.width / 2;
+                var ty = dropBefore ? tr.top + tr.height * 0.2 : tr.top + tr.height * 0.8;
+
+                var origSDI = DataTransfer.prototype.setDragImage;
+                DataTransfer.prototype.setDragImage = function() {};
+                var dt;
+                try { dt = new DataTransfer(); } catch(e) { dt = null; }
+                function fire(el, type, x, y) {
+                    el.dispatchEvent(new DragEvent(type, {
+                        bubbles: true, cancelable: true,
+                        clientX: x || 0, clientY: y || 0,
+                        dataTransfer: dt
+                    }));
+                }
+                fire(handle, 'dragstart', sx, sy);
+                fire(tgtRow, 'dragover', tx, ty);
+                fire(tgtRow, 'drop', tx, ty);
+                fire(handle, 'dragend', sx, sy);
+                DataTransfer.prototype.setDragImage = origSDI;
+                return 'ok';
+            })('$src', '$tgt', $droptop)
+        JS;
+
+        $result = $this->getSession()->evaluateScript($js);
+        if ($result !== 'ok') {
+            throw new ExpectationException(
+                "Could not drag resource category \"$source\" to \"$target\": $result",
+                $this->getSession()
+            );
+        }
+        $this->getSession()->wait(3000);
+    }
 }
