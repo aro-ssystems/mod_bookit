@@ -72,7 +72,8 @@ export default class ResourceItem extends BaseComponent {
             }
             const primary = getComputedStyle(document.documentElement)
                 .getPropertyValue('--primary').trim() || '#0f6cbf';
-            const offset = this._dropBefore ? '-5px' : '5px';
+            // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+            const offset = this._dropBefore ? '5px' : '-5px';
             this.element.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
         };
         this.element.addEventListener('dragover', this._onDragOver);
@@ -156,8 +157,8 @@ export default class ResourceItem extends BaseComponent {
 
     showDropZone() {
         const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0f6cbf';
-        // Shadow matches cursor position: top border = drop before, bottom border = drop after.
-        const offset = this._dropBefore ? '-5px' : '5px';
+        // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+        const offset = this._dropBefore ? '5px' : '-5px';
         this.element.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
         this.element.style.transition = 'box-shadow 0.1s ease';
     }
