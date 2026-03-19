@@ -1098,7 +1098,7 @@ class install_helper {
         $enrolinstance = $DB->get_record('enrol', ['enrol' => 'manual', 'courseid' => $course->id]);
         $enrolplugin = enrol_get_plugin('manual');
         $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
-        $demonames = ['bookit_coordinator', 'bookit_examiner', 'bookit_booker'];
+        $demonames = ['eva.examiner', 'bob.booker', 'susi.serviceteam'];
         foreach ($demonames as $username) {
             $user = $DB->get_record('user', ['username' => $username]);
             if ($user && $enrolinstance && $studentroleid) {
@@ -1141,8 +1141,8 @@ class install_helper {
             return false;
         }
 
-        $examiner = $DB->get_record('user', ['username' => 'bookit_examiner']);
-        $booker = $DB->get_record('user', ['username' => 'bookit_booker']);
+        $examiner = $DB->get_record('user', ['username' => 'eva.examiner']);
+        $booker = $DB->get_record('user', ['username' => 'bob.booker']);
         $examinerid = $examiner ? $examiner->id : ($USER->id ?? 2);
         $bookerid = $booker ? $booker->id : ($USER->id ?? 2);
 
