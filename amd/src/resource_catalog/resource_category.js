@@ -341,7 +341,8 @@ export default class ResourceCategory extends BaseComponent {
                 }
                 const primary = getComputedStyle(document.documentElement)
                     .getPropertyValue('--primary').trim() || '#0f6cbf';
-                const offset = dropBefore ? '-5px' : '5px';
+                // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+                const offset = dropBefore ? '5px' : '-5px';
                 categoryRowEl.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
             };
             categoryRowEl.addEventListener('dragover', onDragOver);
@@ -360,8 +361,8 @@ export default class ResourceCategory extends BaseComponent {
                     }
                     const primary = getComputedStyle(document.documentElement)
                         .getPropertyValue('--primary').trim() || '#0f6cbf';
-                    // Shadow follows cursor: top = drop before, bottom = drop after.
-                    const offset = dropBefore ? '-5px' : '5px';
+                    // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+                    const offset = dropBefore ? '5px' : '-5px';
                     categoryRowEl.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
                     categoryRowEl.style.transition = 'box-shadow 0.1s ease';
                 },
