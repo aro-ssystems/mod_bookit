@@ -48,17 +48,27 @@ class event_checklist_catalog implements renderable, templatable {
     /** @var int Context ID */
     private int $contextid;
 
+    /** @var bool Whether all checklist items are editable. */
+    private bool $canmarkallitems;
+
+    /** @var int[] Current user's BookIt role IDs. */
+    private array $userbookitroleids;
+
     /**
      * Constructor.
      *
      * @param int $eventid Event ID
      * @param int $cmid Course module ID
      * @param int $contextid Context ID
+     * @param bool $canmarkallitems Whether all items are editable for the current user
+     * @param int[] $userbookitroleids Current user's BookIt role IDs
      */
-    public function __construct(int $eventid, int $cmid, int $contextid) {
+    public function __construct(int $eventid, int $cmid, int $contextid, bool $canmarkallitems = false, array $userbookitroleids = []) {
         $this->eventid   = $eventid;
         $this->cmid      = $cmid;
         $this->contextid = $contextid;
+        $this->canmarkallitems = $canmarkallitems;
+        $this->userbookitroleids = array_map('intval', $userbookitroleids);
     }
 
     /**
@@ -125,6 +135,7 @@ class event_checklist_catalog implements renderable, templatable {
                 $itemdata->id    = $itemid;
                 $itemdata->title = format_string($item->title);
                 $itemdata->done  = $done;
+                $itemdata->canedit = $this->can_edit_item($item->roleids ?? []);
 
                 $totalcount++;
                 if ($done) {
@@ -153,5 +164,24 @@ class event_checklist_catalog implements renderable, templatable {
         $data->progresscomplete = ($totalcount > 0 && $donecount === $totalcount);
 
         return $data;
+    }
+
+    /**
+     * Check whether the current user may edit a checklist item.
+     *
+     * @param int[]|null $itemroleids
+     * @return bool
+     */
+    private function can_edit_item(?array $itemroleids): bool {
+        if ($this->canmarkallitems) {
+            return true;
+        }
+
+        if (empty($itemroleids)) {
+            return true;
+        }
+
+        $itemroleids = array_map('intval', $itemroleids);
+        return !empty(array_intersect($itemroleids, $this->userbookitroleids));
     }
 }

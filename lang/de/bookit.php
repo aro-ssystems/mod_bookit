@@ -303,6 +303,7 @@ $string['overlapping_allow_none'] = 'Überschneidung von Terminen nicht erlauben
 $string['overlapping_mode'] = 'Soll Überschneidung von Terminen verhindert werden?';
 $string['overlapping_non_confirmed'] = 'Überschneidung von nicht bestätigten Terminen erlauben';
 $string['overview'] = 'Meine gebuchten Ereignisse';
+$string['overview_action_requires_confirmed_booking'] = 'Checkliste und Ressourcen sind erst nach Bestätigung der Buchungsanfrage verfügbar.';
 $string['overview_help'] = 'Zeigt jedes Ereignis an, für das Sie als Prüfer aufgeführt sind.';
 $string['overwrite_extratimeafter'] = 'Globale extratimeafter-Einstellung überschreiben?';
 $string['overwrite_extratimebefore'] = 'Globale extratimebefore-Einstellung überschreiben?';

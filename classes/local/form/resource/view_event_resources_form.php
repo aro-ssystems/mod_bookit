@@ -37,7 +37,7 @@ require_once($CFG->libdir . '/formslib.php');
  * Extends moodleform (not dynamic_form) so it can be rendered standalone.
  * All elements are static; there is no submit button.
  */
-class view_event_resources_form extends moodleform {
+class view_event_resources_form extends \moodleform {
     /**
      * Form definition: adds one static element per booked resource, grouped by category.
      */

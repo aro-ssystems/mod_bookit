@@ -30,6 +30,7 @@ require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/formslib.php');
 
 use mod_bookit\local\form\resource\view_event_resources_form;
+use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\resource_manager;
 
 $eventid = required_param('eventid', PARAM_INT);
@@ -43,6 +44,14 @@ require_login($course, true, $cm);
 
 $context = context_module::instance($cm->id);
 require_capability('mod/bookit:view', $context);
+if (!event_access_manager::is_booking_confirmed($event)) {
+    $backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
+    redirect($backurl, get_string('overview_action_requires_confirmed_booking', 'mod_bookit'), null, \core\output\notification::NOTIFY_WARNING);
+}
+
+if (!event_access_manager::can_view_event_resources($event, $context, (int)$USER->id)) {
+    throw new required_capability_exception($context, 'mod/bookit:viewalldetailsofownevent', 'nopermissions', '');
+}
 
 $canmanage = has_capability('mod/bookit:managebasics', $context);
 

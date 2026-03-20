@@ -29,6 +29,9 @@ use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
+use mod_bookit\local\manager\checklist_manager;
+use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\event_checklist_state_manager;
 
 defined('MOODLE_INTERNAL') || die;
@@ -75,10 +78,21 @@ class toggle_event_checklist_item extends external_api {
         $cm = get_coursemodule_from_id('bookit', $params['cmid'], 0, false, MUST_EXIST);
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
-        require_capability('mod/bookit:editevent', $context);
 
         // Verify event exists before acting on it.
-        $DB->get_record('bookit_event', ['id' => $params['eventid']], '*', MUST_EXIST);
+        $event = $DB->get_record('bookit_event', ['id' => $params['eventid']], '*', MUST_EXIST);
+        $item = bookit_checklist_item::from_database($params['checklistitemid']);
+        $userroleids = checklist_manager::get_user_bookit_role_ids((int)$USER->id);
+
+        if (!event_access_manager::can_toggle_event_checklist_item(
+            $event,
+            $item->roleids,
+            $context,
+            (int)$USER->id,
+            $userroleids
+        )) {
+            throw new \required_capability_exception($context, 'mod/bookit:viewalldetailsofownevent', 'nopermissions', '');
+        }
 
         event_checklist_state_manager::set_item_state(
             $params['eventid'],

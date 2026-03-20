@@ -117,7 +117,8 @@
                    data-region="event-checklist-item-checkbox"
                    id="event-checklist-item-{{id}}"
                    {{#done}}checked{{/done}}
-                   style="width: 1.2em; height: 1.2em; cursor: pointer; flex-shrink: 0;">
+                   {{^canedit}}disabled{{/canedit}}
+                   style="width: 1.2em; height: 1.2em; cursor: {{#canedit}}pointer{{/canedit}}{{^canedit}}default{{/canedit}}; flex-shrink: 0;">
             <label class="form-check-label mb-0 flex-grow-1 {{#done}}text-decoration-line-through text-muted{{/done}}"
                    for="event-checklist-item-{{id}}"
                    data-region="event-checklist-item-label">

@@ -108,6 +108,7 @@ echo $OUTPUT->header();
    3.  Fetch examiner’s events
    ======================================================================= */
 use mod_bookit\local\manager\event_manager;
+use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\event_checklist_state_manager;
 use mod_bookit\local\manager\event_resource_manager;
 
@@ -207,6 +208,8 @@ foreach ($events as $ev) {
     }
 
     $datestr = userdate($ev->starttime, '%d.%m.%Y');
+    $canviewchecklist = event_access_manager::can_view_event_checklist($ev, $context, (int)$USER->id);
+    $canviewresources = event_access_manager::can_view_event_resources($ev, $context, (int)$USER->id);
 
     $pic = '-';
     if (!empty($ev->personinchargeid)) {
@@ -227,11 +230,13 @@ foreach ($events as $ev) {
         'cmid' => (int)$cm->id,
         'checklistprogress' => $progressmap[(int)$ev->id] ?? 0,
         'checklistprogress_available' => $masterid > 0,
+        'haschecklistaction' => $canviewchecklist,
         'checklistlabel' => get_string('checklist', 'mod_bookit'),
         'checklisturl' => (new moodle_url('/mod/bookit/view/event_checklist_view.php', [
             'id' => $cm->id,
             'eventid' => (int)$ev->id,
         ]))->out(false),
+        'hasresourcesaction' => $canviewresources,
         'resourceschecklistlabel' => get_string('resources', 'mod_bookit'),
         'resourceschecklisturl' => (new moodle_url('/mod/bookit/view/event_resources.php', [
             'id' => $cm->id,

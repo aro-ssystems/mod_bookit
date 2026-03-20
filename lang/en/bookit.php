@@ -313,6 +313,7 @@ $string['overlapping_allow_none'] = 'Allow no overlaps';
 $string['overlapping_mode'] = 'Should overlapping events be prevented?';
 $string['overlapping_non_confirmed'] = 'Allow overlapping with non-confirmed events';
 $string['overview'] = 'My booked events';
+$string['overview_action_requires_confirmed_booking'] = 'Checklist and resources are available only after the booking has been confirmed.';
 $string['overview_help'] = 'Shows every event for which you are listed as examiner.';
 $string['overwrite_extratimeafter'] = 'Overwrite global extratimeafter setting?';
 $string['overwrite_extratimebefore'] = 'Overwrite global extratimebefore setting?';
