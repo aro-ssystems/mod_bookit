@@ -37,6 +37,7 @@ require_capability('mod/bookit:managemasterchecklist', $context);
 
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/mod/bookit/admin/master_checklist.php'));
+$PAGE->set_primary_active_tab('bookit_settings');
 $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('master_checklist', 'mod_bookit'));
 $PAGE->set_heading(get_string('settings_overview', 'mod_bookit'));
