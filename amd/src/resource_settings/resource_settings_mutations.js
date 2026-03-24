@@ -19,7 +19,7 @@
  * Standalone mutations class for the resource checklist reactive store.
  * Handles CRUD operations on categories and checklist items.
  *
- * @module mod_bookit/resource_checklist/resource_checklist_mutations
+ * @module mod_bookit/resource_settings/resource_settings_mutations
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,7 +30,7 @@ import Ajax from 'core/ajax';
 /**
  * Mutations for resource checklist reactive state.
  */
-export default class ResourceChecklistMutations {
+export default class ResourceSettingsMutations {
 
     _callCategoryForm(formData) {
         formData['_qf__mod_bookit_local_form_resource_edit_resource_category_form'] = 1; // eslint-disable-line dot-notation
@@ -47,13 +47,13 @@ export default class ResourceChecklistMutations {
     }
 
     _callItemForm(formData) {
-        formData['_qf__mod_bookit_local_form_resource_edit_resource_checklist_item_form'] = 1; // eslint-disable-line dot-notation
+        formData['_qf__mod_bookit_local_form_resource_edit_resource_settings_item_form'] = 1; // eslint-disable-line dot-notation
         const encoded = new URLSearchParams(formData).toString();
         Ajax.call([{
             methodname: 'core_form_dynamic_form',
             args: {
                 formdata: encoded,
-                form: 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form',
+                form: 'mod_bookit\\local\\form\\resource\\edit_resource_settings_item_form',
             },
         }])[0].catch(exception => {
             window.console.error('AJAX error in checklist item reorder:', exception);
@@ -132,7 +132,7 @@ export default class ResourceChecklistMutations {
      * Placeholder for state event dispatching.
      */
     checklistStateEvent() {
-        // Placeholder — state events are dispatched via dispatchResourceChecklistStateEvent.
+        // Placeholder — state events are dispatched via dispatchResourceSettingsStateEvent.
     }
 
     // -------------------------------------------------------------------------

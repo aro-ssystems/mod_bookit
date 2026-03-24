@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Resource checklist catalog output class.
+ * Resource settings catalog output class.
  *
  * @package     mod_bookit
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -26,7 +26,7 @@
 namespace mod_bookit\output;
 
 use mod_bookit\local\manager\checklist_manager;
-use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\resource_settings_manager;
 use mod_bookit\local\manager\resource_manager;
 use renderer_base;
 use renderable;
@@ -34,11 +34,11 @@ use templatable;
 use stdClass;
 
 /**
- * Resource checklist catalog output class.
+ * Resource settings catalog output class.
  *
  * Prepares data for the resource checklist template.
  */
-class resource_checklist_catalog implements renderable, templatable {
+class resource_settings_catalog implements renderable, templatable {
     /**
      * Export data for template.
      *
@@ -59,7 +59,7 @@ class resource_checklist_catalog implements renderable, templatable {
             $roomsbyid[(int)$room->id] = $room;
         }
 
-        $checklistitems = resource_checklist_manager::get_all_checklist_items_with_rooms();
+        $checklistitems = resource_settings_manager::get_all_checklist_items_with_rooms();
 
         $itemsbycategory = [];
         foreach ($checklistitems as $item) {

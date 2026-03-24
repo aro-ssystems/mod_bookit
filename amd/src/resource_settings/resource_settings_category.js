@@ -19,7 +19,7 @@
  * Standalone component managing a category row and all its checklist items.
  * Handles add/edit/delete category and item operations via modal forms.
  *
- * @module mod_bookit/resource_checklist/resource_checklist_category
+ * @module mod_bookit/resource_settings/resource_settings_category
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,17 +29,17 @@ import {BaseComponent, DragDrop} from 'core/reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 import Notification from 'core/notification';
-import ResourceChecklistItem from './resource_checklist_item';
+import ResourceSettingsItem from './resource_settings_item';
 
 const CATEGORY_REGION = 'resource-checklist-category';
 const ITEM_REGION = 'resource-checklist-item-row';
 const CATEGORY_MODAL_FORM = 'mod_bookit\\form\\edit_category_form';
-const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form';
+const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_settings_item_form';
 
 /**
  * Resource checklist category component.
  */
-export default class ResourceChecklistCategory extends BaseComponent {
+export default class ResourceSettingsCategory extends BaseComponent {
 
     /**
      * Component descriptor for debugging.
@@ -47,7 +47,7 @@ export default class ResourceChecklistCategory extends BaseComponent {
      * @return {string} Component name
      */
     static get componentName() {
-        return 'mod_bookit/resource_checklist/resource_checklist_category';
+        return 'mod_bookit/resource_settings/resource_settings_category';
     }
 
     /**
@@ -124,7 +124,7 @@ export default class ResourceChecklistCategory extends BaseComponent {
             const itemData = this.reactive.state.checklistitems.get(itemId);
 
             if (itemData && itemData.categoryid === this.categoryId) {
-                const itemComponent = new ResourceChecklistItem({
+                const itemComponent = new ResourceSettingsItem({
                     element: itemElement,
                     reactive: this.reactive,
                 });
@@ -150,7 +150,7 @@ export default class ResourceChecklistCategory extends BaseComponent {
             .sort((a, b) => a.sortorder - b.sortorder);
 
         for (const itemData of items) {
-            const itemComponent = new ResourceChecklistItem({
+            const itemComponent = new ResourceSettingsItem({
                 element: this.element,
                 reactive: this.reactive,
                 itemData: itemData,

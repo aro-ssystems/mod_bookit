@@ -19,7 +19,7 @@
  * Standalone component handling a single checklist item row.
  * Manages edit modal, state updates, and DOM updates for one item.
  *
- * @module mod_bookit/resource_checklist/resource_checklist_item
+ * @module mod_bookit/resource_settings/resource_settings_item
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -30,14 +30,14 @@ import Templates from 'core/templates';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
 
-const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form';
-const ITEM_TEMPLATE = 'mod_bookit/resource_checklist/resource_checklist_item_row';
+const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_settings_item_form';
+const ITEM_TEMPLATE = 'mod_bookit/resource_settings/resource_settings_item_row';
 const ITEM_REGION = 'resource-checklist-item-row';
 
 /**
  * Resource checklist item component.
  */
-export default class ResourceChecklistItem extends BaseComponent {
+export default class ResourceSettingsItem extends BaseComponent {
 
     /**
      * Component descriptor for debugging.
@@ -45,7 +45,7 @@ export default class ResourceChecklistItem extends BaseComponent {
      * @return {string} Component name
      */
     static get componentName() {
-        return 'mod_bookit/resource_checklist/resource_checklist_item';
+        return 'mod_bookit/resource_settings/resource_settings_item';
     }
 
     /**
@@ -56,7 +56,7 @@ export default class ResourceChecklistItem extends BaseComponent {
     create(descriptor) {
         const itemId = descriptor.element.dataset.itemid || descriptor.element.dataset.bookitItemId;
         if (!itemId) {
-            window.console.warn('resource_checklist_item: missing itemId on element', descriptor.element);
+            window.console.warn('resource_settings_item: missing itemId on element', descriptor.element);
         }
         this._editBtnSelector = itemId ? `#edit-item-${itemId}` : null;
         this.itemData = descriptor.itemData;

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Entity class for resource checklist metadata.
+ * Entity class for resource settings metadata.
  *
  * @package     mod_bookit
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -26,12 +26,12 @@
 namespace mod_bookit\local\entity\resource;
 
 /**
- * Entity class for resource checklist.
+ * Entity class for resource settings.
  *
- * Extends resources with checklist-specific metadata like due dates,
- * notification configuration, and independent sort order.
+ * Extends resources with settings metadata like due dates,
+ * notification configuration and independent sort order.
  */
-class bookit_resource_checklist {
+class bookit_resource_settings {
     /** @var ?int Database ID */
     private ?int $id;
 

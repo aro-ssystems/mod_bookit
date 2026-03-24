@@ -27,7 +27,7 @@ namespace mod_bookit\output;
 
 use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\manager\event_resource_manager;
-use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\resource_settings_manager;
 use renderer_base;
 use renderable;
 use templatable;
@@ -134,7 +134,7 @@ class event_resources_checklist_catalog implements renderable, templatable {
             }
 
             // Compute due date from checklist item relative to event start time.
-            $checklistitem = resource_checklist_manager::get_checklist_item_by_resource($eventresource->get_resourceid());
+            $checklistitem = resource_settings_manager::get_checklist_item_by_resource($eventresource->get_resourceid());
             $duedate = '';
             if ($checklistitem && $checklistitem->get_duedate()) {
                 $duedatetype = $checklistitem->get_duedatetype();

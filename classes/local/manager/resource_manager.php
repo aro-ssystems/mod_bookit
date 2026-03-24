@@ -29,7 +29,7 @@ use dml_exception;
 use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\entity\resource\bookit_resource_category;
-use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\resource_settings_manager;
 
 /**
  * Resource manager class.
@@ -348,7 +348,7 @@ class resource_manager {
             $record->timemodified = time();
             $id = $DB->insert_record('bookit_resource', $record);
             // Auto-generate checklist entry for new resource.
-            resource_checklist_manager::create_checklist_for_resource($id, $userid);
+            resource_settings_manager::create_checklist_for_resource($id, $userid);
         } else {
             // Update existing resource.
             $record->id = $resource->get_id();
@@ -370,7 +370,7 @@ class resource_manager {
     public static function delete_resource(int $id): void {
         global $DB;
 
-        resource_checklist_manager::delete_checklist_item_by_resource($id);
+        resource_settings_manager::delete_checklist_item_by_resource($id);
         $DB->delete_records('bookit_event_resource', ['resourceid' => $id]);
         $DB->delete_records('bookit_resource', ['id' => $id]);
     }
