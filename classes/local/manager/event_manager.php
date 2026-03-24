@@ -169,7 +169,7 @@ class event_manager {
         global $DB;
 
         // CSV membership checks, cross-DB using sql_concat + sql_like.
-        // Wrap CSV fields with commas so we can safely search for ",<id>,"
+        // Wrap CSV fields with commas so we can safely search for ",<id>,".
         $otherwrapped   = $DB->sql_concat("','", "COALESCE(e.otherexaminers, '')", "','");
         $supportwrapped = $DB->sql_concat("','", "COALESCE(e.supportpersons, '')", "','");
 

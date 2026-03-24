@@ -63,7 +63,13 @@ class event_checklist_catalog implements renderable, templatable {
      * @param bool $canmarkallitems Whether all items are editable for the current user
      * @param int[] $userbookitroleids Current user's BookIt role IDs
      */
-    public function __construct(int $eventid, int $cmid, int $contextid, bool $canmarkallitems = false, array $userbookitroleids = []) {
+    public function __construct(
+        int $eventid,
+        int $cmid,
+        int $contextid,
+        bool $canmarkallitems = false,
+        array $userbookitroleids = []
+    ) {
         $this->eventid   = $eventid;
         $this->cmid      = $cmid;
         $this->contextid = $contextid;

@@ -84,13 +84,15 @@ class toggle_event_checklist_item extends external_api {
         $item = bookit_checklist_item::from_database($params['checklistitemid']);
         $userroleids = checklist_manager::get_user_bookit_role_ids((int)$USER->id);
 
-        if (!event_access_manager::can_toggle_event_checklist_item(
-            $event,
-            $item->roleids,
-            $context,
-            (int)$USER->id,
-            $userroleids
-        )) {
+        if (
+            !event_access_manager::can_toggle_event_checklist_item(
+                $event,
+                $item->roleids,
+                $context,
+                (int)$USER->id,
+                $userroleids
+            )
+        ) {
             throw new \required_capability_exception($context, 'mod/bookit:viewalldetailsofownevent', 'nopermissions', '');
         }
 

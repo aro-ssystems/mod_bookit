@@ -28,8 +28,6 @@ namespace mod_bookit\local\manager;
 use context_module;
 use stdClass;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Centralises booking-state and participant checks for event-level views.
  */
