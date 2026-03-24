@@ -81,27 +81,27 @@
     </div>
 
     <table id="{{tableid}}" class="generaltable table-striped table-hover w-100">
-        <thead class="text-center align-middle">
+        <thead class="text-center">
             <tr style="background-color:#cfe2ff;">
-                <th>ID</th>
-                <th>Title</th>
-                <th>Room</th>
-                <th>Person in charge</th>
-                <th>My role</th>
-                <th>Booking status</th>
-                <th>Date</th>
-                <th>Progress</th>
-                <th>Checklist</th>
-                <th>Resources</th>
+                <th class="align-middle">ID</th>
+                <th class="align-middle">Title</th>
+                <th class="align-middle">Room</th>
+                <th class="align-middle">Person in charge</th>
+                <th class="align-middle">My role</th>
+                <th class="align-middle">Booking status</th>
+                <th class="align-middle">Date</th>
+                <th class="align-middle">Progress</th>
+                <th class="align-middle">Checklist</th>
+                <th class="align-middle">Resources</th>
             </tr>
         </thead>
 
-        <tbody class="text-center align-middle">
+        <tbody class="text-center">
             {{#events}}
                 <tr>
-                    <td>{{id}}</td>
+                    <td class="align-middle">{{id}}</td>
 
-                    <td>
+                    <td class="align-middle">
                         <a href="#"
                            class="bookit-event-link"
                            data-eventid="{{id}}"
@@ -110,12 +110,12 @@
                         </a>
                     </td>
 
-                    <td>{{room}}</td>
-                    <td>{{personincharge}}</td>
-                    <td>{{myrole}}</td>
+                    <td class="align-middle">{{room}}</td>
+                    <td class="align-middle">{{personincharge}}</td>
+                    <td class="align-middle">{{myrole}}</td>
 
                     {{#canmanage}}
-                    <td class="text-center">
+                    <td class="align-middle text-center">
                         <select class="custom-select custom-select-sm"
                                 data-action="update-booking-status"
                                 data-eventid="{{id}}"
@@ -128,12 +128,12 @@
                     </td>
                     {{/canmanage}}
                     {{^canmanage}}
-                    <td style="{{statusstyle}}">{{statustext}}</td>
+                    <td class="align-middle" style="{{statusstyle}}">{{statustext}}</td>
                     {{/canmanage}}
 
-                    <td data-sort="{{starttime}}">{{datestr}}</td>
+                    <td class="align-middle" data-sort="{{starttime}}">{{datestr}}</td>
 
-                    <td>
+                    <td class="align-middle">
                         {{#checklistprogress_available}}
                         <div class="mb-1">
                             <div class="small text-muted mb-1">Checklist</div>
@@ -163,13 +163,13 @@
                         {{^checklistprogress_available}}{{^resourcesprogress_available}}--{{/resourcesprogress_available}}{{/checklistprogress_available}}
                     </td>
 
-                    <td>
+                    <td class="align-middle">
                         {{#haschecklistaction}}
                         <a href="{{checklisturl}}" class="btn btn-sm btn-primary">{{checklistlabel}}</a>
                         {{/haschecklistaction}}
                         {{^haschecklistaction}}-{{/haschecklistaction}}
                     </td>
-                    <td>
+                    <td class="align-middle">
                         {{#hasresourcesaction}}
                         <a href="{{resourceschecklisturl}}" class="btn btn-sm btn-primary">{{resourceschecklistlabel}}</a>
                         {{/hasresourcesaction}}
