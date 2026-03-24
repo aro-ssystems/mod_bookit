@@ -119,7 +119,6 @@ final class resource_settings_manager_test extends advanced_testcase {
             86400,
             'before_event',
             0,
-            true,
             null,
             null,
             null,
@@ -141,7 +140,6 @@ final class resource_settings_manager_test extends advanced_testcase {
         $this->assertEquals($this->resourceid1, $retrieved->get_resourceid());
         $this->assertEquals(86400, $retrieved->get_duedate());
         $this->assertEquals('before_event', $retrieved->get_duedatetype());
-        $this->assertTrue($retrieved->is_active());
     }
 
     /**
@@ -154,7 +152,6 @@ final class resource_settings_manager_test extends advanced_testcase {
             null,
             null,
             0,
-            true,
             null,
             null,
             null,
@@ -175,7 +172,6 @@ final class resource_settings_manager_test extends advanced_testcase {
             3600,
             'after_event',
             0,
-            false,
             null,
             null,
             null,
@@ -190,7 +186,6 @@ final class resource_settings_manager_test extends advanced_testcase {
         $final = resource_settings_manager::get_checklist_item($id);
         $this->assertEquals(3600, $final->get_duedate());
         $this->assertEquals('after_event', $final->get_duedatetype());
-        $this->assertFalse($final->is_active());
     }
 
     /**
@@ -320,50 +315,6 @@ final class resource_settings_manager_test extends advanced_testcase {
     }
 
     /**
-     * Test get_all_checklist_items with activeonly filter.
-     */
-    public function test_get_all_checklist_items_activeonly(): void {
-        $active = new bookit_resource_settings(
-            null,
-            $this->resourceid1,
-            null,
-            null,
-            0,
-            true,
-            null,
-            null,
-            null,
-            null,
-            0,
-            0,
-            2
-        );
-        $inactive = new bookit_resource_settings(
-            null,
-            $this->resourceid2,
-            null,
-            null,
-            1,
-            false,
-            null,
-            null,
-            null,
-            null,
-            0,
-            0,
-            2
-        );
-        resource_settings_manager::save_checklist_item($active, 2);
-        resource_settings_manager::save_checklist_item($inactive, 2);
-
-        $all = resource_settings_manager::get_all_checklist_items(false);
-        $this->assertCount(2, $all);
-
-        $activeonly = resource_settings_manager::get_all_checklist_items(true);
-        $this->assertCount(1, $activeonly);
-    }
-
-    /**
      * Test auto_generate_checklist creates entries for all resources.
      */
     public function test_auto_generate_checklist(): void {
@@ -428,7 +379,6 @@ final class resource_settings_manager_test extends advanced_testcase {
         $item = resource_settings_manager::get_checklist_item($id);
         $this->assertNotNull($item);
         $this->assertEquals($this->resourceid1, $item->get_resourceid());
-        $this->assertTrue($item->is_active());
     }
 
     /**

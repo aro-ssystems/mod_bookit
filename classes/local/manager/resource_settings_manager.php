@@ -38,23 +38,19 @@ class resource_settings_manager {
     /**
      * Get all resource checklist items.
      *
-     * @param bool $activeonly If true, only return active items
      * @return array Array of checklist items with resource data joined
      * @throws dml_exception
      */
-    public static function get_all_checklist_items(bool $activeonly = false): array {
+    public static function get_all_checklist_items(): array {
         global $DB;
 
-        $conditions = $activeonly ? 'WHERE rc.active = 1' : '';
-
         $sql = "SELECT rc.id, rc.resourceid, rc.duedate, rc.duedatetype,
-                       rc.sortorder, rc.active, rc.beforedueid, rc.whendueid,
+                       rc.sortorder, rc.beforedueid, rc.whendueid,
                        rc.overdueid, rc.whendoneid,
                        r.name, r.description, r.categoryid, r.amount,
                        r.amountirrelevant, r.active as resource_active
                 FROM {bookit_resource_settings} rc
                 JOIN {bookit_resource} r ON r.id = rc.resourceid
-                $conditions
                 ORDER BY rc.sortorder ASC, r.name ASC";
 
         return $DB->get_records_sql($sql);
@@ -63,24 +59,20 @@ class resource_settings_manager {
     /**
      * Get all checklist items with resource data including roomids.
      *
-     * @param bool $activeonly Only return active items.
      * @return array
      * @throws \dml_exception
      */
-    public static function get_all_checklist_items_with_rooms(bool $activeonly = false): array {
+    public static function get_all_checklist_items_with_rooms(): array {
         global $DB;
 
-        $conditions = $activeonly ? 'WHERE rc.active = 1' : '';
-
         $sql = "SELECT rc.id, rc.resourceid, rc.duedate, rc.duedatetype,
-                       rc.sortorder, rc.active, rc.beforedueid, rc.whendueid,
+                       rc.sortorder, rc.beforedueid, rc.whendueid,
                        rc.overdueid, rc.whendoneid,
                        r.name, r.description, r.categoryid, r.amount,
                        r.amountirrelevant, r.active as resource_active,
                        r.roomids
                 FROM {bookit_resource_settings} rc
                 JOIN {bookit_resource} r ON r.id = rc.resourceid
-                $conditions
                 ORDER BY rc.sortorder ASC, r.name ASC";
 
         return $DB->get_records_sql($sql);
@@ -138,7 +130,6 @@ class resource_settings_manager {
         $record->duedate = $item->get_duedate();
         $record->duedatetype = $item->get_duedatetype();
         $record->sortorder = $item->get_sortorder();
-        $record->active = $item->is_active() ? 1 : 0;
         $record->beforedueid = $item->get_beforedueid();
         $record->whendueid = $item->get_whendueid();
         $record->overdueid = $item->get_overdueid();
@@ -224,7 +215,6 @@ class resource_settings_manager {
             $record->duedate = null;
             $record->duedatetype = null;
             $record->sortorder = $sortorder++;
-            $record->active = 1;
             $record->beforedueid = null;
             $record->whendueid = null;
             $record->overdueid = null;
@@ -288,7 +278,6 @@ class resource_settings_manager {
         $record->duedate = null;
         $record->duedatetype = null;
         $record->sortorder = $sortorder;
-        $record->active = 1;
         $record->beforedueid = null;
         $record->whendueid = null;
         $record->overdueid = null;
@@ -313,7 +302,6 @@ class resource_settings_manager {
             isset($record->duedate) ? (int)$record->duedate : null,
             $record->duedatetype ?? null,
             (int)($record->sortorder ?? 0),
-            (bool)($record->active ?? 1),
             isset($record->beforedueid) ? (int)$record->beforedueid : null,
             isset($record->whendueid) ? (int)$record->whendueid : null,
             isset($record->overdueid) ? (int)$record->overdueid : null,

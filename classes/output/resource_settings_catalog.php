@@ -107,7 +107,7 @@ class resource_settings_catalog implements renderable, templatable {
         $itemdata->amount = $item->amountirrelevant ? null : (int)$item->amount;
         $itemdata->amountirrelevant = (bool)$item->amountirrelevant;
         $itemdata->sortorder = $item->sortorder;
-        $itemdata->active = (bool)$item->active;
+        $itemdata->active = (bool)$item->resource_active;
         $itemdata->duedate = $this->format_duedate($item);
         $itemdata->duedatetype = $item->duedatetype ?? null;
 

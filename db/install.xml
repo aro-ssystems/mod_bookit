@@ -98,7 +98,6 @@
         <FIELD NAME="duedate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Default due date offset in seconds (NULL = no default)"/>
         <FIELD NAME="duedatetype" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Type: before_event, after_event, fixed_date"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Independent sort order for checklist view"/>
-        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Active in checklist (boolean)"/>
         <FIELD NAME="beforedueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (before due notification)"/>
         <FIELD NAME="whendueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (when due notification)"/>
         <FIELD NAME="overdueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (overdue notification)"/>

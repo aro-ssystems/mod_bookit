@@ -47,9 +47,6 @@ class bookit_resource_settings {
     /** @var int Independent sort order for checklist view */
     private int $sortorder;
 
-    /** @var bool Active in checklist */
-    private bool $active;
-
     /** @var ?int FK to notification_slot (before due) */
     private ?int $beforedueid;
 
@@ -79,7 +76,6 @@ class bookit_resource_settings {
      * @param ?int $duedate Due date offset in seconds
      * @param ?string $duedatetype Due date type
      * @param int $sortorder Sort order
-     * @param bool $active Active flag
      * @param ?int $beforedueid Before due notification slot ID
      * @param ?int $whendueid When due notification slot ID
      * @param ?int $overdueid Overdue notification slot ID
@@ -94,7 +90,6 @@ class bookit_resource_settings {
         ?int $duedate = null,
         ?string $duedatetype = null,
         int $sortorder = 0,
-        bool $active = true,
         ?int $beforedueid = null,
         ?int $whendueid = null,
         ?int $overdueid = null,
@@ -108,7 +103,6 @@ class bookit_resource_settings {
         $this->duedate = $duedate;
         $this->duedatetype = $duedatetype;
         $this->sortorder = $sortorder;
-        $this->active = $active;
         $this->beforedueid = $beforedueid;
         $this->whendueid = $whendueid;
         $this->overdueid = $overdueid;
@@ -131,7 +125,6 @@ class bookit_resource_settings {
             isset($record->duedate) ? (int)$record->duedate : null,
             $record->duedatetype ?? null,
             (int)($record->sortorder ?? 0),
-            (bool)($record->active ?? 1),
             isset($record->beforedueid) ? (int)$record->beforedueid : null,
             isset($record->whendueid) ? (int)$record->whendueid : null,
             isset($record->overdueid) ? (int)$record->overdueid : null,
@@ -221,24 +214,6 @@ class bookit_resource_settings {
      */
     public function set_sortorder(int $sortorder): void {
         $this->sortorder = $sortorder;
-    }
-
-    /**
-     * Check if active.
-     *
-     * @return bool
-     */
-    public function is_active(): bool {
-        return $this->active;
-    }
-
-    /**
-     * Set active flag.
-     *
-     * @param bool $active
-     */
-    public function set_active(bool $active): void {
-        $this->active = $active;
     }
 
     /**

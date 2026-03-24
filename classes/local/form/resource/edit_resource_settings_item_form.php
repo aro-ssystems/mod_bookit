@@ -76,11 +76,6 @@ class edit_resource_settings_item_form extends dynamic_form {
         // Rooms (read-only info).
         $mform->addElement('static', 'roomslist', get_string('rooms', 'mod_bookit'), '');
 
-        // Active checkbox.
-        $mform->addElement('advcheckbox', 'active', get_string('settings_active', 'mod_bookit'));
-        $mform->setDefault('active', 1);
-        $mform->addHelpButton('active', 'settings_active', 'mod_bookit');
-
         // Due date — radio group matching masterchecklist style.
         $duedateradio = [
             $mform->createElement('radio', 'duedatetype', '', get_string('noduedate', 'mod_bookit'), 'none'),
@@ -293,7 +288,6 @@ class edit_resource_settings_item_form extends dynamic_form {
         $formdata->id = $item->get_id();
         $formdata->sortorder = $item->get_sortorder();
         $formdata->action = 'put';
-        $formdata->active = $item->is_active() ? 1 : 0;
         $formdata->duedatetype = $duedatetype;
         $formdata->duedaysoffset = $duedaysoffset;
 
@@ -335,8 +329,6 @@ class edit_resource_settings_item_form extends dynamic_form {
         if (!$item) {
             throw new \moodle_exception('checklistitemnotfound', 'mod_bookit');
         }
-
-        $item->set_active(!empty($data['active']));
 
         $duedatetype = $data['duedatetype'] ?? 'none';
         if ($duedatetype === 'none') {
@@ -380,7 +372,6 @@ class edit_resource_settings_item_form extends dynamic_form {
                 'duedate'        => $duedate,
                 'duedatetype'    => $duedatetype,
                 'duedatedisplay' => $duedatedisplay,
-                'active'         => $item->is_active() ? 1 : 0,
                 'beforedueid'    => $item->get_beforedueid(),
                 'whendueid'      => $item->get_whendueid(),
                 'overdueid'      => $item->get_overdueid(),
