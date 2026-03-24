@@ -29,28 +29,20 @@ import Notification from 'core/notification';
 
 const SELECTOR = 'select[data-action="update-booking-status"]';
 
-/** Background and text colours per booking status value. */
-const STATUS_COLORS = {
-    0: {bg: '#d3d3d3', fg: '#000000'},
-    1: {bg: '#fff3cd', fg: '#000000'},
-    2: {bg: '#d4edda', fg: '#000000'},
-    3: {bg: '#343a40', fg: '#ffffff'},
-    4: {bg: '#f8d7da', fg: '#000000'},
-};
-
 /**
- * Apply status colour to a select element.
+ * Apply status colour to a select element by reading data attributes from the selected option.
  *
  * @param {HTMLSelectElement} select
- * @param {number} status
  */
-const applyColor = (select, status) => {
-    const colors = STATUS_COLORS[status] ?? {bg: '#ffffff', fg: '#000000'};
-    select.style.backgroundColor = colors.bg;
-    select.style.color = colors.fg;
+const applyColor = (select) => {
+    const opt = select.options[select.selectedIndex];
+    const bg = (opt && opt.dataset.bg) ? opt.dataset.bg : '#ffffff';
+    const fg = (opt && opt.dataset.fg) ? opt.dataset.fg : '#000000';
+    select.style.backgroundColor = bg;
+    select.style.color = fg;
     const td = select.closest('td');
     if (td) {
-        td.style.backgroundColor = colors.bg;
+        td.style.backgroundColor = bg;
     }
 };
 
@@ -60,7 +52,7 @@ const applyColor = (select, status) => {
 export const init = () => {
     // Apply initial colours to all existing dropdowns on the page.
     document.querySelectorAll(SELECTOR).forEach((select) => {
-        applyColor(select, parseInt(select.dataset.bookingstatus, 10));
+        applyColor(select);
     });
 
     document.addEventListener('change', (e) => {
@@ -69,9 +61,9 @@ export const init = () => {
             return;
         }
 
-        const cmid    = parseInt(select.dataset.cmid, 10);
+        const cmid = parseInt(select.dataset.cmid, 10);
         const eventid = parseInt(select.dataset.eventid, 10);
-        const status  = parseInt(select.value, 10);
+        const status = parseInt(select.value, 10);
 
         select.disabled = true;
 
@@ -80,7 +72,7 @@ export const init = () => {
             args: {cmid, eventid, status},
         }])[0]
         .then(() => {
-            applyColor(select, status);
+            applyColor(select);
             select.disabled = false;
             return;
         })

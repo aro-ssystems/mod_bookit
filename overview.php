@@ -121,43 +121,12 @@ $masterrecord = $DB->get_record('bookit_checklist_master', ['isdefault' => 1], '
 $masterid = $masterrecord ? (int)$masterrecord->id : 0;
 
 
-/* ----- status → label / colours -------------------------------------- */
-$statusmap = [
-    0 => 'New',
-    1 => 'In progress',
-    2 => 'Accepted',
-    3 => 'Cancelled',
-    4 => 'Rejected',
-];
-$colormap = [
-    0 => '#d3d3d3',
-    1 => '#fff3cd',
-    2 => '#d4edda',
-    3 => '#343a40',
-    4 => '#f8d7da',
-];
-$textmap  = [3 => '#ffffff'];
+/* ----- status → label / colours (via event_manager) ------------------- */
+$statuscolors = event_manager::get_booking_status_colors();
 
 /* =======================================================================
    4+5.  Render via Mustache template (no HTML in PHP)
    ======================================================================= */
-
-// Build display maps.
-$statusmap = [
-    0 => 'New',
-    1 => 'In progress',
-    2 => 'Accepted',
-    3 => 'Cancelled',
-    4 => 'Rejected',
-];
-$colormap = [
-    0 => '#d3d3d3',
-    1 => '#fff3cd',
-    2 => '#d4edda',
-    3 => '#343a40',
-    4 => '#f8d7da',
-];
-$textmap  = [3 => '#ffffff'];
 
 // Prepare template context.
 $canmanage = has_capability('mod/bookit:managebasics', $context);
@@ -181,9 +150,9 @@ if (!empty($events)) {
 foreach ($events as $ev) {
     $room = $ev->room ?: '-';
 
-    $statusbg  = $colormap[$ev->bookingstatus] ?? '#ffffff';
-    $statusfg  = $textmap[$ev->bookingstatus] ?? '#000000';
-    $statustxt = $statusmap[$ev->bookingstatus] ?? '-';
+    $statusbg  = $statuscolors[$ev->bookingstatus]['bg'] ?? '#ffffff';
+    $statusfg  = $statuscolors[$ev->bookingstatus]['fg'] ?? '#000000';
+    $statustxt = get_string('event_bookingstatus_' . (int)($ev->bookingstatus ?? 0), 'mod_bookit');
 
     // My role.
     $myrole = '-';

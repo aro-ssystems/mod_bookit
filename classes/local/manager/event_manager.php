@@ -331,27 +331,39 @@ class event_manager {
     }
 
     /**
+     * Return background and foreground colour for each booking status.
+     *
+     * @return array Keys are status int values, values are ['bg' => string, 'fg' => string].
+     */
+    public static function get_booking_status_colors(): array {
+        return [
+            0 => ['bg' => '#d3d3d3', 'fg' => '#000000'],
+            1 => ['bg' => '#fff3cd', 'fg' => '#000000'],
+            2 => ['bg' => '#d4edda', 'fg' => '#000000'],
+            3 => ['bg' => '#343a40', 'fg' => '#ffffff'],
+            4 => ['bg' => '#f8d7da', 'fg' => '#000000'],
+        ];
+    }
+
+    /**
      * Return booking status options array suitable for a Mustache template dropdown.
      *
-     * Each element contains 'value' (int), 'label' (string), and 'selected' (bool).
+     * Each element contains 'value' (int), 'label' (string), 'selected' (bool),
+     * 'bg' (string) and 'fg' (string) for colour styling.
      *
      * @param int $current Currently selected status value.
      * @return array
      */
     public static function get_booking_status_options(int $current): array {
-        $labels = [
-            0 => 'New',
-            1 => 'In progress',
-            2 => 'Accepted',
-            3 => 'Cancelled',
-            4 => 'Rejected',
-        ];
+        $colors = self::get_booking_status_colors();
         $options = [];
-        foreach ($labels as $value => $label) {
+        foreach ($colors as $value => $color) {
             $options[] = [
                 'value'    => $value,
-                'label'    => $label,
+                'label'    => get_string('event_bookingstatus_' . $value, 'mod_bookit'),
                 'selected' => ($value === $current),
+                'bg'       => $color['bg'],
+                'fg'       => $color['fg'],
             ];
         }
         return $options;
