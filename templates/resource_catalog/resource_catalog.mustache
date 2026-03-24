@@ -77,12 +77,17 @@
 
         {{! Room filter - rendered by roomfilter form element }}
         <div class="mb-3">
-            {{#totalrooms}}{{{roomfilter}}}{{/totalrooms}}
             {{^totalrooms}}
             <p class="text-muted mb-0">
                 {{#str}}resources:no_rooms, mod_bookit{{/str}}
                 <a href="{{rooms_url}}">{{#str}}resources:no_rooms_link, mod_bookit{{/str}}</a>
             </p>
+            {{/totalrooms}}
+            {{#totalrooms}}
+                {{#hascategories}}{{{roomfilter}}}{{/hascategories}}
+                {{^hascategories}}
+                <p class="text-muted mb-0">{{#str}}resources:filter_no_resources, mod_bookit{{/str}}</p>
+                {{/hascategories}}
             {{/totalrooms}}
         </div>
 
