@@ -30,6 +30,7 @@ require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/formslib.php');
 
 use mod_bookit\local\form\resource\view_event_resources_form;
+use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\resource_manager;
 
 $eventid = required_param('eventid', PARAM_INT);
@@ -43,6 +44,21 @@ require_login($course, true, $cm);
 
 $context = context_module::instance($cm->id);
 require_capability('mod/bookit:view', $context);
+$isadmin = has_capability('mod/bookit:managebasics', $context)
+    || has_capability('mod/bookit:viewalldetailsofevent', $context);
+if (!$isadmin && !event_access_manager::is_booking_accessible($event)) {
+    $backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
+    redirect(
+        $backurl,
+        get_string('overview_action_requires_confirmed_booking', 'mod_bookit'),
+        null,
+        \core\output\notification::NOTIFY_WARNING
+    );
+}
+
+if (!event_access_manager::can_view_event_resources($event, $context, (int)$USER->id)) {
+    throw new required_capability_exception($context, 'mod/bookit:viewalldetailsofownevent', 'nopermissions', '');
+}
 
 $canmanage = has_capability('mod/bookit:managebasics', $context);
 
@@ -51,21 +67,31 @@ $PAGE->set_context($context);
 $PAGE->set_pagelayout('incourse');
 $PAGE->set_heading($course->fullname);
 
-$titlestr = $canmanage ? get_string('event_checklist_title', 'mod_bookit') : get_string('event_resources_title', 'mod_bookit');
+$titlestr = $canmanage
+    ? get_string('event_resources_checklist_title', 'mod_bookit')
+    : get_string('event_resources_title', 'mod_bookit');
 $PAGE->set_title($titlestr);
 
 echo $OUTPUT->header();
 
-if ($canmanage) {
-    echo $OUTPUT->heading(get_string('event_checklist_heading', 'mod_bookit', format_string($event->name)));
+$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
+$checklisturl = new moodle_url('/mod/bookit/view/event_checklist_view.php', ['id' => $cmid, 'eventid' => $eventid]);
+echo html_writer::start_tag('div', ['class' => 'container-fluid py-3']);
+echo html_writer::start_tag('div', ['class' => 'mb-3 d-flex gap-3']);
+echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary me-3']);
+echo html_writer::link($checklisturl, get_string('event_resources:go_to_checklist', 'mod_bookit'), ['class' => 'btn btn-primary']);
+echo html_writer::end_tag('div');
 
-    $catalog = new \mod_bookit\output\event_checklist_catalog($eventid, $cmid, $canmanage, $event);
+if ($canmanage) {
+    echo $OUTPUT->heading(get_string('event_resources_checklist_heading', 'mod_bookit', format_string($event->name)));
+
+    $catalog = new \mod_bookit\output\event_resources_checklist_catalog($eventid, $cmid, $canmanage, $event);
     echo $OUTPUT->render($catalog);
 
     $PAGE->requires->js_call_amd(
-        'mod_bookit/event_checklist/event_checklist_container',
+        'mod_bookit/event_resources_checklist/event_resources_checklist_container',
         'init',
-        ['#mod-bookit-event-checklist-container']
+        ['#mod-bookit-event-resources-checklist-container']
     );
 } else {
     // Bookers and examiners: read-only form matching the booking form layout.
@@ -80,20 +106,19 @@ if ($canmanage) {
     }
 
     if (empty($bookedresources)) {
-        echo $OUTPUT->notification(get_string('event_checklist_no_resources', 'mod_bookit'), 'info');
+        echo $OUTPUT->notification(get_string('event_resources_checklist_no_resources', 'mod_bookit'), 'info');
     } else {
         $resourcesdata = resource_manager::get_active_resources_grouped();
+        echo html_writer::start_tag('div', ['class' => 'mt-3']);
         $form = new view_event_resources_form(null, [
             'bookedresources' => $bookedresources,
             'resourcesdata'   => $resourcesdata,
         ]);
         $form->display();
+        echo html_writer::end_tag('div');
     }
 }
 
-echo html_writer::start_tag('div', ['class' => 'mt-3']);
-$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
-echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
 echo html_writer::end_tag('div');
 
 echo $OUTPUT->footer();

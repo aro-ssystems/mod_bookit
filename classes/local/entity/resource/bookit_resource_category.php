@@ -36,9 +36,6 @@ class bookit_resource_category {
     /** @var int Sort order for drag and drop */
     private int $sortorder;
 
-    /** @var bool Active/inactive flag */
-    private bool $active;
-
     /** @var int Unix timestamp of creation */
     private int $timecreated;
 
@@ -55,7 +52,6 @@ class bookit_resource_category {
      * @param string $name Category name
      * @param ?string $description Optional description
      * @param int $sortorder Sort order
-     * @param bool $active Active flag
      * @param int $timecreated Creation timestamp
      * @param int $timemodified Modification timestamp
      * @param int $usermodified User ID
@@ -65,7 +61,6 @@ class bookit_resource_category {
         string $name = '',
         ?string $description = null,
         int $sortorder = 0,
-        bool $active = true,
         int $timecreated = 0,
         int $timemodified = 0,
         int $usermodified = 0
@@ -74,7 +69,6 @@ class bookit_resource_category {
         $this->name = $name;
         $this->description = $description;
         $this->sortorder = $sortorder;
-        $this->active = $active;
         $this->timecreated = $timecreated;
         $this->timemodified = $timemodified;
         $this->usermodified = $usermodified;
@@ -92,7 +86,6 @@ class bookit_resource_category {
             $record->name ?? '',
             $record->description ?? null,
             (int)($record->sortorder ?? 0),
-            (bool)($record->active ?? 1),
             (int)($record->timecreated ?? 0),
             (int)($record->timemodified ?? 0),
             (int)($record->usermodified ?? 0)
@@ -133,15 +126,6 @@ class bookit_resource_category {
      */
     public function get_sortorder(): int {
         return $this->sortorder;
-    }
-
-    /**
-     * Check if category is active.
-     *
-     * @return bool
-     */
-    public function is_active(): bool {
-        return $this->active;
     }
 
     /**
@@ -199,15 +183,5 @@ class bookit_resource_category {
      */
     public function set_sortorder(int $sortorder): void {
         $this->sortorder = $sortorder;
-    }
-
-    /**
-     * Set active flag.
-     *
-     * @param bool $active
-     * @return void
-     */
-    public function set_active(bool $active): void {
-        $this->active = $active;
     }
 }

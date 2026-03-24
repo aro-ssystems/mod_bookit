@@ -16,8 +16,8 @@
 /**
  * Event checklist item component.
  *
- * Handles status dropdown changes via AJAX and updates the
- * reactive state and DOM status badge accordingly.
+ * Handles checkbox toggling: calls AJAX to persist state and fires
+ * reactive mutation to update local state (for progress bar).
  *
  * @module mod_bookit/event_checklist/event_checklist_item
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -27,145 +27,84 @@
 
 import {BaseComponent} from 'core/reactive';
 import Ajax from 'core/ajax';
-import {get_strings as getStrings} from 'core/str';
 
-/** CSS badge classes per status */
-const STATUS_BADGE_CLASSES = {
-    requested:  'badge badge-secondary',
-    confirmed:  'badge badge-success',
-    inprogress: 'badge badge-primary',
-    rejected:   'badge badge-danger',
+const SELECTORS = {
+    CHECKBOX: '[data-region="event-checklist-item-checkbox"]',
+    LABEL:    '[data-region="event-checklist-item-label"]',
 };
 
 /**
  * Event checklist item component.
  */
 export default class EventChecklistItem extends BaseComponent {
-    /**
-     * Initialize component properties.
-     */
-    create() {
-        this.itemId = parseInt(this.element.dataset.itemid);
-        const container = this.element.closest('[data-region="event-checklist-container"]');
-        this.canmanage = container ? container.dataset.canmanage === '1' : false;
-        this.cmid = container ? parseInt(container.dataset.cmid) : 0;
-        this.eventid = container ? parseInt(container.dataset.eventid) : 0;
-        this.strings = {};
-    }
 
     /**
-     * Watch item status in reactive state.
-     *
-     * @return {Array}
-     */
-    getWatchers() {
-        return [
-            {watch: `items.status:updated`, handler: this._onStatusUpdated.bind(this)},
-        ];
-    }
-
-    /**
-     * Attach event listeners after state is ready.
+     * State ready: register checkbox change listener.
      */
     stateReady() {
-        if (this.canmanage) {
-            const select = this.getElement('[data-action="update-status"]');
-            if (select) {
-                this.addEventListener(select, 'change', this._onDropdownChange.bind(this));
-            }
-        }
-        this._loadStrings();
+        this.addEventListener(
+            this.getElement(SELECTORS.CHECKBOX),
+            'change',
+            this._onCheckboxChange.bind(this)
+        );
     }
 
     /**
-     * Handle status dropdown change: call AJAX, then update state.
+     * Handle checkbox change: persist via AJAX and update reactive state.
      *
      * @param {Event} event
      */
-    _onDropdownChange(event) {
-        const select = event.currentTarget;
-        const newStatus = select.value;
-        const previousStatus = this.element.dataset.itemStatus;
+    async _onCheckboxChange(event) {
+        const checkbox = event.currentTarget;
+        const done = checkbox.checked;
+        const id = parseInt(this.element.dataset.itemid);
+        const state = this.reactive.stateManager.state;
+        const item = state.items.get(id);
+        const cmid = item ? item.cmid : parseInt(this.element.closest('[data-cmid]')?.dataset.cmid ?? 0);
+        const eventid = item ? item.eventid : parseInt(this.element.closest('[data-eventid]')?.dataset.eventid ?? 0);
 
-        // Optimistic update.
-        this.element.dataset.itemStatus = newStatus;
-        select.disabled = true;
+        // Update reactive state immediately (optimistic update).
+        this.reactive.dispatch('toggleDone', {id, done});
 
-        Ajax.call([{
-            methodname: 'mod_bookit_update_event_resource_status',
-            args: {
-                cmid:       this.cmid,
-                eventid:    this.eventid,
-                resourceid: parseInt(this.element.dataset.itemResourceid),
-                status:     newStatus,
-            },
-        }])[0]
-        .then(() => {
-            // Update reactive state on success.
-            this.reactive.dispatch('updateStatus', {id: this.itemId, status: newStatus});
-            select.disabled = false;
-            return true;
-        })
-        .catch(e => {
-            // Revert on error and log for debugging.
-            select.value = previousStatus;
-            this.element.dataset.itemStatus = previousStatus;
-            window.console.error('Event resource status update failed:', e);
-            select.disabled = false;
-        });
-    }
-
-    /**
-     * React to status update in state (for read-only badge re-render).
-     *
-     * @param {Object} args - Watcher args from Moodle reactive
-     * @param {Object} args.element - Updated item from state
-     */
-    _onStatusUpdated({element}) {
-        // Only handle our own item.
-        if (!element || element.id !== this.itemId) {
-            return;
+        // Update label style.
+        const label = this.getElement(SELECTORS.LABEL);
+        if (label) {
+            if (done) {
+                label.classList.add('text-decoration-line-through', 'text-muted');
+            } else {
+                label.classList.remove('text-decoration-line-through', 'text-muted');
+            }
         }
-        if (!this.canmanage) {
-            this._updateStatusBadge(element.status);
-        }
-        this.element.dataset.itemStatus = element.status;
-    }
 
-    /**
-     * Update the read-only status badge text and class.
-     *
-     * @param {string} status
-     */
-    _updateStatusBadge(status) {
-        const badge = this.getElement('[data-field="status-badge"]');
-        if (!badge) {
-            return;
-        }
-        badge.className = STATUS_BADGE_CLASSES[status] || 'badge badge-secondary';
-        const label = this.strings[status] || status;
-        badge.textContent = label;
-    }
-
-    /**
-     * Pre-load status label strings for badge updates.
-     */
-    async _loadStrings() {
+        // Persist via AJAX.
         try {
-            const strs = await getStrings([
-                {key: 'resources:status_requested', component: 'mod_bookit'},
-                {key: 'resources:status_confirmed', component: 'mod_bookit'},
-                {key: 'resources:status_inprogress', component: 'mod_bookit'},
-                {key: 'resources:status_rejected', component: 'mod_bookit'},
-            ]);
-            this.strings = {
-                requested:  strs[0],
-                confirmed:  strs[1],
-                inprogress: strs[2],
-                rejected:   strs[3],
-            };
-        } catch (_) {
-            // Strings stay empty; badge will show raw key as fallback.
+            await Ajax.call([{
+                methodname: 'mod_bookit_toggle_event_checklist_item',
+                args: {
+                    cmid,
+                    eventid,
+                    checklistitemid: id,
+                    done,
+                },
+            }])[0];
+        } catch (e) {
+            // Revert on failure.
+            this.reactive.dispatch('toggleDone', {id, done: !done});
+            checkbox.checked = !done;
+            if (label) {
+                if (!done) {
+                    label.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    label.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+            }
         }
+    }
+
+    /**
+     * @return {Array}
+     */
+    getWatchers() {
+        return [];
     }
 }

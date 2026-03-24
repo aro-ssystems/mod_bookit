@@ -33,8 +33,6 @@ export default class ResourceItem extends BaseComponent {
         const itemId = descriptor.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
         this.selectors[itemEditBtnSelector] = `#edit-item-${itemId}`;
-        // Keep drag image at mouse offset (fix: ghost snaps to corner without this).
-        this.relativeDrag = true;
     }
 
     static init(target, selectors) {
@@ -60,7 +58,43 @@ export default class ResourceItem extends BaseComponent {
     }
 
     stateReady() {
+        // Track whether cursor is in the upper or lower half of this row during dragover.
+        // Upper half → insert before (top shadow), lower half → insert after (bottom shadow).
+        this._dropBefore = true;
+        this._onDragOver = (e) => {
+            const rect = this.element.getBoundingClientRect();
+            this._dropBefore = e.clientY < rect.top + rect.height / 2;
+            // Re-paint indicator only when this element is already an active drop zone.
+            // Moodle DragDrop adds 'dragover' class only when validateDropData returns true.
+            // Without this guard, dragging a category would light up all item rows.
+            if (!this.element.classList.contains('dragover')) {
+                return;
+            }
+            const primary = getComputedStyle(document.documentElement)
+                .getPropertyValue('--primary').trim() || '#0f6cbf';
+            // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+            const offset = this._dropBefore ? '5px' : '-5px';
+            this.element.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
+        };
+        this.element.addEventListener('dragover', this._onDragOver);
+
+        // Drop-only DragDrop on the row (no getDraggableData = not draggable from row).
         this.dragdrop = new DragDrop(this);
+
+        // Drag-only DragDrop on the drag handle button (masterchecklist pattern).
+        const handleBtn = this.element.querySelector('[data-action="drag-handle"]');
+        if (handleBtn) {
+            this.handleDragDrop = new DragDrop({
+                element: handleBtn,
+                fullregion: this.element,
+                relativeDrag: true,
+                getDraggableData: () => ({
+                    type: 'resource-item',
+                    id: parseInt(this.element.dataset.bookitItemId),
+                    parentId: parseInt(this.element.dataset.itemCategoryid),
+                }),
+            });
+        }
 
         const itemId = this.element.dataset.bookitItemId;
         const itemEditBtnSelector = this._getEditButtonSelector(itemId);
@@ -103,18 +137,18 @@ export default class ResourceItem extends BaseComponent {
     }
 
     destroy() {
+        if (this._onDragOver) {
+            this.element.removeEventListener('dragover', this._onDragOver);
+            this._onDragOver = null;
+        }
         if (this.dragdrop !== undefined) {
             this.dragdrop.unregister();
             this.dragdrop = null;
         }
-    }
-
-    getDraggableData() {
-        return {
-            type: 'resource-item',
-            id: parseInt(this.element.dataset.bookitItemId),
-            parentId: parseInt(this.element.dataset.itemCategoryid),
-        };
+        if (this.handleDragDrop !== undefined) {
+            this.handleDragDrop.unregister();
+            this.handleDragDrop = null;
+        }
     }
 
     validateDropData(dropdata) {
@@ -123,7 +157,9 @@ export default class ResourceItem extends BaseComponent {
 
     showDropZone() {
         const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#0f6cbf';
-        this.element.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+        // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+        const offset = this._dropBefore ? '5px' : '-5px';
+        this.element.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
         this.element.style.transition = 'box-shadow 0.1s ease';
     }
 
@@ -135,12 +171,15 @@ export default class ResourceItem extends BaseComponent {
     drop(dropdata) {
         dropdata.targetId = parseInt(this.element.dataset.bookitItemId);
         dropdata.targetCategoryId = parseInt(this.element.dataset.itemCategoryid);
+        dropdata.dropBefore = this._dropBefore;
 
         const draggedEl = document.getElementById(`resource-item-row-${dropdata.id}`);
         if (draggedEl && draggedEl !== this.element) {
-            // Insert after target row (matching masterchecklist pattern).
-            this.element.parentNode.insertBefore(draggedEl, this.element.nextElementSibling);
-            // Update category data attribute if item moved to a different category.
+            if (this._dropBefore) {
+                this.element.parentNode.insertBefore(draggedEl, this.element);
+            } else {
+                this.element.parentNode.insertBefore(draggedEl, this.element.nextElementSibling);
+            }
             if (dropdata.parentId !== dropdata.targetCategoryId) {
                 draggedEl.dataset.itemCategoryid = dropdata.targetCategoryId;
             }

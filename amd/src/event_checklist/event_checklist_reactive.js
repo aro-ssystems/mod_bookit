@@ -30,31 +30,18 @@ const EVENTNAME = 'mod_bookit:event_checklist_state_event';
 let eventChecklistReactiveInstance = null;
 
 /**
- * Dispatch the event checklist state event.
- *
- * @param {Object} detail - Event detail
- * @param {HTMLElement} target - Target element
- */
-function dispatchEventChecklistStateEvent(detail, target) {
-    if (target === undefined) {
-        target = document;
-    }
-    target.dispatchEvent(
-        new CustomEvent(EVENTNAME, {bubbles: true, detail})
-    );
-}
-
-/**
  * Get or create the event checklist reactive instance.
  *
- * @return {Reactive} Reactive instance
+ * @return {Reactive}
  */
 export const getReactive = () => {
     if (!eventChecklistReactiveInstance) {
         eventChecklistReactiveInstance = new Reactive({
             name: 'Moodle Bookit Event Checklist',
             eventName: EVENTNAME,
-            eventDispatch: dispatchEventChecklistStateEvent,
+            eventDispatch: (detail, target) => {
+                (target || document).dispatchEvent(new CustomEvent(EVENTNAME, {bubbles: true, detail}));
+            },
             mutations: new EventChecklistMutations(),
         });
     }

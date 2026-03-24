@@ -86,6 +86,14 @@ class edit_resource_form extends dynamic_form {
         $mform->setType('description', PARAM_TEXT);
         $mform->addHelpButton('description', 'resources:description', 'mod_bookit');
 
+        // Field: internalinfo.
+        $mform->addElement('textarea', 'internalinfo', get_string('resources:internalinfo', 'mod_bookit'), [
+            'rows' => 4,
+            'cols' => 50,
+        ]);
+        $mform->setType('internalinfo', PARAM_TEXT);
+        $mform->addHelpButton('internalinfo', 'resources:internalinfo', 'mod_bookit');
+
         // Field: amountirrelevant (checkbox).
         $mform->addElement('advcheckbox', 'amountirrelevant', get_string('resources:amountirrelevant', 'mod_bookit'));
         $mform->setDefault('amountirrelevant', 0);
@@ -216,6 +224,7 @@ class edit_resource_form extends dynamic_form {
                 'name' => $resource->get_name(),
                 'categoryid' => $resource->get_categoryid(),
                 'description' => $resource->get_description(),
+                'internalinfo' => $resource->get_internalinfo(),
                 'amount' => $resource->get_amount(),
                 'amountirrelevant' => $resource->is_amountirrelevant() ? 1 : 0,
                 'active' => $resource->is_active() ? 1 : 0,
@@ -260,8 +269,9 @@ class edit_resource_form extends dynamic_form {
             return $this->process_delete_request($formdata->id);
         }
 
-        // If amountirrelevant is checked, set amount to 0.
-        $amount = $formdata->amountirrelevant ? 0 : ($formdata->amount ?? 1);
+        // When amountirrelevant is checked the amount field is disabled and not submitted.
+        // Use 1 as a neutral stored value; the actual number has no meaning for these resources.
+        $amount = (bool)$formdata->amountirrelevant ? 1 : (int)($formdata->amount ?? 1);
 
         // Handle roomids - convert empty to null, otherwise keep as array.
         $roomids = !empty($formdata->roomids) ? $formdata->roomids : null;
@@ -278,7 +288,9 @@ class edit_resource_form extends dynamic_form {
             (bool) $formdata->active,
             $roomids,
             time(), // Timecreated.
-            time()   // Timemodified.
+            time(), // Timemodified.
+            0, // Usermodified (set by manager).
+            $formdata->internalinfo ?? null
         );
 
         // Save via manager.
@@ -300,6 +312,7 @@ class edit_resource_form extends dynamic_form {
                     'id' => $savedid,
                     'name' => $formdata->name,
                     'description' => $formdata->description ?? '',
+                    'internalinfo' => $formdata->internalinfo ?? null,
                     'categoryid' => (int) $formdata->categoryid,
                     'amount' => $amount,
                     'amountirrelevant' => (bool) $formdata->amountirrelevant,
@@ -310,33 +323,6 @@ class edit_resource_form extends dynamic_form {
                 ],
             ],
         ];
-
-        // Auto-deactivate category if all its resources are now inactive.
-        if (!$formdata->active) {
-            $categoryid = (int) $formdata->categoryid;
-            $activecount = $DB->count_records_select(
-                'bookit_resource',
-                'categoryid = ? AND active = 1',
-                [$categoryid]
-            );
-            if ($activecount === 0) {
-                $DB->set_field('bookit_resource_category', 'active', 0, ['id' => $categoryid]);
-                $category = resource_manager::get_category($categoryid);
-                if ($category) {
-                    $updates[] = [
-                        'name' => 'categories',
-                        'action' => 'put',
-                        'fields' => [
-                            'id' => $category->get_id(),
-                            'name' => $category->get_name(),
-                            'description' => $category->get_description() ?? '',
-                            'sortorder' => $category->get_sortorder() ?? 0,
-                            'active' => false,
-                        ],
-                    ];
-                }
-            }
-        }
 
         return $updates;
     }

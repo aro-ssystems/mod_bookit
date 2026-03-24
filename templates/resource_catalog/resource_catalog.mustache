@@ -39,7 +39,12 @@
     }
 }}
 <div class="d-flex justify-content-center">
-    <div class="justify-content-center d-flex">
+    <div id="mod-bookit-resource-spinner" class="my-5">
+        <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+            <span class="sr-only">{{#str}}loading, core{{/str}}</span>
+        </div>
+    </div>
+    <div id="mod-bookit-resource-content" class="d-none">
         <div class="mod-bookit-resource-catalog mt-4 pr-5 mr-5" style="min-width: 784px;"
              id="mod-bookit-resource-catalog"
              data-contextid="{{contextid}}"
@@ -56,26 +61,41 @@
                 </button>
                 <button class="btn btn-success ms-2"
                         data-action="add-resource"
-                        id="add-resource-btn">
+                        id="add-resource-btn"
+                        {{^hascategories}}disabled{{/hascategories}}
+                        {{^hascategories}}title="{{#str}}resources:add_resource_no_categories, mod_bookit{{/str}}"{{/hascategories}}>
                     {{#str}}resources:add_resource, mod_bookit{{/str}}
                 </button>
             </div>
             <div>
-                <a href="{{config.wwwroot}}/mod/bookit/admin/resource_checklist.php"
+                <a href="{{config.wwwroot}}/mod/bookit/admin/resource_settings.php"
                    class="btn btn-secondary">
-                    {{#str}}resources:view_checklist, mod_bookit{{/str}}
+                    {{#str}}resources:view_settings, mod_bookit{{/str}}
                 </a>
             </div>
         </div>
 
         {{! Room filter - rendered by roomfilter form element }}
-        <div class="mb-3">{{{roomfilter}}}</div>
+        <div class="mb-3">
+            {{^totalrooms}}
+            <p class="text-muted mb-0">
+                {{#str}}resources:no_rooms, mod_bookit{{/str}}
+                <a href="{{rooms_url}}">{{#str}}resources:no_rooms_link, mod_bookit{{/str}}</a>
+            </p>
+            {{/totalrooms}}
+            {{#totalrooms}}
+                {{#hascategories}}{{{roomfilter}}}{{/hascategories}}
+                {{^hascategories}}
+                <p class="text-muted mb-0">{{#str}}resources:filter_no_resources, mod_bookit{{/str}}</p>
+                {{/hascategories}}
+            {{/totalrooms}}
+        </div>
 
         {{! Table View (Default) }}
         <div id="mod-bookit-resource-table-view" class="resource-view">
             <table class="table table-borderless table-hover bg-white rounded w-100"
                    id="mod-bookit-resource-table">
-                <thead class="bg-primary text-light border-bottom opacity-50">
+                <thead class="bg-primary text-light border-bottom" style="opacity: 0.5;">
                     <tr>
                         <th scope="col" class="py-3 font-weight-bold">{{#str}}name, core{{/str}}</th>
                         <th scope="col" class="py-3 font-weight-bold" style="width: 80px;">{{#str}}resources:amount, mod_bookit{{/str}}</th>
@@ -98,7 +118,7 @@
                     </tbody>
                 {{/categories}}
                 {{^categories}}
-                    <tbody>
+                    <tbody id="resource-no-categories-msg">
                         <tr>
                             <td colspan="6" class="text-center text-muted py-5">
                                 {{#str}}resources:no_categories, mod_bookit{{/str}}

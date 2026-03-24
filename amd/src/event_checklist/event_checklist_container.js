@@ -16,8 +16,7 @@
 /**
  * Event checklist container component.
  *
- * Initializes the reactive store from DOM data and registers
- * one EventChecklistItem component per item row.
+ * Initializes the reactive store and registers item + progress components.
  *
  * @module mod_bookit/event_checklist/event_checklist_container
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -37,7 +36,7 @@ export default class EventChecklistContainer extends BaseComponent {
     /**
      * Static factory: parse DOM, init reactive, create component.
      *
-     * @param {string} target - CSS selector for the container element
+     * @param {string} target - CSS selector for container element
      * @return {EventChecklistContainer|null}
      */
     static init(target) {
@@ -46,54 +45,53 @@ export default class EventChecklistContainer extends BaseComponent {
             return null;
         }
 
+        const cmid = parseInt(element.dataset.cmid);
+        const eventid = parseInt(element.dataset.eventid);
+
         // Parse items from DOM data-attributes.
         const items = [];
         element.querySelectorAll('[data-region="event-checklist-item-row"]').forEach(row => {
             items.push({
-                id:         parseInt(row.dataset.itemid),
-                resourceid: parseInt(row.dataset.itemResourceid),
-                status:     row.dataset.itemStatus || 'requested',
+                id: parseInt(row.dataset.itemid),
+                done: row.dataset.itemdone === 'true' || row.dataset.itemdone === '1',
+                cmid,
+                eventid,
             });
         });
 
         const reactive = getReactive();
 
-        // Create component BEFORE setInitialState so it registers for stateReady.
-        const instance = new EventChecklistContainer({
-            element,
-            reactive,
-        });
+        const instance = new EventChecklistContainer({element, reactive});
 
-        // Moodle reactive converts the array to a Map keyed by item.id.
         reactive.setInitialState({items});
 
         return instance;
     }
 
     /**
-     * State ready: register all item components and progress bar.
+     * State ready: register item and progress components.
      */
     stateReady() {
+        // Hide spinner and reveal content.
+        const spinner = document.getElementById('mod-bookit-event-checklist-spinner');
+        if (spinner) {
+            spinner.classList.add('d-none');
+        }
+        this.element.classList.remove('d-none');
+
         this.element.querySelectorAll('[data-region="event-checklist-item-row"]').forEach(row => {
-            new EventChecklistItem({
-                element: row,
-                reactive: this.reactive,
-            });
+            new EventChecklistItem({element: row, reactive: this.reactive});
         });
 
-        // Register the progress bar component if present.
-        const progressContainer = this.element.querySelector('[data-region="event-checklist-progress-container"]');
+        const progressContainer = this.element.querySelector(
+            '[data-region="event-checklist-progress-container"]'
+        );
         if (progressContainer) {
-            new EventChecklistProgress({
-                element: progressContainer,
-                reactive: this.reactive,
-            });
+            new EventChecklistProgress({element: progressContainer, reactive: this.reactive});
         }
     }
 
     /**
-     * No container-level watchers needed (items handle their own status).
-     *
      * @return {Array}
      */
     getWatchers() {

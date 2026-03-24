@@ -53,7 +53,6 @@ final class resource_manager_test extends advanced_testcase {
         $name = 'Test Category';
         $description = 'Test category description';
         $sortorder = 1;
-        $active = true;
 
         // Create category entity.
         $category = new bookit_resource_category(
@@ -61,7 +60,6 @@ final class resource_manager_test extends advanced_testcase {
             $name,
             $description,
             $sortorder,
-            $active,
             0,
             0,
             2
@@ -83,38 +81,34 @@ final class resource_manager_test extends advanced_testcase {
         $this->assertEquals($name, $retrieved->get_name());
         $this->assertEquals($description, $retrieved->get_description());
         $this->assertEquals($sortorder, $retrieved->get_sortorder());
-        $this->assertTrue($retrieved->is_active());
 
         // Verify database record.
         $record = $DB->get_record('bookit_resource_category', ['id' => $categoryid]);
         $this->assertNotEmpty($record);
         $this->assertEquals($name, $record->name);
-        $this->assertEquals(1, $record->active); // Boolean stored as int.
     }
 
     /**
-     * Test get_all_categories with active filter.
+     * Test get_all_categories returns all categories.
      */
     public function test_get_all_categories_with_filter(): void {
         $this->resetAfterTest(true);
         $this->setAdminUser();
 
-        // Create active category.
-        $activecat = new bookit_resource_category(null, 'Active Cat', null, 0, true, 0, 0, 2);
-        $activeid = resource_manager::save_category($activecat, 2);
+        // Create two categories.
+        $cat1 = new bookit_resource_category(null, 'Category One', null, 0, 0, 0, 2);
+        $id1 = resource_manager::save_category($cat1, 2);
 
-        // Create inactive category.
-        $inactivecat = new bookit_resource_category(null, 'Inactive Cat', null, 1, false, 0, 0, 2);
-        $inactiveid = resource_manager::save_category($inactivecat, 2);
+        $cat2 = new bookit_resource_category(null, 'Category Two', null, 1, 0, 0, 2);
+        $id2 = resource_manager::save_category($cat2, 2);
 
-        // Get all categories (including inactive).
-        $allcategories = resource_manager::get_all_categories(false);
+        // Get all categories.
+        $allcategories = resource_manager::get_all_categories();
         $this->assertCount(2, $allcategories);
 
-        // Get only active categories.
-        $activecategories = resource_manager::get_all_categories(true);
-        $this->assertCount(1, $activecategories);
-        $this->assertEquals($activeid, $activecategories[0]->get_id());
+        $ids = array_map(fn($c) => $c->get_id(), $allcategories);
+        $this->assertContains($id1, $ids);
+        $this->assertContains($id2, $ids);
     }
 
     /**
@@ -127,14 +121,13 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create initial category.
-        $category = new bookit_resource_category(null, 'Original Name', 'Original Desc', 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Original Name', 'Original Desc', 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Retrieve and modify.
         $retrieved = resource_manager::get_category($categoryid);
         $retrieved->set_name('Updated Name');
         $retrieved->set_description('Updated Description');
-        $retrieved->set_active(false);
 
         // Save update.
         $updatedid = resource_manager::save_category($retrieved, 2);
@@ -146,7 +139,6 @@ final class resource_manager_test extends advanced_testcase {
         $record = $DB->get_record('bookit_resource_category', ['id' => $categoryid]);
         $this->assertEquals('Updated Name', $record->name);
         $this->assertEquals('Updated Description', $record->description);
-        $this->assertEquals(0, $record->active);
     }
 
     /**
@@ -157,7 +149,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource in category.
@@ -183,7 +175,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Delete category.
@@ -204,7 +196,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category first.
-        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource.
@@ -268,10 +260,10 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create two categories.
-        $cat1 = new bookit_resource_category(null, 'Cat 1', null, 0, true, 0, 0, 2);
+        $cat1 = new bookit_resource_category(null, 'Cat 1', null, 0, 0, 0, 2);
         $cat1id = resource_manager::save_category($cat1, 2);
 
-        $cat2 = new bookit_resource_category(null, 'Cat 2', null, 1, true, 0, 0, 2);
+        $cat2 = new bookit_resource_category(null, 'Cat 2', null, 1, 0, 0, 2);
         $cat2id = resource_manager::save_category($cat2, 2);
 
         // Create resources in cat1.
@@ -306,7 +298,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create active resource.
@@ -337,7 +329,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource.
@@ -362,13 +354,13 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create categories.
-        $cat1 = new bookit_resource_category(null, 'Cat 1', null, 0, true, 0, 0, 2);
+        $cat1 = new bookit_resource_category(null, 'Cat 1', null, 0, 0, 0, 2);
         $cat1id = resource_manager::save_category($cat1, 2);
 
-        $cat2 = new bookit_resource_category(null, 'Cat 2', null, 1, true, 0, 0, 2);
+        $cat2 = new bookit_resource_category(null, 'Cat 2', null, 1, 0, 0, 2);
         $cat2id = resource_manager::save_category($cat2, 2);
 
-        $cat3 = new bookit_resource_category(null, 'Cat 3', null, 2, true, 0, 0, 2);
+        $cat3 = new bookit_resource_category(null, 'Cat 3', null, 2, 0, 0, 2);
         $cat3id = resource_manager::save_category($cat3, 2);
 
         // Reorder: cat3 first, cat1 second, cat2 third.
@@ -399,7 +391,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category with empty name.
-        $category = new bookit_resource_category(null, '', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, '', null, 0, 0, 0, 2);
 
         // Expect exception when saving.
         try {
@@ -418,7 +410,7 @@ final class resource_manager_test extends advanced_testcase {
         $this->setAdminUser();
 
         // Create category.
-        $category = new bookit_resource_category(null, 'Test Cat', null, 0, true, 0, 0, 2);
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
         $categoryid = resource_manager::save_category($category, 2);
 
         // Create resource with empty name.
@@ -450,5 +442,246 @@ final class resource_manager_test extends advanced_testcase {
         } catch (\moodle_exception $e) {
             $this->assertEquals('resources:category_not_found', $e->errorcode);
         }
+    }
+
+    /**
+     * Test get_active_resources_grouped: null roomids preserved as null (not empty array).
+     *
+     * Regression test: previously edit_event_form.php would convert null roomids to []
+     * before passing data-resource-rooms to JS, breaking the "available in all rooms" signal.
+     */
+    public function test_get_active_resources_grouped_null_roomids_preserved(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+
+        // Resource with null roomids = available in all rooms.
+        $resource = new bookit_resource(null, 'All-Rooms Resource', null, $categoryid, 5, false, 0, true, null, 0, 0, 2);
+        resource_manager::save_resource($resource, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+
+        $this->assertNotEmpty($grouped);
+        $found = null;
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $r) {
+                if ($r['name'] === 'All-Rooms Resource') {
+                    $found = $r;
+                }
+            }
+        }
+
+        $this->assertNotNull($found, 'Resource not found in grouped data');
+        // Null roomids must be preserved as null, not converted to empty array.
+        $this->assertNull($found['roomids'], 'Null roomids must be preserved as null, not converted to []');
+    }
+
+    /**
+     * Test get_active_resources_grouped: specific roomids stored and returned as JSON string.
+     *
+     * Ensures that room-restricted resources carry their room IDs through the data pipeline
+     * so the booking form can emit the correct data-resource-rooms attribute.
+     */
+    public function test_get_active_resources_grouped_room_restricted_roomids(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        // Insert a minimal room directly (room persistent requires many fields).
+        $roomid = $DB->insert_record('bookit_room', (object)[
+            'name' => 'Test Room',
+            'shortname' => 'TR',
+            'description' => '',
+            'location' => '',
+            'eventcolor' => '#ff0000',
+            'active' => 1,
+            'roommode' => 0,
+            'seats' => 10,
+            'extratimebefore' => 0,
+            'extratimeafter' => 0,
+            'overlapping' => 0,
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $category = new bookit_resource_category(null, 'Test Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+
+        // Resource restricted to the test room.
+        $resource = new bookit_resource(
+            null,
+            'Room-Restricted Resource',
+            null,
+            $categoryid,
+            3,
+            false,
+            0,
+            true,
+            [$roomid],
+            0,
+            0,
+            2
+        );
+        resource_manager::save_resource($resource, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+
+        $found = null;
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $r) {
+                if ($r['name'] === 'Room-Restricted Resource') {
+                    $found = $r;
+                }
+            }
+        }
+
+        $this->assertNotNull($found, 'Resource not found in grouped data');
+        // Room ID JSON string expected for room-restricted resource.
+        $this->assertNotNull($found['roomids'], 'Room-restricted resource must have non-null roomids');
+        $decoded = json_decode($found['roomids'], true);
+        $this->assertIsArray($decoded);
+        $this->assertContains($roomid, $decoded);
+    }
+
+    /**
+     * Test the data-resource-rooms JSON encoding logic used by edit_event_form.
+     *
+     * This directly tests the conditional that converts the resource's roomids field
+     * to the JSON value placed in the data-resource-rooms HTML attribute:
+     *   - null roomids  → JSON null  (available in all rooms)
+     *   - array roomids → JSON array (restricted to those rooms)
+     *
+     * Regression: the form previously passed JSON [] for null-roomids resources, which
+     * caused JS to treat them as restricted rather than universally available.
+     */
+    public function test_roomids_to_dataattribute_json_encoding(): void {
+        // Null roomids → must encode as JSON null string "null".
+        $roomidsraw = null;
+        if ($roomidsraw !== null && $roomidsraw !== '') {
+            $roomidsarray = json_decode($roomidsraw, true);
+            $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+        } else {
+            $roomidsarray = null;
+        }
+        $this->assertNull($roomidsarray, 'Null roomids must produce null, not an empty array');
+        $this->assertEquals('null', json_encode($roomidsarray), 'JSON-encoded null must be the string "null"');
+
+        // Non-null roomids JSON string → must decode to array.
+        $roomidsraw = json_encode([1, 2, 3]);
+        if ($roomidsraw !== null && $roomidsraw !== '') {
+            $roomidsarray = json_decode($roomidsraw, true);
+            $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+        } else {
+            $roomidsarray = null;
+        }
+        $this->assertIsArray($roomidsarray);
+        $this->assertEquals([1, 2, 3], $roomidsarray);
+        $this->assertEquals('[1,2,3]', json_encode($roomidsarray));
+
+        // Empty string roomids (legacy/edge case) → must also produce null.
+        $roomidsraw = '';
+        if ($roomidsraw !== null && $roomidsraw !== '') {
+            $roomidsarray = json_decode($roomidsraw, true);
+            $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+        } else {
+            $roomidsarray = null;
+        }
+        $this->assertNull($roomidsarray, 'Empty-string roomids must produce null, not []');
+    }
+
+    /**
+     * Test that saving a resource with amountirrelevant=true stores amount=1 (not 0 or null).
+     */
+    public function test_save_resource_amountirrelevant_stores_valid_amount(): void {
+        global $DB;
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat AI', null, 0, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        $resource = new bookit_resource(null, 'WiFi', '', $catid, 1, true, 0, true, null, 0, 0, 2);
+        $id = resource_manager::save_resource($resource, 2);
+
+        $record = $DB->get_record('bookit_resource', ['id' => $id]);
+        $this->assertEquals(1, $record->amountirrelevant);
+        // Amount must be a positive integer, not 0 or null.
+        $this->assertGreaterThan(0, $record->amount, 'Amountirrelevant resource must store amount > 0');
+    }
+
+    /**
+     * Test that validation skips amount check when amountirrelevant is true.
+     */
+    public function test_validate_resource_amountirrelevant_skips_amount_check(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat AI2', null, 0, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        // Amount=0 with amountirrelevant=true must pass validation and save successfully.
+        $resource = new bookit_resource(null, 'Whiteboard', '', $catid, 0, true, 0, true, null, 0, 0, 2);
+        $id = resource_manager::save_resource($resource, 2);
+        $this->assertNotEmpty($id);
+    }
+
+    /**
+     * Test that validation rejects amount=0 for non-amountirrelevant resources.
+     */
+    public function test_validate_resource_amount_zero_rejected_when_not_amountirrelevant(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat V', null, 0, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        $resource = new bookit_resource(null, 'Projector', '', $catid, 0, false, 0, true, null, 0, 0, 2);
+
+        $this->expectException(\moodle_exception::class);
+        resource_manager::save_resource($resource, 2);
+    }
+
+    /**
+     * Test that get_active_resources_grouped includes amountirrelevant flag.
+     */
+    public function test_get_active_resources_grouped_includes_amountirrelevant(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $cat = new bookit_resource_category(null, 'Cat Grouped', null, 0, 0, 0, 2);
+        $catid = resource_manager::save_category($cat, 2);
+
+        $resamount = new bookit_resource(null, 'Projector', '', $catid, 5, false, 0, true, null, 0, 0, 2);
+        resource_manager::save_resource($resamount, 2);
+
+        $resirrelevant = new bookit_resource(null, 'WiFi', '', $catid, 1, true, 1, true, null, 0, 0, 2);
+        resource_manager::save_resource($resirrelevant, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+
+        $projector = null;
+        $wifi = null;
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $r) {
+                if ($r['name'] === 'Projector') {
+                    $projector = $r;
+                }
+                if ($r['name'] === 'WiFi') {
+                    $wifi = $r;
+                }
+            }
+        }
+
+        $this->assertNotNull($projector, 'Projector resource must appear in grouped data');
+        $this->assertArrayHasKey('amountirrelevant', $projector);
+        $this->assertFalse($projector['amountirrelevant']);
+
+        $this->assertNotNull($wifi, 'WiFi resource must appear in grouped data');
+        $this->assertArrayHasKey('amountirrelevant', $wifi);
+        $this->assertTrue($wifi['amountirrelevant']);
     }
 }

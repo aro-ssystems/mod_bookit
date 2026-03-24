@@ -64,7 +64,7 @@ class resource_item_card implements renderable, templatable {
     public function export_for_template(renderer_base $output): stdClass {
         $data = new stdClass();
         $data->id = $this->resource->get_id();
-        $data->name = format_string($this->resource->get_name());
+        $data->name = $this->resource->get_name();
         $data->description = format_text($this->resource->get_description() ?? '');
         $data->description_raw = $this->resource->get_description() ?? '';
         $data->categoryid = $this->resource->get_categoryid();
@@ -72,11 +72,12 @@ class resource_item_card implements renderable, templatable {
         $data->amountirrelevant = $this->resource->is_amountirrelevant();
         $data->sortorder = $this->resource->get_sortorder();
         $data->active = $this->resource->is_active();
-        $data->roomids = json_encode($this->resource->get_roomids() ?? []);
+        $data->roomids = json_encode($this->resource->get_roomids());
         $data->roomnames = $this->get_room_names();
 
         $assignedcount = count($this->resource->get_roomids() ?? []);
-        $data->isallrooms = $this->totalrooms > 0 && $assignedcount === $this->totalrooms;
+        $data->isallrooms = $this->totalrooms > 0 &&
+            ($this->resource->get_roomids() === null || $assignedcount === $this->totalrooms);
 
         return $data;
     }
@@ -109,7 +110,7 @@ class resource_item_card implements renderable, templatable {
 
             $roomnames[] = [
                 'roomid' => $room->id,
-                'roomname' => format_string($room->name),
+                'roomname' => $room->name,
                 'shortname' => $room->shortname ?? '',
                 'eventcolor' => $eventcolor,
                 'textclass' => $textclass,

@@ -171,11 +171,11 @@ class edit_event_form extends dynamic_form {
         ];
         // Set time restrictions based on "editinternal" capability.
         if ($caneditinternal) {
-            $starttimearray['startyear'] = $config->eventminyear;
+            $starttimearray['startyear'] = $config->eventminyear ?? (date("Y") - 1);
         } else {
             $starttimearray['startyear'] = date("Y");
         }
-        $starttimearray['stopyear'] = $config->eventmaxyear;
+        $starttimearray['stopyear'] = $config->eventmaxyear ?? (date("Y") + 1);
 
         $mform->addElement('date_selector', 'startdate', get_string('event_start', 'mod_bookit'), $starttimearray);
         $mform->addRule('startdate', null, 'required', null, 'client');
@@ -623,10 +623,11 @@ class edit_event_form extends dynamic_form {
         $formdata = $this->get_data();
 
         $mappings = [];
-        foreach (resource_manager::get_resources() as $category => $catresource) {
+        foreach (resource_manager::get_active_resources_grouped() as $categorygroup) {
             // Rooms.
-            foreach ($catresource['resources'] as $id => $v) {
-                if ('Rooms' == $category) {
+            foreach ($categorygroup['resources'] as $resource) {
+                $id = $resource['id'];
+                if ($categorygroup['category']['name'] === 'Rooms') {
                     if ($formdata->room == $id) {
                         $mappings[] = (object) [
                                 'resourceid' => $formdata->room,
@@ -637,9 +638,11 @@ class edit_event_form extends dynamic_form {
                     // Other Resources.
                     $checkboxname = 'checkbox_' . $id;
                     if ($formdata->$checkboxname ?? false) {
+                        // Amountirrelevant resources have no amount input; store 1 as neutral value.
+                        $amount = $resource['amountirrelevant'] ? 1 : (int)($formdata->{'resource_' . $id} ?? 1);
                         $mappings[] = (object) [
                                 'resourceid' => $id,
-                                'amount' => $formdata->{'resource_' . $id},
+                                'amount' => $amount,
                         ];
                     }
                 }
@@ -763,9 +766,14 @@ class edit_event_form extends dynamic_form {
                     continue;
                 }
 
-                // Parse roomids JSON. Empty means available in all rooms.
-                $roomidsarray = !empty($resource['roomids']) ? json_decode($resource['roomids'], true) : [];
-                $roomidsarray = is_array($roomidsarray) ? $roomidsarray : [];
+                // Parse roomids JSON. NULL means available in all rooms (null sentinel passed to JS).
+                // A non-null array restricts the resource to those specific rooms.
+                if ($resource['roomids'] !== null && $resource['roomids'] !== '') {
+                    $roomidsarray = json_decode($resource['roomids'], true);
+                    $roomidsarray = is_array($roomidsarray) ? array_map('intval', $roomidsarray) : [];
+                } else {
+                    $roomidsarray = null; // Null → JS treats as "available in all rooms".
+                }
 
                 $groupelements = [];
 

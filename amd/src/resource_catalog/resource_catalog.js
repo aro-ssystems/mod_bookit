@@ -164,6 +164,7 @@ export default class extends BaseComponent {
     create() {
         this.selectors.addCategoryBtn = '#add-category-btn';
         this.selectors.addResourceBtn = '#add-resource-btn';
+        this.selectors.noCategoriesMsg = '#resource-no-categories-msg';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
         this.selectors.roomFilter = '#id_roomfilter_filter_section';
         this.categoryComponents = new Map();
@@ -192,11 +193,21 @@ export default class extends BaseComponent {
      * Called when reactive state is ready.
      */
     stateReady() {
+        // Hide spinner and reveal content.
+        const spinner = document.getElementById('mod-bookit-resource-spinner');
+        const content = document.getElementById('mod-bookit-resource-content');
+        if (spinner) {
+            spinner.classList.add('d-none');
+        }
+        if (content) {
+            content.classList.remove('d-none');
+        }
+
         this._initializeCategoryComponents();
         this._attachEventListeners();
         this._initializeRoomFilter();
-        this._restoreCategoryCollapseState();
         this._initializeAllRoomBadges();
+        this._updateAddResourceButtonState();
     }
 
     /**
@@ -222,6 +233,22 @@ export default class extends BaseComponent {
     }
 
     /**
+     * Update add-resource button enabled/disabled state based on whether categories exist.
+     * Also toggles the "no categories yet" message visibility.
+     */
+    _updateAddResourceButtonState() {
+        const btn = document.querySelector(this.selectors.addResourceBtn);
+        if (btn) {
+            btn.disabled = this.reactive.state.categories.size === 0;
+        }
+        if (this.reactive.state.categories.size > 0) {
+            this._hideNoCategoriesMessage();
+        } else {
+            this._showNoCategoriesMessage();
+        }
+    }
+
+    /**
      * Handle category created.
      *
      * @param {Object} args - Event args
@@ -229,6 +256,7 @@ export default class extends BaseComponent {
      */
     async _handleCategoryCreated({element}) {
         await this._renderCategory(element);
+        this._updateAddResourceButtonState();
     }
 
     /**
@@ -256,6 +284,7 @@ export default class extends BaseComponent {
             component.remove();
             this.categoryComponents.delete(element.id);
         }
+        this._updateAddResourceButtonState();
     }
 
     /**
@@ -692,40 +721,16 @@ export default class extends BaseComponent {
         const itemRows = tableView
             ? tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`)
             : [];
-        const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
 
         if (isExpanded) {
             itemRows.forEach(row => row.classList.add('d-none'));
             btn.setAttribute('aria-expanded', 'false');
-            localStorage.setItem(storageKey, '1');
+            btn.classList.add('collapsed');
         } else {
             itemRows.forEach(row => row.classList.remove('d-none'));
             btn.setAttribute('aria-expanded', 'true');
-            localStorage.removeItem(storageKey);
+            btn.classList.remove('collapsed');
         }
-    }
-
-    /**
-     * Restore category collapse state from localStorage.
-     */
-    _restoreCategoryCollapseState() {
-        const tableView = document.querySelector(this.selectors.tableView);
-        if (!tableView) {
-            return;
-        }
-        const categoryRows = tableView.querySelectorAll('[data-region="resource-category-row"]');
-        categoryRows.forEach(row => {
-            const categoryId = row.dataset.categoryid;
-            const storageKey = `bookit_cat_${this.selectors.contextId}_collapsed_${categoryId}`;
-            if (localStorage.getItem(storageKey)) {
-                const itemRows = tableView.querySelectorAll(`[data-item-categoryid="${categoryId}"]`);
-                itemRows.forEach(r => r.classList.add('d-none'));
-                const btn = row.querySelector('[data-action="toggle-category"]');
-                if (btn) {
-                    btn.setAttribute('aria-expanded', 'false');
-                }
-            }
-        });
     }
 
     /**
@@ -939,26 +944,33 @@ export default class extends BaseComponent {
     _getResourceRooms(row) {
         const roomsData = row.dataset.rooms;
         if (!roomsData) {
-            return [];
+            return null;
         }
 
         try {
-            return JSON.parse(roomsData);
+            const parsed = JSON.parse(roomsData);
+            // Null means available in all rooms (canonical: null roomids = no room restriction).
+            return Array.isArray(parsed) ? parsed : null;
         } catch (e) {
-            return [];
+            return null;
         }
     }
 
     /**
      * Check if resource has any matching room.
      *
-     * Resources with no rooms assigned cannot match any filter.
+     * Null roomids means available in all rooms — always matches any active filter.
      *
-     * @param {Array} resourceRooms - Array of room IDs (strings from JSON)
-     * @return {boolean} True if any room matches
+     * @param {Array|null} resourceRooms - Array of room IDs, or null for all-rooms
+     * @return {boolean} True if resource should be shown for current filter
      */
     _hasMatchingRoom(resourceRooms) {
-        // Resources with no rooms cannot match filters.
+        // Null means available in all rooms: always visible regardless of filter.
+        if (resourceRooms === null) {
+            return true;
+        }
+
+        // Empty array (restricted to no specific rooms) cannot match any filter.
         if (resourceRooms.length === 0) {
             return false;
         }

@@ -60,7 +60,6 @@
         <FIELD NAME="name" TYPE="text" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -81,6 +80,7 @@
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
         <FIELD NAME="roomids" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="JSON-encoded array of room IDs"/>
+        <FIELD NAME="internalinfo" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Internal information visible only to admins"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -91,14 +91,13 @@
         <KEY NAME="reso_cat_fk" TYPE="foreign" FIELDS="categoryid" REFTABLE="bookit_resource_category" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="bookit_resource_checklist" COMMENT="Resource checklist metadata with due dates and notifications">
+    <TABLE NAME="bookit_resource_settings" COMMENT="Resource settings metadata with due dates and notifications">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="resourceid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="FK to bookit_resource"/>
         <FIELD NAME="duedate" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Default due date offset in seconds (NULL = no default)"/>
         <FIELD NAME="duedatetype" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" COMMENT="Type: before_event, after_event, fixed_date"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Independent sort order for checklist view"/>
-        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="Active in checklist (boolean)"/>
         <FIELD NAME="beforedueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (before due notification)"/>
         <FIELD NAME="whendueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (when due notification)"/>
         <FIELD NAME="overdueid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK to bookit_notification_slot (overdue notification)"/>

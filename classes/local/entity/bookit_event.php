@@ -173,7 +173,9 @@ class bookit_event {
             $record->compensationfordisadvantages ?? null,
             $record->bookingstatus ?? 0,
             $record->personinchargeid ?? null,
-            ltrim(implode(',', $record->otherexaminers ?? []), ','),
+            ltrim(is_array($record->otherexaminers ?? [])
+                ? implode(',', $record->otherexaminers ?? [])
+                : ($record->otherexaminers ?? ''), ','),
             $record->coursetemplate ?? 0,
             $record->notes ?? null,
             $record->internalnotes ?? null,
@@ -210,22 +212,68 @@ class bookit_event {
 
         if (!empty($this->id)) {
             $DB->update_record('bookit_event', $data);
-            $DB->delete_records('bookit_event_resource', ['eventid' => $this->id]);
+
+            // Preserve existing resource statuses so that re-saving the booking
+            // form does not reset checklist progress that was already set.
+            $existingrows = $DB->get_records(
+                'bookit_event_resource',
+                ['eventid' => $this->id],
+                '',
+                'resourceid, status'
+            );
+            $existingstatuses = [];
+            foreach ($existingrows as $row) {
+                $existingstatuses[(int)$row->resourceid] = $row->status;
+            }
+
+            // Build the new resource-id set so we can remove de-selected ones.
+            $newresourceids = array_map(fn($m) => (int)$m->resourceid, $mappings);
+
+            // Delete only rows for resources no longer in the mapping.
+            foreach ($existingrows as $row) {
+                if (!in_array((int)$row->resourceid, $newresourceids, true)) {
+                    $DB->delete_records('bookit_event_resource', [
+                        'eventid'    => $this->id,
+                        'resourceid' => (int)$row->resourceid,
+                    ]);
+                }
+            }
         } else {
             $this->id = $DB->insert_record('bookit_event', $data);
+            $existingstatuses = [];
         }
 
         $time = time();
         foreach ($mappings as $mapping) {
-            $DB->insert_record('bookit_event_resource', [
-                    'eventid'      => $this->id,
-                    'resourceid'   => $mapping->resourceid,
-                    'amount'       => $mapping->amount,
-                    'status'       => bookit_resource_status::REQUESTED->value,
-                    'usermodified' => $this->usermodified,
-                    'timecreated'  => $time,
-                    'timemodified' => $time,
-            ]);
+            $rid = (int)$mapping->resourceid;
+            if (isset($existingstatuses[$rid])) {
+                // Resource already existed — update amount, keep status.
+                $DB->set_field_select(
+                    'bookit_event_resource',
+                    'amount',
+                    $mapping->amount,
+                    'eventid = :eventid AND resourceid = :resourceid',
+                    ['eventid' => $this->id, 'resourceid' => $rid]
+                );
+                $DB->set_field_select(
+                    'bookit_event_resource',
+                    'timemodified',
+                    $time,
+                    'eventid = :eventid AND resourceid = :resourceid',
+                    ['eventid' => $this->id, 'resourceid' => $rid]
+                );
+            } else {
+                // New resource — insert with REQUESTED status.
+                $DB->insert_record('bookit_event_resource', [
+                        'eventid'      => $this->id,
+                        'resourceid'   => $rid,
+                        'amount'       => $mapping->amount,
+                        'status'       => bookit_resource_status::REQUESTED->value,
+                        'usermodified' => $this->usermodified,
+                        'timecreated'  => $time,
+                        'timemodified' => $time,
+                ]);
+            }
         }
     }
 }

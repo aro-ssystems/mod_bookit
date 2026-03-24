@@ -29,7 +29,7 @@ use dml_exception;
 use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\entity\resource\bookit_resource_category;
-use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\resource_settings_manager;
 
 /**
  * Resource manager class.
@@ -144,19 +144,13 @@ class resource_manager {
     /**
      * Get all resource categories.
      *
-     * @param bool $activeonly Filter only active categories
      * @return array Array of bookit_resource_category objects
      * @throws dml_exception
      */
-    public static function get_all_categories(bool $activeonly = false): array {
+    public static function get_all_categories(): array {
         global $DB;
 
-        $conditions = [];
-        if ($activeonly) {
-            $conditions['active'] = 1;
-        }
-
-        $records = $DB->get_records('bookit_resource_category', $conditions, 'sortorder ASC');
+        $records = $DB->get_records('bookit_resource_category', [], 'sortorder ASC');
 
         $categories = [];
         foreach ($records as $record) {
@@ -203,11 +197,12 @@ class resource_manager {
         $record->name = $category->get_name();
         $record->description = $category->get_description();
         $record->sortorder = $category->get_sortorder();
-        $record->active = $category->is_active() ? 1 : 0;
         $record->usermodified = $userid;
 
         if ($category->get_id() === null) {
-            // Insert new category.
+            // Insert new category: append at end by assigning max sortorder + 1.
+            $maxsort = $DB->get_field_sql('SELECT MAX(sortorder) FROM {bookit_resource_category}');
+            $record->sortorder = ($maxsort !== null && $maxsort !== false) ? (int)$maxsort + 1 : 1;
             $record->timecreated = time();
             $record->timemodified = time();
             $id = $DB->insert_record('bookit_resource_category', $record);
@@ -339,15 +334,21 @@ class resource_manager {
         $record->sortorder = $resource->get_sortorder();
         $record->active = $resource->is_active() ? 1 : 0;
         $record->roomids = ($resource->get_roomids() !== null) ? json_encode($resource->get_roomids()) : null;
+        $record->internalinfo = $resource->get_internalinfo();
         $record->usermodified = $userid;
 
         if ($resource->get_id() === null) {
-            // Insert new resource.
+            // Insert new resource: append at end within the category.
+            $maxsort = $DB->get_field_sql(
+                'SELECT MAX(sortorder) FROM {bookit_resource} WHERE categoryid = ?',
+                [$resource->get_categoryid()]
+            );
+            $record->sortorder = ($maxsort !== null && $maxsort !== false) ? (int)$maxsort + 1 : 1;
             $record->timecreated = time();
             $record->timemodified = time();
             $id = $DB->insert_record('bookit_resource', $record);
             // Auto-generate checklist entry for new resource.
-            resource_checklist_manager::create_checklist_for_resource($id, $userid);
+            resource_settings_manager::create_checklist_for_resource($id, $userid);
         } else {
             // Update existing resource.
             $record->id = $resource->get_id();
@@ -369,7 +370,7 @@ class resource_manager {
     public static function delete_resource(int $id): void {
         global $DB;
 
-        resource_checklist_manager::delete_checklist_item_by_resource($id);
+        resource_settings_manager::delete_checklist_item_by_resource($id);
         $DB->delete_records('bookit_event_resource', ['resourceid' => $id]);
         $DB->delete_records('bookit_resource', ['id' => $id]);
     }
@@ -474,10 +475,13 @@ class resource_manager {
         $params = ['name' => $category->get_name()];
         if ($category->get_id() !== null) {
             // Exclude current category when editing.
-            $sql = "SELECT id FROM {bookit_resource_category} WHERE name = :name AND id != :id";
+            $sql = "SELECT id FROM {bookit_resource_category} WHERE "
+                . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name')
+                . " AND id != :id";
             $params['id'] = $category->get_id();
         } else {
-            $sql = "SELECT id FROM {bookit_resource_category} WHERE name = :name";
+            $sql = "SELECT id FROM {bookit_resource_category} WHERE "
+                . $DB->sql_compare_text('name') . " = " . $DB->sql_compare_text(':name');
         }
 
         if ($DB->record_exists_sql($sql, $params)) {
@@ -509,7 +513,7 @@ class resource_manager {
             throw new \moodle_exception('resources:category_not_found', 'mod_bookit');
         }
 
-        if (!$resource->is_amountirrelevant() && $resource->get_amount() < 0) {
+        if (!$resource->is_amountirrelevant() && $resource->get_amount() <= 0) {
             throw new \moodle_exception('resources:amount_must_be_positive', 'mod_bookit');
         }
 
@@ -554,7 +558,7 @@ class resource_manager {
                 c.sortorder as category_sortorder
             FROM {bookit_resource} r
             JOIN {bookit_resource_category} c ON c.id = r.categoryid
-            WHERE r.active = 1 AND c.active = 1
+            WHERE r.active = 1
             ORDER BY c.sortorder ASC, r.sortorder ASC
         ";
 

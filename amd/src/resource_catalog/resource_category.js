@@ -56,6 +56,7 @@ export default class ResourceCategory extends BaseComponent {
         this.itemComponents = new Map();
         this.parentElement = element;
         this._categoryDragDrop = null;
+        this._categoryHandleDragDrop = null;
 
         // Note: _render() must be called explicitly when creating new categories.
         // When initializing from existing DOM, categoryElement is set externally.
@@ -64,6 +65,9 @@ export default class ResourceCategory extends BaseComponent {
     destroy() {
         if (this._categoryDragDrop) {
             this._categoryDragDrop.unregister();
+        }
+        if (this._categoryHandleDragDrop) {
+            this._categoryHandleDragDrop.unregister();
         }
     }
 
@@ -315,30 +319,51 @@ export default class ResourceCategory extends BaseComponent {
             return;
         }
 
-        // Setup DragDrop proxy for the category header row.
+        // Setup drop-only DragDrop on the category header row (no getDraggableData = not draggable from row).
         const categoryRowEl = this.categoryElement.querySelector('[data-region="resource-category-row"]');
         if (categoryRowEl) {
             if (this._categoryDragDrop) {
                 this._categoryDragDrop.unregister();
             }
+            if (this._categoryHandleDragDrop) {
+                this._categoryHandleDragDrop.unregister();
+            }
             const self = this;
+            let dropBefore = true;
+
+            const onDragOver = (e) => {
+                const rect = categoryRowEl.getBoundingClientRect();
+                dropBefore = e.clientY < rect.top + rect.height / 2;
+                // Re-paint indicator only when this row is already an active drop zone.
+                // Moodle DragDrop adds 'dragover' class only when validateDropData returns true.
+                if (!categoryRowEl.classList.contains('dragover')) {
+                    return;
+                }
+                const primary = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--primary').trim() || '#0f6cbf';
+                // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+                const offset = dropBefore ? '5px' : '-5px';
+                categoryRowEl.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
+            };
+            categoryRowEl.addEventListener('dragover', onDragOver);
+
             this._categoryDragDrop = new DragDrop({
                 element: categoryRowEl,
-                // Keep drag image at mouse offset.
-                relativeDrag: true,
-                getDraggableData() {
-                    return {
-                        type: 'resource-category',
-                        id: self.categoryData.id,
-                    };
-                },
+                reactive: self.reactive,
                 validateDropData(dropdata) {
                     return dropdata?.type === 'resource-category' || dropdata?.type === 'resource-item';
                 },
-                showDropZone() {
+                showDropZone(dropdata, event) {
+                    // Update dropBefore from the enter event so the initial indicator is correct.
+                    if (event) {
+                        const rect = categoryRowEl.getBoundingClientRect();
+                        dropBefore = event.clientY < rect.top + rect.height / 2;
+                    }
                     const primary = getComputedStyle(document.documentElement)
                         .getPropertyValue('--primary').trim() || '#0f6cbf';
-                    categoryRowEl.style.boxShadow = `0px -5px 0px 0px ${primary} inset`;
+                    // For inset box-shadow: +5px = top edge, -5px = bottom edge.
+                    const offset = dropBefore ? '5px' : '-5px';
+                    categoryRowEl.style.boxShadow = `0px ${offset} 0px 0px ${primary} inset`;
                     categoryRowEl.style.transition = 'box-shadow 0.1s ease';
                 },
                 hideDropZone() {
@@ -359,16 +384,85 @@ export default class ResourceCategory extends BaseComponent {
                         return;
                     }
 
-                    // Category reorder: insert after target (matching masterchecklist pattern).
+                    // Category reorder: insert before or after based on cursor position.
                     dropdata.targetId = self.categoryData.id;
+                    dropdata.dropBefore = dropBefore;
                     const draggedEl = self.categoryElement.parentNode
                         .querySelector(`[data-region="resource-category"][data-categoryid="${dropdata.id}"]`);
                     if (draggedEl && draggedEl !== self.categoryElement) {
-                        self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement.nextElementSibling);
+                        if (dropBefore) {
+                            self.categoryElement.parentNode.insertBefore(draggedEl, self.categoryElement);
+                        } else {
+                            self.categoryElement.parentNode.insertBefore(
+                                draggedEl, self.categoryElement.nextElementSibling
+                            );
+                        }
                     }
                     self.reactive.dispatch('reOrderCategories', dropdata);
                 },
             });
+
+            // Drag-only DragDrop on the drag handle button (restrict drag to handle, masterchecklist pattern).
+            const handleBtn = categoryRowEl.querySelector('[data-action="drag-handle"]');
+            if (handleBtn) {
+                this._categoryHandleDragDrop = new DragDrop({
+                    element: handleBtn,
+                    reactive: self.reactive,
+                    fullregion: categoryRowEl,
+                    relativeDrag: true,
+                    getDraggableData() {
+                        return {
+                            type: 'resource-category',
+                            id: self.categoryData.id,
+                        };
+                    },
+                });
+            }
+
+            // Register thead as first-position drop zone (only once per table).
+            const tableEl = self.categoryElement.parentNode;
+            const theadEl = tableEl ? tableEl.querySelector('thead') : null;
+            if (theadEl && !theadEl.dataset.bookitDdRegistered) {
+                theadEl.dataset.bookitDdRegistered = '1';
+                new DragDrop({
+                    element: theadEl,
+                    reactive: self.reactive,
+                    validateDropData(dropdata) {
+                        return dropdata?.type === 'resource-category';
+                    },
+                    showDropZone() {
+                        const primary = getComputedStyle(document.documentElement)
+                            .getPropertyValue('--primary').trim() || '#0f6cbf';
+                        theadEl.style.boxShadow = `0px 5px 0px 0px ${primary} inset`;
+                        theadEl.style.transition = 'box-shadow 0.1s ease';
+                    },
+                    hideDropZone() {
+                        theadEl.style.boxShadow = '';
+                        theadEl.style.transition = '';
+                    },
+                    drop(dropdata) {
+                        const firstTbody = tableEl.querySelector('[data-region="resource-category"]');
+                        if (!firstTbody) {
+                            return;
+                        }
+                        const firstCatId = parseInt(firstTbody.dataset.categoryid);
+                        if (firstCatId === dropdata.id) {
+                            return;
+                        }
+                        const draggedEl = tableEl.querySelector(
+                            `[data-region="resource-category"][data-categoryid="${dropdata.id}"]`
+                        );
+                        if (draggedEl) {
+                            firstTbody.parentNode.insertBefore(draggedEl, firstTbody);
+                        }
+                        self.reactive.dispatch('reOrderCategories', {
+                            id: dropdata.id,
+                            targetId: firstCatId,
+                            dropBefore: true,
+                        });
+                    },
+                });
+            }
         }
 
         // Add Item.

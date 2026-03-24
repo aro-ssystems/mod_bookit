@@ -68,7 +68,7 @@ trait notification_slots_form_trait {
      * Returns the checklistitemid to assign to a newly created notification slot.
      *
      * Masterchecklist: returns $itemid (FK on bookit_checklist_item).
-     * Resource checklist: returns null (no FK, uses direct references on resource_checklist row).
+     * Resource settings: returns null (no FK, uses direct references on resource_settings row).
      *
      * @param int $itemid The parent item ID.
      * @return int|null
@@ -81,7 +81,7 @@ trait notification_slots_form_trait {
      * Searches for an existing inactive slot to reactivate instead of creating a new one.
      *
      * Masterchecklist: queries by checklistitemid + type.
-     * Resource checklist: returns null (slots are always tracked via explicit IDs in hidden fields).
+     * Resource settings: returns null (slots are always tracked via explicit IDs in hidden fields).
      *
      * @param int $itemid The parent item ID.
      * @param string $type The notification type value (e.g. 'before_due').
@@ -96,7 +96,7 @@ trait notification_slots_form_trait {
      *
      * Resource checklist overrides this to store the slot ID in the
      * corresponding FK column (beforedueid, whendueid, overdueid, whendoneid)
-     * on the bookit_resource_checklist record.
+     * on the bookit_resource_settings record.
      *
      * @param bookit_notification_type $case The notification type case.
      * @param int $slotid The ID of the saved slot.

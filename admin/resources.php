@@ -35,6 +35,7 @@ require_capability('mod/bookit:managebasics', $context);
 
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/mod/bookit/admin/resources.php', ['id' => 'resources']));
+$PAGE->set_primary_active_tab('bookit_settings');
 $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('resources:overview', 'mod_bookit'));
 $PAGE->set_heading(get_string('resources:overview', 'mod_bookit'));

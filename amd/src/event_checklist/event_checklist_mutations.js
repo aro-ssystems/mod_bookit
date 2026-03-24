@@ -24,26 +24,24 @@
 
 /**
  * Event checklist mutations.
- *
- * Only mutation needed: update the status of one event-resource item.
  */
 export default class EventChecklistMutations {
     /**
-     * Update the status of an event resource item.
+     * Toggle the done state of a checklist item.
      *
-     * @param {Object} stateManager - Moodle reactive state manager
-     * @param {Object} args - Mutation arguments
-     * @param {number} args.id - bookit_event_resource record ID
-     * @param {string} args.status - New status value
+     * @param {Object} stateManager
+     * @param {Object} args
+     * @param {number} args.id - bookit_checklist_item ID
+     * @param {boolean} args.done - New done state
      */
-    updateStatus(stateManager, {id, status}) {
+    toggleDone(stateManager, {id, done}) {
         const state = stateManager.state;
         const item = state.items.get(parseInt(id));
         if (!item) {
             return;
         }
         stateManager.setReadOnly(false);
-        item.status = status;
+        item.done = done;
         stateManager.setReadOnly(true);
     }
 }

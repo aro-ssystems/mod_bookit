@@ -58,6 +58,9 @@ class resource_catalog implements renderable, templatable {
             $data->categories[] = $categorycard->export_for_template($output);
         }
 
+        $data->hascategories = count($data->categories) > 0;
+        $data->rooms_url = (new \moodle_url('/mod/bookit/admin/rooms.php', ['id' => 'rooms']))->out(false);
+
         // Render room filter using custom form element.
         $data->roomfilter = $this->render_room_filter($output);
 

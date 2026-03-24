@@ -232,6 +232,50 @@ class event_resource_manager {
     }
 
     /**
+     * Get resource progress (confirmed / total) for multiple events in one query.
+     *
+     * Returns a map of eventid => ['percent' => int, 'total' => int, 'confirmed' => int].
+     * Events with no resources get total = 0 (caller should hide the progress bar in that case).
+     *
+     * @param int[] $eventids
+     * @return array Map of eventid => ['percent' => int, 'total' => int, 'confirmed' => int]
+     * @throws dml_exception
+     */
+    public static function get_resource_progress_for_events(array $eventids): array {
+        global $DB;
+
+        if (empty($eventids)) {
+            return [];
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($eventids, SQL_PARAMS_NAMED, 'eid');
+        $confirmedval = bookit_resource_status::CONFIRMED->value;
+        $inparams['confirmedval'] = $confirmedval;
+
+        $sql = "SELECT eventid,
+                       COUNT(*) AS total,
+                       SUM(CASE WHEN status = :confirmedval THEN 1 ELSE 0 END) AS confirmed
+                  FROM {bookit_event_resource}
+                 WHERE eventid $insql
+              GROUP BY eventid";
+
+        $rows = $DB->get_records_sql($sql, $inparams);
+
+        $result = [];
+        foreach ($eventids as $eid) {
+            if (isset($rows[$eid])) {
+                $total     = (int)$rows[$eid]->total;
+                $confirmed = (int)$rows[$eid]->confirmed;
+                $percent   = $total > 0 ? (int)round(($confirmed / $total) * 100) : 0;
+                $result[$eid] = ['percent' => $percent, 'total' => $total, 'confirmed' => $confirmed];
+            } else {
+                $result[$eid] = ['percent' => 0, 'total' => 0, 'confirmed' => 0];
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Convert database record to entity object.
      *
      * @param \stdClass $record Database record

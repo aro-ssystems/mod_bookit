@@ -31,6 +31,7 @@ use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
 use mod_bookit\local\entity\resource\bookit_resource_category;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\manager\resource_manager;
+use mod_bookit\local\manager\weekplan_manager;
 
 /**
  * Installation helper class.
@@ -933,5 +934,310 @@ class install_helper {
                 mtrace("  Error assigning role to user {$user->username}: " . $e->getMessage());
             }
         }
+    }
+
+    /**
+     * Create a default weekplan (Mon-Fri 08:00-20:00) and assign all rooms to it.
+     *
+     * @param bool $force Force creation even if weekplan already exists
+     * @param bool $verbose Print verbose output
+     * @return bool True if weekplan was created, false otherwise
+     */
+    public static function create_default_weekplan(bool $force = false, bool $verbose = false): bool {
+        global $DB, $USER;
+
+        $existing = $DB->count_records('bookit_weekplan');
+        if ($existing > 0 && !$force) {
+            if ($verbose) {
+                mtrace('Weekplan data already exists. Skipping creation.');
+            }
+            return false;
+        }
+
+        if ($verbose) {
+            mtrace('Creating default weekplan for BookIt...');
+        }
+
+        $record = new \stdClass();
+        $record->name = 'Standard Weekplan';
+        $record->usermodified = $USER->id ?? 2;
+        $record->timecreated = time();
+        $record->timemodified = time();
+        $weekplanid = $DB->insert_record('bookit_weekplan', $record);
+
+        $schedule = "Mo 08:00-20:00\nDi 08:00-20:00\nMi 08:00-20:00\nDo 08:00-20:00\nFr 08:00-20:00";
+        weekplan_manager::save_string_weekplan_to_db($schedule, $weekplanid);
+
+        if ($verbose) {
+            mtrace("Created weekplan: Standard Weekplan (ID: $weekplanid, Mon-Fri 08:00-20:00)");
+        }
+
+        $rooms = $DB->get_records('bookit_room', ['active' => 1]);
+        $starttime = time() - (30 * DAYSECS);
+        $assigned = 0;
+        foreach ($rooms as $room) {
+            $assignment = new \stdClass();
+            $assignment->weekplanid = $weekplanid;
+            $assignment->roomid = $room->id;
+            $assignment->starttime = $starttime;
+            $assignment->endtime = null;
+            $assignment->usermodified = $USER->id ?? 2;
+            $assignment->timecreated = time();
+            $assignment->timemodified = time();
+            $DB->insert_record('bookit_weekplan_room', $assignment);
+            $assigned++;
+            if ($verbose) {
+                mtrace("  Assigned room: {$room->name} (ID: {$room->id})");
+            }
+        }
+
+        if ($verbose) {
+            mtrace("Assigned $assigned rooms to weekplan.");
+        }
+
+        return true;
+    }
+
+    /**
+     * Create a demo Moodle course with a BookIt activity instance and enrol demo users.
+     *
+     * @param bool $force Force creation even if demo course already exists
+     * @param bool $verbose Print verbose output
+     * @return bool True if course and activity were created, false otherwise
+     */
+    public static function create_default_course_and_activity(bool $force = false, bool $verbose = false): bool {
+        global $DB, $CFG, $USER;
+
+        if ($DB->record_exists('course', ['shortname' => 'BOOKIT-DEMO']) && !$force) {
+            if ($verbose) {
+                mtrace('Demo course already exists. Skipping creation.');
+            }
+            return false;
+        }
+
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        if ($verbose) {
+            mtrace('Creating demo course and BookIt activity...');
+        }
+
+        $categoryid = $DB->get_field('course_categories', 'id', ['parent' => 0]);
+        if (!$categoryid) {
+            $categoryid = 1;
+        }
+
+        $coursedata = new \stdClass();
+        $coursedata->fullname = 'BookIt Demo Course';
+        $coursedata->shortname = 'BOOKIT-DEMO';
+        $coursedata->category = $categoryid;
+        $coursedata->summary = 'Demo course for testing BookIt resource booking.';
+        $coursedata->summaryformat = FORMAT_HTML;
+        $coursedata->format = 'topics';
+        $coursedata->newsitems = 0;
+        $coursedata->visible = 1;
+        $coursedata->startdate = time() - (30 * DAYSECS);
+        $coursedata->enddate = time() + (365 * DAYSECS);
+        $course = create_course($coursedata);
+
+        if ($verbose) {
+            mtrace("Created course: {$course->fullname} (ID: {$course->id})");
+        }
+
+        // Create the bookit module instance.
+        $bookit = new \stdClass();
+        $bookit->course = $course->id;
+        $bookit->name = 'BookIt Demo';
+        $bookit->intro = '<p>BookIt demo activity for testing resource booking.</p>';
+        $bookit->introformat = FORMAT_HTML;
+        $bookit->timecreated = time();
+        $bookit->timemodified = time();
+        $bookitid = $DB->insert_record('bookit', $bookit);
+
+        $moduleid = $DB->get_field('modules', 'id', ['name' => 'bookit']);
+        if (!$moduleid) {
+            if ($verbose) {
+                mtrace('ERROR: bookit module not registered in modules table.');
+            }
+            return false;
+        }
+
+        $sectionid = $DB->get_field('course_sections', 'id', ['course' => $course->id, 'section' => 0]);
+
+        $cm = new \stdClass();
+        $cm->course = $course->id;
+        $cm->module = $moduleid;
+        $cm->instance = $bookitid;
+        $cm->section = $sectionid;
+        $cm->added = time();
+        $cm->visible = 1;
+        $cm->visibleold = 1;
+        $cm->groupmode = 0;
+        $cm->groupingid = 0;
+        $cm->completion = 0;
+        $cm->completionview = 0;
+        $cm->completionexpected = 0;
+        $cm->showdescription = 0;
+        $cm->idnumber = '';
+        $cmid = $DB->insert_record('course_modules', $cm);
+
+        $section = $DB->get_record('course_sections', ['id' => $sectionid]);
+        $section->sequence = empty($section->sequence) ? (string)$cmid : $section->sequence . ',' . $cmid;
+        $DB->update_record('course_sections', $section);
+
+        rebuild_course_cache($course->id, true);
+
+        if ($verbose) {
+            mtrace("Created BookIt activity: BookIt Demo (ID: $bookitid, cmid: $cmid)");
+        }
+
+        // Enrol demo users as students.
+        if (!$DB->record_exists('enrol', ['enrol' => 'manual', 'courseid' => $course->id])) {
+            $enrolplugin = enrol_get_plugin('manual');
+            $enrolplugin->add_instance($course);
+        }
+        $enrolinstance = $DB->get_record('enrol', ['enrol' => 'manual', 'courseid' => $course->id]);
+        $enrolplugin = enrol_get_plugin('manual');
+        $studentroleid = $DB->get_field('role', 'id', ['shortname' => 'student']);
+        $demonames = ['eva.examiner', 'bob.booker', 'susi.serviceteam'];
+        foreach ($demonames as $username) {
+            $user = $DB->get_record('user', ['username' => $username]);
+            if ($user && $enrolinstance && $studentroleid) {
+                $enrolplugin->enrol_user($enrolinstance, $user->id, $studentroleid);
+                if ($verbose) {
+                    mtrace("  Enrolled user: $username");
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Create demo booking events with resource requests for next week.
+     *
+     * @param bool $force Force creation even if events already exist
+     * @param bool $verbose Print verbose output
+     * @return bool True if events were created, false otherwise
+     */
+    public static function create_default_events(bool $force = false, bool $verbose = false): bool {
+        global $DB, $USER;
+
+        if ($DB->count_records('bookit_event') > 0 && !$force) {
+            if ($verbose) {
+                mtrace('Events already exist. Skipping creation.');
+            }
+            return false;
+        }
+
+        if ($verbose) {
+            mtrace('Creating demo booking events...');
+        }
+
+        $rooms = array_values($DB->get_records('bookit_room', ['active' => 1]));
+        if (empty($rooms)) {
+            if ($verbose) {
+                mtrace('No rooms found. Run create_default_rooms first.');
+            }
+            return false;
+        }
+
+        $examiner = $DB->get_record('user', ['username' => 'eva.examiner']);
+        $booker = $DB->get_record('user', ['username' => 'bob.booker']);
+        $examinerid = $examiner ? $examiner->id : ($USER->id ?? 2);
+        $bookerid = $booker ? $booker->id : ($USER->id ?? 2);
+
+        $resources = array_values($DB->get_records('bookit_resource', ['active' => 1]));
+        $resourcecount = count($resources);
+
+        $nextmonday = strtotime('next Monday');
+        $eventlist = [
+            [
+                'name' => 'Mathematics Exam - Summer Term',
+                'start' => $nextmonday + (8 * HOURSECS),
+                'end' => $nextmonday + (11 * HOURSECS),
+                'roomidx' => 0,
+                'participants' => 80,
+                'status' => 1,
+                'personid' => $examinerid,
+                'userid' => $bookerid,
+                'resources' => [
+                    ['idx' => 0, 'amount' => 5, 'status' => 'requested'],
+                    ['idx' => 1, 'amount' => 2, 'status' => 'confirmed'],
+                ],
+            ],
+            [
+                'name' => 'Computer Science Exam',
+                'start' => $nextmonday + DAYSECS + (10 * HOURSECS),
+                'end' => $nextmonday + DAYSECS + (12 * HOURSECS),
+                'roomidx' => 1,
+                'participants' => 30,
+                'status' => 0,
+                'personid' => $examinerid,
+                'userid' => $bookerid,
+                'resources' => [
+                    ['idx' => 2, 'amount' => 3, 'status' => 'requested'],
+                ],
+            ],
+            [
+                'name' => 'Literature Seminar - Oral Exams',
+                'start' => $nextmonday + (2 * DAYSECS) + (14 * HOURSECS),
+                'end' => $nextmonday + (2 * DAYSECS) + (18 * HOURSECS),
+                'roomidx' => 2,
+                'participants' => 15,
+                'status' => 1,
+                'personid' => $examinerid,
+                'userid' => $examinerid,
+                'resources' => [],
+            ],
+        ];
+
+        $eventscreated = 0;
+        foreach ($eventlist as $data) {
+            $room = $rooms[$data['roomidx'] % count($rooms)];
+            $event = new \stdClass();
+            $event->name = $data['name'];
+            $event->starttime = $data['start'];
+            $event->endtime = $data['end'];
+            $event->duration = $data['end'] - $data['start'];
+            $event->roomid = $room->id;
+            $event->participantsamount = $data['participants'];
+            $event->bookingstatus = $data['status'];
+            $event->personinchargeid = $data['personid'];
+            $event->usermodified = $data['userid'];
+            $event->timecreated = time();
+            $event->timemodified = time();
+            $eventid = $DB->insert_record('bookit_event', $event);
+
+            if ($verbose) {
+                mtrace("Created event: {$event->name} (ID: $eventid, status: {$event->bookingstatus})");
+            }
+
+            foreach ($data['resources'] as $resdata) {
+                if ($resourcecount === 0) {
+                    continue;
+                }
+                $resource = $resources[$resdata['idx'] % $resourcecount];
+                $er = new \stdClass();
+                $er->eventid = $eventid;
+                $er->resourceid = $resource->id;
+                $er->amount = $resdata['amount'];
+                $er->status = $resdata['status'];
+                $er->usermodified = $USER->id ?? 2;
+                $er->timecreated = time();
+                $er->timemodified = time();
+                $DB->insert_record('bookit_event_resource', $er);
+                if ($verbose) {
+                    mtrace("  Resource: {$resource->name} (amount: {$resdata['amount']}, status: {$resdata['status']})");
+                }
+            }
+
+            $eventscreated++;
+        }
+
+        if ($verbose) {
+            mtrace("Created $eventscreated demo events.");
+        }
+
+        return $eventscreated > 0;
     }
 }

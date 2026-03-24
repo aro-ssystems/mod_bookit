@@ -14,11 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Reactive progress bar component for event resource checklist.
+ * Reactive progress bar for event checklist.
  *
- * Subscribes to the event checklist reactive store and updates
- * the Bootstrap progress bar whenever a resource status changes.
- * Progress = confirmed resources / total resources.
+ * Listens to state changes and updates the Bootstrap progress bar.
+ * Progress = done items / total items.
  *
  * @module mod_bookit/event_checklist/event_checklist_progress
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -28,38 +27,32 @@
 
 import {BaseComponent} from 'core/reactive';
 
-/**
- * Selectors for the progress bar elements.
- */
 const SELECTORS = {
     PROGRESSBAR: '[data-region="event-checklist-progressbar"]',
     PROGRESSTEXT: '[data-region="event-checklist-progress-text"]',
 };
 
 /**
- * Reactive progress bar for the event resource checklist.
- *
- * Listens to any state change in the items map and recalculates
- * the confirmed/total ratio, updating the Bootstrap progress bar.
+ * Reactive progress bar for the event checklist.
  */
 export default class EventChecklistProgress extends BaseComponent {
 
     /**
-     * Watch for any status update in the items map.
+     * State ready: initial calculation.
+     */
+    stateReady() {
+        this._updateProgressBar();
+    }
+
+    /**
+     * Watch for item done state changes.
      *
      * @return {Array}
      */
     getWatchers() {
         return [
-            {watch: 'items.status:updated', handler: this._updateProgressBar.bind(this)},
+            {watch: 'items.done:updated', handler: this._updateProgressBar.bind(this)},
         ];
-    }
-
-    /**
-     * Initial render after state is ready.
-     */
-    stateReady() {
-        this._updateProgressBar();
     }
 
     /**
@@ -72,16 +65,16 @@ export default class EventChecklistProgress extends BaseComponent {
         }
 
         let total = 0;
-        let confirmed = 0;
+        let done = 0;
         state.items.forEach((item) => {
             total++;
-            if (item.status === 'confirmed') {
-                confirmed++;
+            if (item.done) {
+                done++;
             }
         });
 
-        const percent = total > 0 ? Math.round((confirmed / total) * 100) : 0;
-        const complete = total > 0 && confirmed === total;
+        const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+        const complete = total > 0 && done === total;
 
         const bar = this.getElement(SELECTORS.PROGRESSBAR);
         const text = this.getElement(SELECTORS.PROGRESSTEXT);
@@ -101,7 +94,7 @@ export default class EventChecklistProgress extends BaseComponent {
         }
 
         if (text) {
-            text.textContent = confirmed;
+            text.textContent = done;
         }
     }
 }
