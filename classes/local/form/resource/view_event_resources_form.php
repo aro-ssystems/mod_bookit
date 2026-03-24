@@ -87,11 +87,32 @@ class view_event_resources_form extends \moodleform {
                 $html        = '<span class="' . $badgeclass . '">' . $statuslabel . '</span>';
 
                 if (!$resource['amountirrelevant']) {
-                    $html .= ' &nbsp;' . get_string('booking:resource_amount', 'mod_bookit')
-                        . ': <strong>' . $bookedamount . '</strong>';
+                    $html .= '<span class="ms-3">'
+                        . get_string('booking:resource_amount', 'mod_bookit')
+                        . ': <strong>' . $bookedamount . '</strong></span>';
                 }
 
-                $mform->addElement('static', 'resourcestatus_' . $resource['id'], $resource['name'], $html);
+                // Info icon with popover (description + max amount), mirroring the booking form.
+                $labelhtml = s($resource['name']);
+                $popoverparts = [];
+                if (!empty($resource['description'])) {
+                    $popoverparts[] = s($resource['description']);
+                }
+                if (!$resource['amountirrelevant'] && $resource['amount'] > 0) {
+                    $popoverparts[] = get_string('booking:resource_max', 'mod_bookit', $resource['amount']);
+                }
+                if (!empty($popoverparts)) {
+                    $popovercontent = implode('<br>', $popoverparts);
+                    $labelhtml .= ' <a class="btn btn-link p-0 ms-1 icon-no-margin" role="button" tabindex="0"'
+                        . ' data-container="body" data-toggle="popover"'
+                        . ' data-placement="right" data-content="' . $popovercontent . '"'
+                        . ' data-html="true" data-trigger="focus"'
+                        . ' aria-label="' . get_string('resources:info', 'mod_bookit') . '">'
+                        . '<i class="fa fa-info-circle text-info"></i>'
+                        . '</a>';
+                }
+
+                $mform->addElement('static', 'resourcestatus_' . $resource['id'], $labelhtml, $html);
             }
         }
 

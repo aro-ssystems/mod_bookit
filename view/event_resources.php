@@ -109,11 +109,13 @@ if ($canmanage) {
         echo $OUTPUT->notification(get_string('event_resources_checklist_no_resources', 'mod_bookit'), 'info');
     } else {
         $resourcesdata = resource_manager::get_active_resources_grouped();
+        echo html_writer::start_tag('div', ['class' => 'mt-3']);
         $form = new view_event_resources_form(null, [
             'bookedresources' => $bookedresources,
             'resourcesdata'   => $resourcesdata,
         ]);
         $form->display();
+        echo html_writer::end_tag('div');
     }
 }
 
