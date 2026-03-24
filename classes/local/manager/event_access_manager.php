@@ -34,6 +34,9 @@ defined('MOODLE_INTERNAL') || die();
  * Centralises booking-state and participant checks for event-level views.
  */
 class event_access_manager {
+    /** Booking status: in progress (being processed by service team). */
+    public const BOOKINGSTATUS_IN_PROGRESS = 1;
+
     /** Confirmed booking status. */
     public const BOOKINGSTATUS_CONFIRMED = 2;
 
@@ -45,6 +48,18 @@ class event_access_manager {
      */
     public static function is_booking_confirmed(stdClass $event): bool {
         return (int)($event->bookingstatus ?? -1) === self::BOOKINGSTATUS_CONFIRMED;
+    }
+
+    /**
+     * Check whether the event booking is accessible for checklist/resources.
+     * Returns true when status is "In progress" (1) or "Accepted" (2).
+     *
+     * @param stdClass $event
+     * @return bool
+     */
+    public static function is_booking_accessible(stdClass $event): bool {
+        $status = (int)($event->bookingstatus ?? -1);
+        return $status === self::BOOKINGSTATUS_IN_PROGRESS || $status === self::BOOKINGSTATUS_CONFIRMED;
     }
 
     /**
@@ -83,7 +98,7 @@ class event_access_manager {
             return true;
         }
 
-        if (!self::is_booking_confirmed($event)) {
+        if (!self::is_booking_accessible($event)) {
             return false;
         }
 
@@ -107,7 +122,7 @@ class event_access_manager {
             return true;
         }
 
-        if (!self::is_booking_confirmed($event)) {
+        if (!self::is_booking_accessible($event)) {
             return false;
         }
 

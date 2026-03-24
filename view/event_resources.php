@@ -44,7 +44,8 @@ require_login($course, true, $cm);
 
 $context = context_module::instance($cm->id);
 require_capability('mod/bookit:view', $context);
-if (!event_access_manager::is_booking_confirmed($event)) {
+$isadmin = has_capability('mod/bookit:managebasics', $context) || has_capability('mod/bookit:viewalldetailsofevent', $context);
+if (!$isadmin && !event_access_manager::is_booking_accessible($event)) {
     $backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
     redirect($backurl, get_string('overview_action_requires_confirmed_booking', 'mod_bookit'), null, \core\output\notification::NOTIFY_WARNING);
 }
