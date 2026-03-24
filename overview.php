@@ -93,6 +93,7 @@ $PAGE->requires->js_init_code("
 
 /* ----- inline ModalForm handler -------------------------------------- */
 $PAGE->requires->js_call_amd('mod_bookit/event_details_modal', 'init');
+$PAGE->requires->js_call_amd('mod_bookit/overview/booking_status_dropdown', 'init');
 
 
 /* =======================================================================
@@ -159,9 +160,11 @@ $colormap = [
 $textmap  = [3 => '#ffffff'];
 
 // Prepare template context.
+$canmanage = has_capability('mod/bookit:managebasics', $context);
 $templatecontext = [
-    'tableid' => (string)$tableid,
-    'events'  => [],
+    'tableid'    => (string)$tableid,
+    'canmanage'  => $canmanage,
+    'events'     => [],
 ];
 
 // Precompute checklist progress for all events in a single query.
@@ -223,8 +226,12 @@ foreach ($events as $ev) {
         'room' => s($room),
         'personincharge' => s($pic),
         'myrole' => s($myrole),
-        'statustext' => s($statustxt),
-        'statusstyle' => "background-color:$statusbg;color:$statusfg;",
+        'statustext'    => s($statustxt),
+        'statusstyle'   => "background-color:$statusbg;color:$statusfg;",
+        'canmanage'     => $canmanage,
+        'statusoptions' => $canmanage
+            ? event_manager::get_booking_status_options((int)($ev->bookingstatus ?? 0))
+            : [],
         'datestr' => $datestr,
         'starttime' => (int)$ev->starttime,
         'cmid' => (int)$cm->id,

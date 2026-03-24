@@ -329,4 +329,31 @@ class event_manager {
         }
         return $events;
     }
+
+    /**
+     * Return booking status options array suitable for a Mustache template dropdown.
+     *
+     * Each element contains 'value' (int), 'label' (string), and 'selected' (bool).
+     *
+     * @param int $current Currently selected status value.
+     * @return array
+     */
+    public static function get_booking_status_options(int $current): array {
+        $labels = [
+            0 => 'New',
+            1 => 'In progress',
+            2 => 'Accepted',
+            3 => 'Cancelled',
+            4 => 'Rejected',
+        ];
+        $options = [];
+        foreach ($labels as $value => $label) {
+            $options[] = [
+                'value'    => $value,
+                'label'    => $label,
+                'selected' => ($value === $current),
+            ];
+        }
+        return $options;
+    }
 }

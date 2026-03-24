@@ -38,6 +38,8 @@
     * myrole - Role label for current user (string).
     * statustext - Booking status label (string).
     * statusstyle - Inline CSS for the status cell (string).
+    * statusoptions - Array of {value, label, selected} for admin dropdown.
+    * canmanage - Whether current user can manage events (bool).
     * datestr - Date string for display (string).
     * starttime - Unix timestamp used for sorting (number).
     * cmid - Course module id for the modal (number).
@@ -112,7 +114,19 @@
                     <td>{{personincharge}}</td>
                     <td>{{myrole}}</td>
 
-                    <td style="{{statusstyle}}">{{statustext}}</td>
+                    <td style="{{statusstyle}}">
+                        {{#canmanage}}
+                        <select class="custom-select custom-select-sm"
+                                data-action="update-booking-status"
+                                data-eventid="{{id}}"
+                                data-cmid="{{cmid}}">
+                            {{#statusoptions}}
+                            <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                            {{/statusoptions}}
+                        </select>
+                        {{/canmanage}}
+                        {{^canmanage}}{{statustext}}{{/canmanage}}
+                    </td>
 
                     <td data-sort="{{starttime}}">{{datestr}}</td>
 
