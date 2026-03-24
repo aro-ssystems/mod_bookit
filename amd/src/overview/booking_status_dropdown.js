@@ -50,21 +50,6 @@ export const init = () => {
             args: {cmid, eventid, status},
         }])[0]
         .then(() => {
-            // Update the cell background to match the new status colour.
-            const colormap = {
-                0: {bg: '#d3d3d3', fg: '#000000'},
-                1: {bg: '#fff3cd', fg: '#000000'},
-                2: {bg: '#d4edda', fg: '#000000'},
-                3: {bg: '#343a40', fg: '#ffffff'},
-                4: {bg: '#f8d7da', fg: '#000000'},
-            };
-            const colors = colormap[status] ?? {bg: '#ffffff', fg: '#000000'};
-            const td = select.closest('td');
-            if (td) {
-                td.style.backgroundColor = colors.bg;
-                td.style.color = colors.fg;
-                select.style.color = colors.fg;
-            }
             return;
         })
         .catch((err) => {
