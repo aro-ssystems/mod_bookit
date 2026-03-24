@@ -77,13 +77,12 @@ export const init = () => {
         }])[0]
         .then(() => {
             applyColor(select, status);
+            select.disabled = false;
             return;
         })
         .catch((err) => {
-            Notification.exception(err);
-        })
-        .finally(() => {
             select.disabled = false;
+            Notification.exception(err);
         });
     });
 };
