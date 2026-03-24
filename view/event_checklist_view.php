@@ -66,7 +66,8 @@ $backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
 $resourcesurl = new moodle_url('/mod/bookit/view/event_resources.php', ['id' => $cmid, 'eventid' => $eventid]);
 echo html_writer::start_tag('div', ['class' => 'mb-3 d-flex gap-2']);
 echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
-echo html_writer::link($resourcesurl, get_string('event_checklist:go_to_resources', 'mod_bookit'), ['class' => 'btn btn-outline-primary']);
+echo html_writer::tag('span', '', ['class' => 'border-start mx-2']);
+echo html_writer::link($resourcesurl, get_string('event_checklist:go_to_resources', 'mod_bookit'), ['class' => 'btn btn-primary']);
 echo html_writer::end_tag('div');
 
 echo $OUTPUT->heading(get_string('event_checklist_heading', 'mod_bookit', format_string($event->name)));

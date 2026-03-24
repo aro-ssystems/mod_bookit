@@ -73,7 +73,8 @@ $checklisturl = new moodle_url('/mod/bookit/view/event_checklist_view.php', ['id
 echo html_writer::start_tag('div', ['class' => 'container-fluid py-3']);
 echo html_writer::start_tag('div', ['class' => 'mb-3 d-flex gap-2']);
 echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
-echo html_writer::link($checklisturl, get_string('event_resources:go_to_checklist', 'mod_bookit'), ['class' => 'btn btn-outline-primary']);
+echo html_writer::tag('span', '', ['class' => 'border-start mx-2']);
+echo html_writer::link($checklisturl, get_string('event_resources:go_to_checklist', 'mod_bookit'), ['class' => 'btn btn-primary']);
 echo html_writer::end_tag('div');
 
 if ($canmanage) {
