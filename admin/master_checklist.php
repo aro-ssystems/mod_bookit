@@ -25,7 +25,6 @@
 
 use mod_bookit\local\manager\checklist_manager;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
-use mod_bookit\local\tabs;
 
 require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -44,12 +43,6 @@ $PAGE->set_heading(get_string('settings_overview', 'mod_bookit'));
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('master_checklist', 'mod_bookit'));
-
-// Show tabs.
-$renderer = $PAGE->get_renderer('mod_bookit');
-$tabrow = tabs::get_tabrow($context);
-$id = optional_param('active_tab', 'master_checklist_items', PARAM_ALPHANUMEXT);
-echo $renderer->tabs($tabrow, $id);
 
 echo html_writer::div(get_string('settings_master_checklist_desc', 'mod_bookit'));
 
