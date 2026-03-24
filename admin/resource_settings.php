@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Admin page for managing resource checklist.
+ * Admin page for managing resource checklist settings.
  *
  * @package     mod_bookit
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
@@ -34,30 +34,30 @@ require_login();
 require_capability('mod/bookit:managebasics', $context);
 
 $PAGE->set_context($context);
-$PAGE->set_url(new moodle_url('/mod/bookit/admin/resource_checklist.php'));
+$PAGE->set_url(new moodle_url('/mod/bookit/admin/resource_settings.php'));
 $PAGE->set_primary_active_tab('bookit_settings');
 $PAGE->set_pagelayout('admin');
-$PAGE->set_title(get_string('resources:checklist', 'mod_bookit'));
-$PAGE->set_heading(get_string('resources:checklist', 'mod_bookit'));
+$PAGE->set_title(get_string('resources:settings', 'mod_bookit'));
+$PAGE->set_heading(get_string('resources:settings', 'mod_bookit'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('resources:checklist', 'mod_bookit'));
+echo $OUTPUT->heading(get_string('resources:settings', 'mod_bookit'));
 
 // Show tabs.
 $renderer = $PAGE->get_renderer('mod_bookit');
 $tabrow = tabs::get_tabrow($context);
-$id = 'resource_checklist';
+$id = 'resource_settings';
 echo $renderer->tabs($tabrow, $id);
 
 // Render via Output Class.
-$catalog = new \mod_bookit\output\resource_checklist_catalog();
+$catalog = new \mod_bookit\output\resource_settings_catalog();
 echo $renderer->render($catalog);
 
 // Init Reactive JS.
 $PAGE->requires->js_call_amd(
-    'mod_bookit/resource_checklist/resource_checklist_container',
+    'mod_bookit/resource_settings/resource_settings_container',
     'init',
-    ['#mod-bookit-resource-checklist-container']
+    ['#mod-bookit-resource-settings-container']
 );
 
 echo $OUTPUT->footer();

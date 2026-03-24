@@ -96,14 +96,14 @@ class renderer extends \plugin_renderer_base {
     }
 
     /**
-     * Renders the resource checklist catalog.
+     * Renders the resource settings catalog.
      *
-     * @param resource_checklist_catalog $catalog
+     * @param resource_settings_catalog $catalog
      * @return string HTML output
      */
-    protected function render_resource_checklist_catalog(resource_checklist_catalog $catalog) {
+    protected function render_resource_settings_catalog(resource_settings_catalog $catalog) {
         $data = $catalog->export_for_template($this->output);
-        return $this->output->render_from_template('mod_bookit/resource_checklist/resource_checklist_catalog', $data);
+        return $this->output->render_from_template('mod_bookit/resource_settings/resource_settings_catalog', $data);
     }
 
     /**

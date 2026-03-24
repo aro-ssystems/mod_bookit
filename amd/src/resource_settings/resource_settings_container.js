@@ -20,7 +20,7 @@
  * Manages the reactive store, category components, and toolbar buttons
  * (add category, add item). Initializes state from DOM data attributes.
  *
- * @module mod_bookit/resource_checklist/resource_checklist_container
+ * @module mod_bookit/resource_settings/resource_settings_container
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,18 +29,18 @@
 import {BaseComponent} from 'core/reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
-import ResourceChecklistCategory from './resource_checklist_category';
-import {initChecklistReactive} from './resource_checklist_reactive';
+import ResourceSettingsCategory from './resource_settings_category';
+import {initChecklistReactive} from './resource_settings_reactive';
 
 const CATEGORY_REGION = 'resource-checklist-category';
 const ITEM_REGION = 'resource-checklist-item-row';
 const CATEGORY_MODAL_FORM = 'mod_bookit\\form\\edit_category_form';
-const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_checklist_item_form';
+const ITEM_MODAL_FORM = 'mod_bookit\\local\\form\\resource\\edit_resource_settings_item_form';
 
 /**
  * Resource checklist container component.
  */
-export default class ResourceChecklistContainer extends BaseComponent {
+export default class ResourceSettingsContainer extends BaseComponent {
 
     /**
      * Component descriptor for debugging.
@@ -48,7 +48,7 @@ export default class ResourceChecklistContainer extends BaseComponent {
      * @return {string} Component name
      */
     static get componentName() {
-        return 'mod_bookit/resource_checklist/resource_checklist_container';
+        return 'mod_bookit/resource_settings/resource_settings_container';
     }
 
     /**
@@ -59,7 +59,7 @@ export default class ResourceChecklistContainer extends BaseComponent {
      * so stateReady() fires correctly.
      *
      * @param {string} target - CSS selector for the container element
-     * @return {ResourceChecklistContainer|null} Component instance or null
+     * @return {ResourceSettingsContainer|null} Component instance or null
      */
     static init(target) {
         const element = document.querySelector(target);
@@ -67,12 +67,12 @@ export default class ResourceChecklistContainer extends BaseComponent {
             return null;
         }
 
-        const initialData = ResourceChecklistContainer._parseInitialState(element);
+        const initialData = ResourceSettingsContainer._parseInitialState(element);
 
         const reactive = initChecklistReactive();
 
         // Register component BEFORE setting initial state so stateReady() fires.
-        const instance = new ResourceChecklistContainer({
+        const instance = new ResourceSettingsContainer({
             element,
             reactive,
         });
@@ -115,8 +115,8 @@ export default class ResourceChecklistContainer extends BaseComponent {
      * Creates category sub-components for all categories present in the DOM.
      */
     stateReady() {
-        const spinner = document.getElementById('mod-bookit-resource-checklist-spinner');
-        const content = document.getElementById('mod-bookit-resource-checklist-content');
+        const spinner = document.getElementById('mod-bookit-resource-settings-spinner');
+        const content = document.getElementById('mod-bookit-resource-settings-content');
         if (spinner) {
             spinner.classList.add('d-none');
         }
@@ -279,7 +279,7 @@ export default class ResourceChecklistContainer extends BaseComponent {
     // -------------------------------------------------------------------------
 
     /**
-     * Create ResourceChecklistCategory components for all categories in the DOM.
+     * Create ResourceSettingsCategory components for all categories in the DOM.
      */
     _initializeCategoryComponents() {
         this.reactive.state.categories.forEach((category, categoryId) => {
@@ -287,7 +287,7 @@ export default class ResourceChecklistContainer extends BaseComponent {
                 `[data-region="${CATEGORY_REGION}"][data-categoryid="${categoryId}"]`
             );
             if (categoryElement) {
-                const instance = new ResourceChecklistCategory({
+                const instance = new ResourceSettingsCategory({
                     element: categoryElement,
                     reactive: this.reactive,
                 });
@@ -318,7 +318,7 @@ export default class ResourceChecklistContainer extends BaseComponent {
         const categoryElement = tempDiv.firstElementChild;
         tableView.appendChild(categoryElement);
 
-        const instance = new ResourceChecklistCategory({
+        const instance = new ResourceSettingsCategory({
             element: categoryElement,
             reactive: this.reactive,
         });

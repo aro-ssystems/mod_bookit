@@ -32,7 +32,7 @@ use mod_bookit\local\entity\bookit_notification_slot;
 use mod_bookit\local\entity\bookit_notification_type;
 use mod_bookit\local\form\notification_slots_form_trait;
 use mod_bookit\local\manager\checklist_manager;
-use mod_bookit\local\manager\resource_checklist_manager;
+use mod_bookit\local\manager\resource_settings_manager;
 use mod_bookit\local\manager\resource_manager;
 use moodle_url;
 
@@ -48,7 +48,7 @@ use moodle_url;
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class edit_resource_checklist_item_form extends dynamic_form {
+class edit_resource_settings_item_form extends dynamic_form {
     use notification_slots_form_trait;
 
     /**
@@ -77,9 +77,9 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $mform->addElement('static', 'roomslist', get_string('rooms', 'mod_bookit'), '');
 
         // Active checkbox.
-        $mform->addElement('advcheckbox', 'active', get_string('checklist_active', 'mod_bookit'));
+        $mform->addElement('advcheckbox', 'active', get_string('settings_active', 'mod_bookit'));
         $mform->setDefault('active', 1);
-        $mform->addHelpButton('active', 'checklist_active', 'mod_bookit');
+        $mform->addHelpButton('active', 'settings_active', 'mod_bookit');
 
         // Due date — radio group matching masterchecklist style.
         $duedateradio = [
@@ -150,7 +150,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
      * @return bookit_notification_slot|null
      */
     protected function find_existing_inactive_slot(int $itemid, string $type): ?bookit_notification_slot {
-        $rcitem = resource_checklist_manager::get_checklist_item($itemid);
+        $rcitem = resource_settings_manager::get_checklist_item($itemid);
         if (!$rcitem) {
             return null;
         }
@@ -181,7 +181,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
      */
     protected function on_notification_slot_saved(bookit_notification_type $case, int $slotid, int $itemid): void {
         global $USER;
-        $rcitem = resource_checklist_manager::get_checklist_item($itemid);
+        $rcitem = resource_settings_manager::get_checklist_item($itemid);
         if (!$rcitem) {
             return;
         }
@@ -199,7 +199,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
                 $rcitem->set_whendoneid($slotid);
                 break;
         }
-        resource_checklist_manager::save_checklist_item($rcitem, $USER->id);
+        resource_settings_manager::save_checklist_item($rcitem, $USER->id);
     }
 
     /**
@@ -224,7 +224,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
      * @return moodle_url
      */
     protected function get_page_url_for_dynamic_submission(): moodle_url {
-        return new moodle_url('/mod/bookit/admin/resource_checklist.php');
+        return new moodle_url('/mod/bookit/admin/resource_settings.php');
     }
 
     /**
@@ -243,7 +243,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
             throw new \moodle_exception('invalidchecklistitemid', 'mod_bookit');
         }
 
-        $item = resource_checklist_manager::get_checklist_item($id);
+        $item = resource_settings_manager::get_checklist_item($id);
         if (!$item) {
             throw new \moodle_exception('checklistitemnotfound', 'mod_bookit');
         }
@@ -321,7 +321,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
                 foreach ($itemids as $itemid) {
                     $itemid = clean_param($itemid, PARAM_INT);
                     if ($itemid) {
-                        $DB->set_field('bookit_resource_checklist', 'sortorder', $sortorder++, ['id' => $itemid]);
+                        $DB->set_field('bookit_resource_settings', 'sortorder', $sortorder++, ['id' => $itemid]);
                     }
                 }
             }
@@ -331,7 +331,7 @@ class edit_resource_checklist_item_form extends dynamic_form {
         $data = (array)$this->get_data();
         $id = (int)$data['id'];
 
-        $item = resource_checklist_manager::get_checklist_item($id);
+        $item = resource_settings_manager::get_checklist_item($id);
         if (!$item) {
             throw new \moodle_exception('checklistitemnotfound', 'mod_bookit');
         }
@@ -349,12 +349,12 @@ class edit_resource_checklist_item_form extends dynamic_form {
             $item->set_duedate($offsetseconds);
         }
 
-        resource_checklist_manager::save_checklist_item($item, $USER->id);
+        resource_settings_manager::save_checklist_item($item, $USER->id);
 
         $this->save_notification_slots($data, $id);
 
         // Reload after notifications saved (FK columns may have been updated).
-        $item = resource_checklist_manager::get_checklist_item($id);
+        $item = resource_settings_manager::get_checklist_item($id);
         $resource = resource_manager::get_resource_by_id($item->get_resourceid());
 
         $duedatedisplay = null;

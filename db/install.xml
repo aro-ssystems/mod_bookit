@@ -91,7 +91,7 @@
         <KEY NAME="reso_cat_fk" TYPE="foreign" FIELDS="categoryid" REFTABLE="bookit_resource_category" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="bookit_resource_checklist" COMMENT="Resource checklist metadata with due dates and notifications">
+    <TABLE NAME="bookit_resource_settings" COMMENT="Resource settings metadata with due dates and notifications">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="resourceid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" COMMENT="FK to bookit_resource"/>

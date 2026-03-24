@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for resource_checklist_manager class.
+ * Unit tests for resource_settings_manager class.
  *
  * @package     mod_bookit
  * @category    test
@@ -29,19 +29,19 @@ namespace mod_bookit\local\manager;
 use advanced_testcase;
 use mod_bookit\local\entity\resource\bookit_resource;
 use mod_bookit\local\entity\resource\bookit_resource_category;
-use mod_bookit\local\entity\resource\bookit_resource_checklist;
+use mod_bookit\local\entity\resource\bookit_resource_settings;
 
 /**
- * Unit tests for resource_checklist_manager class.
+ * Unit tests for resource_settings_manager class.
  *
  * @package     mod_bookit
  * @category    test
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers      \mod_bookit\local\manager\resource_checklist_manager
+ * @covers      \mod_bookit\local\manager\resource_settings_manager
  */
-final class resource_checklist_manager_test extends advanced_testcase {
+final class resource_settings_manager_test extends advanced_testcase {
     /** @var int Test category ID */
     private int $categoryid;
 
@@ -97,15 +97,15 @@ final class resource_checklist_manager_test extends advanced_testcase {
         $this->resourceid2 = resource_manager::save_resource($resource2, 2);
 
         // Save_resource auto-creates checklist items; remove them so tests start clean.
-        resource_checklist_manager::delete_checklist_item_by_resource($this->resourceid1);
-        resource_checklist_manager::delete_checklist_item_by_resource($this->resourceid2);
+        resource_settings_manager::delete_checklist_item_by_resource($this->resourceid1);
+        resource_settings_manager::delete_checklist_item_by_resource($this->resourceid2);
     }
 
     /**
      * Test getting all checklist items when empty.
      */
     public function test_get_all_checklist_items_empty(): void {
-        $items = resource_checklist_manager::get_all_checklist_items();
+        $items = resource_settings_manager::get_all_checklist_items();
         $this->assertEmpty($items);
     }
 
@@ -113,7 +113,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test saving and retrieving a checklist item.
      */
     public function test_save_and_get_checklist_item(): void {
-        $item = new bookit_resource_checklist(
+        $item = new bookit_resource_settings(
             null,
             $this->resourceid1,
             86400,
@@ -129,15 +129,15 @@ final class resource_checklist_manager_test extends advanced_testcase {
             2
         );
 
-        $id = resource_checklist_manager::save_checklist_item($item, 2);
+        $id = resource_settings_manager::save_checklist_item($item, 2);
 
         $this->assertNotEmpty($id);
         $this->assertIsInt($id);
 
-        $retrieved = resource_checklist_manager::get_checklist_item($id);
+        $retrieved = resource_settings_manager::get_checklist_item($id);
 
         $this->assertNotNull($retrieved);
-        $this->assertInstanceOf(bookit_resource_checklist::class, $retrieved);
+        $this->assertInstanceOf(bookit_resource_settings::class, $retrieved);
         $this->assertEquals($this->resourceid1, $retrieved->get_resourceid());
         $this->assertEquals(86400, $retrieved->get_duedate());
         $this->assertEquals('before_event', $retrieved->get_duedatetype());
@@ -148,7 +148,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test updating an existing checklist item.
      */
     public function test_update_checklist_item(): void {
-        $item = new bookit_resource_checklist(
+        $item = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -163,13 +163,13 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        $id = resource_checklist_manager::save_checklist_item($item, 2);
+        $id = resource_settings_manager::save_checklist_item($item, 2);
 
         // Retrieve, modify, re-save.
-        $retrieved = resource_checklist_manager::get_checklist_item($id);
+        $retrieved = resource_settings_manager::get_checklist_item($id);
         $this->assertNotNull($retrieved);
 
-        $updated = new bookit_resource_checklist(
+        $updated = new bookit_resource_settings(
             $retrieved->get_id(),
             $this->resourceid1,
             3600,
@@ -185,9 +185,9 @@ final class resource_checklist_manager_test extends advanced_testcase {
             2
         );
 
-        resource_checklist_manager::save_checklist_item($updated, 2);
+        resource_settings_manager::save_checklist_item($updated, 2);
 
-        $final = resource_checklist_manager::get_checklist_item($id);
+        $final = resource_settings_manager::get_checklist_item($id);
         $this->assertEquals(3600, $final->get_duedate());
         $this->assertEquals('after_event', $final->get_duedatetype());
         $this->assertFalse($final->is_active());
@@ -198,11 +198,11 @@ final class resource_checklist_manager_test extends advanced_testcase {
      */
     public function test_get_checklist_item_by_resource(): void {
         // Returns null when not found.
-        $item = resource_checklist_manager::get_checklist_item_by_resource($this->resourceid1);
+        $item = resource_settings_manager::get_checklist_item_by_resource($this->resourceid1);
         $this->assertNull($item);
 
         // Create and retrieve.
-        $checklist = new bookit_resource_checklist(
+        $checklist = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -217,9 +217,9 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        resource_checklist_manager::save_checklist_item($checklist, 2);
+        resource_settings_manager::save_checklist_item($checklist, 2);
 
-        $item = resource_checklist_manager::get_checklist_item_by_resource($this->resourceid1);
+        $item = resource_settings_manager::get_checklist_item_by_resource($this->resourceid1);
         $this->assertNotNull($item);
         $this->assertEquals($this->resourceid1, $item->get_resourceid());
     }
@@ -228,7 +228,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test deleting a checklist item.
      */
     public function test_delete_checklist_item(): void {
-        $item = new bookit_resource_checklist(
+        $item = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -243,19 +243,19 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        $id = resource_checklist_manager::save_checklist_item($item, 2);
+        $id = resource_settings_manager::save_checklist_item($item, 2);
 
-        $result = resource_checklist_manager::delete_checklist_item($id);
+        $result = resource_settings_manager::delete_checklist_item($id);
 
         $this->assertTrue($result);
-        $this->assertNull(resource_checklist_manager::get_checklist_item($id));
+        $this->assertNull(resource_settings_manager::get_checklist_item($id));
     }
 
     /**
      * Test deleting a checklist item by resource ID.
      */
     public function test_delete_checklist_item_by_resource(): void {
-        $item = new bookit_resource_checklist(
+        $item = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -270,19 +270,19 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        resource_checklist_manager::save_checklist_item($item, 2);
+        resource_settings_manager::save_checklist_item($item, 2);
 
-        $result = resource_checklist_manager::delete_checklist_item_by_resource($this->resourceid1);
+        $result = resource_settings_manager::delete_checklist_item_by_resource($this->resourceid1);
 
         $this->assertTrue($result);
-        $this->assertNull(resource_checklist_manager::get_checklist_item_by_resource($this->resourceid1));
+        $this->assertNull(resource_settings_manager::get_checklist_item_by_resource($this->resourceid1));
     }
 
     /**
      * Test get_all_checklist_items returns all items.
      */
     public function test_get_all_checklist_items(): void {
-        $item1 = new bookit_resource_checklist(
+        $item1 = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -297,7 +297,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        $item2 = new bookit_resource_checklist(
+        $item2 = new bookit_resource_settings(
             null,
             $this->resourceid2,
             null,
@@ -312,10 +312,10 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        resource_checklist_manager::save_checklist_item($item1, 2);
-        resource_checklist_manager::save_checklist_item($item2, 2);
+        resource_settings_manager::save_checklist_item($item1, 2);
+        resource_settings_manager::save_checklist_item($item2, 2);
 
-        $items = resource_checklist_manager::get_all_checklist_items();
+        $items = resource_settings_manager::get_all_checklist_items();
         $this->assertCount(2, $items);
     }
 
@@ -323,7 +323,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test get_all_checklist_items with activeonly filter.
      */
     public function test_get_all_checklist_items_activeonly(): void {
-        $active = new bookit_resource_checklist(
+        $active = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -338,7 +338,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        $inactive = new bookit_resource_checklist(
+        $inactive = new bookit_resource_settings(
             null,
             $this->resourceid2,
             null,
@@ -353,13 +353,13 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        resource_checklist_manager::save_checklist_item($active, 2);
-        resource_checklist_manager::save_checklist_item($inactive, 2);
+        resource_settings_manager::save_checklist_item($active, 2);
+        resource_settings_manager::save_checklist_item($inactive, 2);
 
-        $all = resource_checklist_manager::get_all_checklist_items(false);
+        $all = resource_settings_manager::get_all_checklist_items(false);
         $this->assertCount(2, $all);
 
-        $activeonly = resource_checklist_manager::get_all_checklist_items(true);
+        $activeonly = resource_settings_manager::get_all_checklist_items(true);
         $this->assertCount(1, $activeonly);
     }
 
@@ -367,11 +367,11 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test auto_generate_checklist creates entries for all resources.
      */
     public function test_auto_generate_checklist(): void {
-        $count = resource_checklist_manager::auto_generate_checklist(2);
+        $count = resource_settings_manager::auto_generate_checklist(2);
 
         $this->assertEquals(2, $count);
 
-        $items = resource_checklist_manager::get_all_checklist_items();
+        $items = resource_settings_manager::get_all_checklist_items();
         $this->assertCount(2, $items);
     }
 
@@ -380,7 +380,7 @@ final class resource_checklist_manager_test extends advanced_testcase {
      */
     public function test_auto_generate_checklist_skips_existing(): void {
         // Pre-create checklist for resource1.
-        $item = new bookit_resource_checklist(
+        $item = new bookit_resource_settings(
             null,
             $this->resourceid1,
             null,
@@ -395,14 +395,14 @@ final class resource_checklist_manager_test extends advanced_testcase {
             0,
             2
         );
-        resource_checklist_manager::save_checklist_item($item, 2);
+        resource_settings_manager::save_checklist_item($item, 2);
 
         // Should only generate for resource2 (resource1 already has an entry).
-        $count = resource_checklist_manager::auto_generate_checklist(2);
+        $count = resource_settings_manager::auto_generate_checklist(2);
 
         $this->assertEquals(1, $count);
 
-        $items = resource_checklist_manager::get_all_checklist_items();
+        $items = resource_settings_manager::get_all_checklist_items();
         $this->assertCount(2, $items);
     }
 
@@ -410,10 +410,10 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test auto_generate_checklist returns 0 when all have entries.
      */
     public function test_auto_generate_checklist_all_exists(): void {
-        resource_checklist_manager::auto_generate_checklist(2);
+        resource_settings_manager::auto_generate_checklist(2);
 
         // Second call returns 0 (all already have entries).
-        $count = resource_checklist_manager::auto_generate_checklist(2);
+        $count = resource_settings_manager::auto_generate_checklist(2);
         $this->assertEquals(0, $count);
     }
 
@@ -421,11 +421,11 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test create_checklist_for_resource creates a new entry.
      */
     public function test_create_checklist_for_resource(): void {
-        $id = resource_checklist_manager::create_checklist_for_resource($this->resourceid1, 2);
+        $id = resource_settings_manager::create_checklist_for_resource($this->resourceid1, 2);
 
         $this->assertNotEmpty($id);
 
-        $item = resource_checklist_manager::get_checklist_item($id);
+        $item = resource_settings_manager::get_checklist_item($id);
         $this->assertNotNull($item);
         $this->assertEquals($this->resourceid1, $item->get_resourceid());
         $this->assertTrue($item->is_active());
@@ -435,12 +435,12 @@ final class resource_checklist_manager_test extends advanced_testcase {
      * Test create_checklist_for_resource is idempotent.
      */
     public function test_create_checklist_for_resource_idempotent(): void {
-        $id1 = resource_checklist_manager::create_checklist_for_resource($this->resourceid1, 2);
-        $id2 = resource_checklist_manager::create_checklist_for_resource($this->resourceid1, 2);
+        $id1 = resource_settings_manager::create_checklist_for_resource($this->resourceid1, 2);
+        $id2 = resource_settings_manager::create_checklist_for_resource($this->resourceid1, 2);
 
         $this->assertEquals($id1, $id2);
 
-        $items = resource_checklist_manager::get_all_checklist_items();
+        $items = resource_settings_manager::get_all_checklist_items();
         $this->assertCount(1, $items);
     }
 
@@ -451,13 +451,13 @@ final class resource_checklist_manager_test extends advanced_testcase {
         global $DB;
 
         // Create Beamer first (should get sortorder 0 initially).
-        resource_checklist_manager::create_checklist_for_resource($this->resourceid2, 2);
+        resource_settings_manager::create_checklist_for_resource($this->resourceid2, 2);
 
         // Create Apple MacBook second — alphabetically before Beamer, so should shift Beamer.
-        resource_checklist_manager::create_checklist_for_resource($this->resourceid1, 2);
+        resource_settings_manager::create_checklist_for_resource($this->resourceid1, 2);
 
-        $apple = resource_checklist_manager::get_checklist_item_by_resource($this->resourceid1);
-        $beamer = resource_checklist_manager::get_checklist_item_by_resource($this->resourceid2);
+        $apple = resource_settings_manager::get_checklist_item_by_resource($this->resourceid1);
+        $beamer = resource_settings_manager::get_checklist_item_by_resource($this->resourceid2);
 
         $this->assertNotNull($apple);
         $this->assertNotNull($beamer);

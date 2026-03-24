@@ -16,16 +16,16 @@
 /**
  * Reactive store for the resource checklist.
  *
- * @module mod_bookit/resource_checklist/resource_checklist_reactive
+ * @module mod_bookit/resource_settings/resource_settings_reactive
  * @copyright   2026 ssystems GmbH <oss@ssystems.de>
  * @author      Andreas Rosenthal
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {Reactive} from 'core/reactive';
-import ResourceChecklistMutations from './resource_checklist_mutations';
+import ResourceSettingsMutations from './resource_settings_mutations';
 
-export const EVENTNAME = 'mod_bookit:resource_checklist_state_event';
+export const EVENTNAME = 'mod_bookit:resource_settings_state_event';
 
 /**
  * Dispatch a resource checklist state event.
@@ -54,7 +54,7 @@ export const initChecklistReactive = () => {
             name: 'Moodle Bookit Resource Checklist',
             eventName: EVENTNAME,
             eventDispatch: dispatchChecklistStateEvent,
-            mutations: new ResourceChecklistMutations(),
+            mutations: new ResourceSettingsMutations(),
         });
     }
     return checklistReactiveInstance;
