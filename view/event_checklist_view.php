@@ -61,17 +61,20 @@ $PAGE->set_title(get_string('event_checklist_title', 'mod_bookit'));
 echo $OUTPUT->header();
 
 echo html_writer::start_tag('div', ['class' => 'container-fluid py-3']);
+
+$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
+$resourcesurl = new moodle_url('/mod/bookit/view/event_resources.php', ['id' => $cmid, 'eventid' => $eventid]);
+echo html_writer::start_tag('div', ['class' => 'mb-3 d-flex gap-2']);
+echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
+echo html_writer::link($resourcesurl, get_string('event_checklist:go_to_resources', 'mod_bookit'), ['class' => 'btn btn-outline-primary']);
+echo html_writer::end_tag('div');
+
 echo $OUTPUT->heading(get_string('event_checklist_heading', 'mod_bookit', format_string($event->name)));
 
 $canmarkallitems = has_capability('mod/bookit:managebasics', $context) || has_capability('mod/bookit:viewalldetailsofevent', $context);
 $userbookitroleids = checklist_manager::get_user_bookit_role_ids((int)$USER->id);
 $output = new event_checklist_catalog($eventid, $cmid, $context->id, $canmarkallitems, $userbookitroleids);
 echo $OUTPUT->render($output);
-
-echo html_writer::start_tag('div', ['class' => 'mt-3 mb-4']);
-$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
-echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
-echo html_writer::end_tag('div');
 
 echo html_writer::end_tag('div');
 

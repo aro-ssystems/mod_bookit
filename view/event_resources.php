@@ -68,6 +68,14 @@ $PAGE->set_title($titlestr);
 
 echo $OUTPUT->header();
 
+$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
+$checklisturl = new moodle_url('/mod/bookit/view/event_checklist_view.php', ['id' => $cmid, 'eventid' => $eventid]);
+echo html_writer::start_tag('div', ['class' => 'container-fluid py-3']);
+echo html_writer::start_tag('div', ['class' => 'mb-3 d-flex gap-2']);
+echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
+echo html_writer::link($checklisturl, get_string('event_resources:go_to_checklist', 'mod_bookit'), ['class' => 'btn btn-outline-primary']);
+echo html_writer::end_tag('div');
+
 if ($canmanage) {
     echo $OUTPUT->heading(get_string('event_resources_checklist_heading', 'mod_bookit', format_string($event->name)));
 
@@ -103,9 +111,6 @@ if ($canmanage) {
     }
 }
 
-echo html_writer::start_tag('div', ['class' => 'mt-3']);
-$backurl = new moodle_url('/mod/bookit/overview.php', ['id' => $cmid]);
-echo html_writer::link($backurl, get_string('back_to_overview', 'mod_bookit'), ['class' => 'btn btn-secondary']);
 echo html_writer::end_tag('div');
 
 echo $OUTPUT->footer();
