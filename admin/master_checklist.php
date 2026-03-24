@@ -44,6 +44,8 @@ $PAGE->set_heading(get_string('settings_overview', 'mod_bookit'));
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('master_checklist', 'mod_bookit'));
 
+$renderer = $PAGE->get_renderer('mod_bookit');
+
 echo html_writer::div(get_string('settings_master_checklist_desc', 'mod_bookit'));
 
 $defaultchecklistmaster = checklist_manager::get_default_master();
