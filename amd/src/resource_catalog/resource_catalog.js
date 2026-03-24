@@ -164,6 +164,7 @@ export default class extends BaseComponent {
     create() {
         this.selectors.addCategoryBtn = '#add-category-btn';
         this.selectors.addResourceBtn = '#add-resource-btn';
+        this.selectors.noCategoriesMsg = '#resource-no-categories-msg';
         this.selectors.tableView = '#mod-bookit-resource-table-view';
         this.selectors.roomFilter = '#id_roomfilter_filter_section';
         this.categoryComponents = new Map();
@@ -206,6 +207,7 @@ export default class extends BaseComponent {
         this._attachEventListeners();
         this._initializeRoomFilter();
         this._initializeAllRoomBadges();
+        this._updateAddResourceButtonState();
     }
 
     /**
@@ -231,6 +233,22 @@ export default class extends BaseComponent {
     }
 
     /**
+     * Update add-resource button enabled/disabled state based on whether categories exist.
+     * Also toggles the "no categories yet" message visibility.
+     */
+    _updateAddResourceButtonState() {
+        const btn = document.querySelector(this.selectors.addResourceBtn);
+        if (btn) {
+            btn.disabled = this.reactive.state.categories.size === 0;
+        }
+        if (this.reactive.state.categories.size > 0) {
+            this._hideNoCategoriesMessage();
+        } else {
+            this._showNoCategoriesMessage();
+        }
+    }
+
+    /**
      * Handle category created.
      *
      * @param {Object} args - Event args
@@ -238,6 +256,7 @@ export default class extends BaseComponent {
      */
     async _handleCategoryCreated({element}) {
         await this._renderCategory(element);
+        this._updateAddResourceButtonState();
     }
 
     /**
@@ -265,6 +284,7 @@ export default class extends BaseComponent {
             component.remove();
             this.categoryComponents.delete(element.id);
         }
+        this._updateAddResourceButtonState();
     }
 
     /**

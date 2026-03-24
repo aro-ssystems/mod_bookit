@@ -61,7 +61,9 @@
                 </button>
                 <button class="btn btn-success ms-2"
                         data-action="add-resource"
-                        id="add-resource-btn">
+                        id="add-resource-btn"
+                        {{^hascategories}}disabled{{/hascategories}}
+                        {{^hascategories}}title="{{#str}}resources:add_resource_no_categories, mod_bookit{{/str}}"{{/hascategories}}>
                     {{#str}}resources:add_resource, mod_bookit{{/str}}
                 </button>
             </div>
@@ -103,7 +105,7 @@
                     </tbody>
                 {{/categories}}
                 {{^categories}}
-                    <tbody>
+                    <tbody id="resource-no-categories-msg">
                         <tr>
                             <td colspan="6" class="text-center text-muted py-5">
                                 {{#str}}resources:no_categories, mod_bookit{{/str}}
