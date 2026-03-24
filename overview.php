@@ -228,6 +228,7 @@ foreach ($events as $ev) {
         'myrole' => s($myrole),
         'statustext'    => s($statustxt),
         'statusstyle'   => "background-color:$statusbg;color:$statusfg;",
+        'bookingstatus' => (int)($ev->bookingstatus ?? 0),
         'canmanage'     => $canmanage,
         'statusoptions' => $canmanage
             ? event_manager::get_booking_status_options((int)($ev->bookingstatus ?? 0))

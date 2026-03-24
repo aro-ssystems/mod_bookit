@@ -29,10 +29,36 @@ import Notification from 'core/notification';
 
 const SELECTOR = 'select[data-action="update-booking-status"]';
 
+/** Background and text colours per booking status value. */
+const STATUS_COLORS = {
+    0: {bg: '#d3d3d3', fg: '#000000'},
+    1: {bg: '#fff3cd', fg: '#000000'},
+    2: {bg: '#d4edda', fg: '#000000'},
+    3: {bg: '#343a40', fg: '#ffffff'},
+    4: {bg: '#f8d7da', fg: '#000000'},
+};
+
+/**
+ * Apply status colour to a select element.
+ *
+ * @param {HTMLSelectElement} select
+ * @param {number} status
+ */
+const applyColor = (select, status) => {
+    const colors = STATUS_COLORS[status] ?? {bg: '#ffffff', fg: '#000000'};
+    select.style.backgroundColor = colors.bg;
+    select.style.color = colors.fg;
+};
+
 /**
  * Initialise the dropdown listener on the overview table.
  */
 export const init = () => {
+    // Apply initial colours to all existing dropdowns on the page.
+    document.querySelectorAll(SELECTOR).forEach((select) => {
+        applyColor(select, parseInt(select.dataset.bookingstatus, 10));
+    });
+
     document.addEventListener('change', (e) => {
         const select = e.target.closest(SELECTOR);
         if (!select) {
@@ -50,6 +76,7 @@ export const init = () => {
             args: {cmid, eventid, status},
         }])[0]
         .then(() => {
+            applyColor(select, status);
             return;
         })
         .catch((err) => {

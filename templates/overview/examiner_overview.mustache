@@ -115,11 +115,12 @@
                     <td>{{myrole}}</td>
 
                     {{#canmanage}}
-                    <td>
+                    <td class="text-center">
                         <select class="custom-select custom-select-sm"
                                 data-action="update-booking-status"
                                 data-eventid="{{id}}"
-                                data-cmid="{{cmid}}">
+                                data-cmid="{{cmid}}"
+                                data-bookingstatus="{{bookingstatus}}">
                             {{#statusoptions}}
                             <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
                             {{/statusoptions}}
