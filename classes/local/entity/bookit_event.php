@@ -173,7 +173,9 @@ class bookit_event {
             $record->compensationfordisadvantages ?? null,
             $record->bookingstatus ?? 0,
             $record->personinchargeid ?? null,
-            ltrim(implode(',', $record->otherexaminers ?? []), ','),
+            ltrim(is_array($record->otherexaminers ?? [])
+                ? implode(',', $record->otherexaminers ?? [])
+                : ($record->otherexaminers ?? ''), ','),
             $record->coursetemplate ?? 0,
             $record->notes ?? null,
             $record->internalnotes ?? null,
