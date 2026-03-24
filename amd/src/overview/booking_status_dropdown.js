@@ -31,11 +31,11 @@ const SELECTOR = 'select[data-action="update-booking-status"]';
 
 /** Background and text colours per booking status value. */
 const STATUS_COLORS = {
-    0: {bg: '#d3d3d3', fg: '#000000'},
-    1: {bg: '#fff3cd', fg: '#000000'},
-    2: {bg: '#d4edda', fg: '#000000'},
-    3: {bg: '#343a40', fg: '#ffffff'},
-    4: {bg: '#f8d7da', fg: '#000000'},
+    0: {bg: '#d3d3d3', fg: '#000000', tdbg: '#f0f0f0'},
+    1: {bg: '#fff3cd', fg: '#000000', tdbg: '#fffaea'},
+    2: {bg: '#d4edda', fg: '#000000', tdbg: '#edf7f1'},
+    3: {bg: '#343a40', fg: '#ffffff', tdbg: '#adb5bd'},
+    4: {bg: '#f8d7da', fg: '#000000', tdbg: '#fdeef0'},
 };
 
 /**
@@ -45,9 +45,13 @@ const STATUS_COLORS = {
  * @param {number} status
  */
 const applyColor = (select, status) => {
-    const colors = STATUS_COLORS[status] ?? {bg: '#ffffff', fg: '#000000'};
+    const colors = STATUS_COLORS[status] ?? {bg: '#ffffff', fg: '#000000', tdbg: '#ffffff'};
     select.style.backgroundColor = colors.bg;
     select.style.color = colors.fg;
+    const td = select.closest('td');
+    if (td) {
+        td.style.backgroundColor = colors.tdbg;
+    }
 };
 
 /**
