@@ -79,12 +79,12 @@ class event_access_manager {
      * @return bool
      */
     public static function can_view_event_checklist(stdClass $event, context_module $context, int $userid): bool {
-        if (!self::is_booking_confirmed($event)) {
-            return false;
-        }
-
         if (has_capability('mod/bookit:managebasics', $context) || has_capability('mod/bookit:viewalldetailsofevent', $context)) {
             return true;
+        }
+
+        if (!self::is_booking_confirmed($event)) {
+            return false;
         }
 
         if (!has_capability('mod/bookit:viewalldetailsofownevent', $context)) {
@@ -103,12 +103,12 @@ class event_access_manager {
      * @return bool
      */
     public static function can_view_event_resources(stdClass $event, context_module $context, int $userid): bool {
-        if (!self::is_booking_confirmed($event)) {
-            return false;
-        }
-
         if (has_capability('mod/bookit:managebasics', $context) || has_capability('mod/bookit:viewalldetailsofevent', $context)) {
             return true;
+        }
+
+        if (!self::is_booking_confirmed($event)) {
+            return false;
         }
 
         if (!has_capability('mod/bookit:viewalldetailsofownevent', $context)) {
