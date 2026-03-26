@@ -26,6 +26,7 @@ import {BaseComponent, DragDrop} from 'core/reactive';
 import {getResourceReactive, SELECTORS} from 'mod_bookit/resource_catalog/resource_reactive';
 import ModalForm from 'core_form/modalform';
 import {get_string as getString} from 'core/str';
+import Notification from 'core/notification';
 
 export default class ResourceItem extends BaseComponent {
 
@@ -121,10 +122,32 @@ export default class ResourceItem extends BaseComponent {
             this.reactive.stateManager.processUpdates(response.detail);
 
             if (response.detail[0].action === 'delete') {
-                this.reactive.dispatch('resourceDeleted', {id: parseInt(response.detail[0].fields.id)});
+                this.reactive.dispatch('itemsDeleted', {fields: {id: parseInt(response.detail[0].fields.id)}});
                 this.remove();
                 return;
             }
+        });
+
+        modalForm.addEventListener(modalForm.events.LOADED, () => {
+            const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
+
+            deleteButton.on('click', async(e) => {
+                e.preventDefault();
+
+                const confirmTitle = await getString('confirm', 'core');
+                const confirmMessage = await getString('areyousure', 'core');
+                const deleteText = await getString('delete', 'core');
+
+                Notification.deleteCancel(
+                    confirmTitle,
+                    confirmMessage,
+                    deleteText,
+                    () => {
+                        modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
+                        modalForm.submitFormAjax();
+                    }
+                );
+            });
         });
 
         modalForm.show();
