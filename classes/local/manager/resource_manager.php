@@ -105,7 +105,10 @@ class resource_manager {
         return $resources;
     }
         /**
-         * Get list of rooms as [id => name].
+         * Get list of active rooms as [id => name].
+         *
+         * Only rooms with active = 1 (calendar filter and shared callers). Inactive rooms are
+         * excluded. Fresh-Install path only — no legacy rooms-as-resources fallback.
          *
          * @return array
          * @throws \dml_exception
@@ -114,20 +117,9 @@ class resource_manager {
         global $DB;
 
         $rooms = [];
-        $records = $DB->get_records('bookit_room', null, 'name ASC', 'id, name');
+        $records = $DB->get_records('bookit_room', ['active' => 1], 'name ASC', 'id, name');
         foreach ($records as $r) {
             $rooms[(int)$r->id] = $r->name;
-        }
-        if (!empty($rooms)) {
-            return $rooms;
-        }
-
-        // Fallback: legacy rooms stored as resources.
-        $resources = self::get_resources();
-        if (!empty($resources['Rooms']['resources'])) {
-            foreach ($resources['Rooms']['resources'] as $rid => $r) {
-                $rooms[$rid] = $r['name'];
-            }
         }
         return $rooms;
     }

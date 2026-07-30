@@ -23,6 +23,7 @@ use advanced_testcase;
  *
  * @covers \mod_bookit\local\manager\resource_manager::get_active_rooms_for_legend
  * @covers \mod_bookit\local\manager\resource_manager::get_active_rooms_with_resources
+ * @covers \mod_bookit\local\manager\resource_manager::get_rooms
  * @package mod_bookit
  * @copyright 2026 ssystems GmbH <oss@ssystems.de>
  * @license https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -72,6 +73,34 @@ final class resource_manager_room_legend_test extends advanced_testcase {
         $this->assertSame(42, $active['seats']);
         $this->assertArrayHasKey('name', $active);
         $this->assertArrayHasKey('eventcolor', $active);
+    }
+
+    /**
+     * Calendar filter source get_rooms() returns only active rooms.
+     *
+     * @return void
+     */
+    public function test_get_rooms_excludes_inactive(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_bookit');
+        $activeid = $generator->create_room([
+            'name' => 'Filter Active',
+            'shortname' => 'FACT',
+            'active' => 1,
+        ]);
+        $inactiveid = $generator->create_room([
+            'name' => 'Filter Inactive',
+            'shortname' => 'FINA',
+            'active' => 0,
+        ]);
+
+        $rooms = resource_manager::get_rooms();
+
+        $this->assertArrayHasKey($activeid, $rooms);
+        $this->assertArrayNotHasKey($inactiveid, $rooms);
+        $this->assertSame('Filter Active', $rooms[$activeid]);
     }
 
     /**
