@@ -206,6 +206,7 @@ $string['end_before_start_in_timeperiod_x'] = 'Ende liegt vor dem Start in Zeitr
 $string['error_amount_required'] = 'Anzahl ist erforderlich, wenn nicht als mengenneutral markiert.';
 $string['error_category_name_exists'] = 'Eine Kategorie mit diesem Namen existiert bereits. Bitte wählen Sie einen anderen Namen.';
 $string['error_category_not_found'] = 'Die ausgewählte Kategorie existiert nicht.';
+$string['error_room_shortname_too_long'] = 'Das Raumkürzel darf höchstens {$a} Zeichen lang sein.';
 $string['event_bookingstatus'] = 'Buchungsstatus';
 $string['event_bookingstatus_0'] = 'Neu';
 $string['event_bookingstatus_1'] = 'In Bearbeitung';

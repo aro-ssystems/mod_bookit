@@ -206,6 +206,7 @@ $string['end_before_start_in_timeperiod_x'] = 'The end time was before the start
 $string['error_amount_required'] = 'Amount is required when not marked as amount irrelevant.';
 $string['error_category_name_exists'] = 'A category with this name already exists. Please choose a different name.';
 $string['error_category_not_found'] = 'The selected category does not exist.';
+$string['error_room_shortname_too_long'] = 'The room shortname must be at most {$a} characters.';
 $string['event_bookingstatus'] = 'Booking status';
 $string['event_bookingstatus_0'] = 'New';
 $string['event_bookingstatus_1'] = 'In Progress';

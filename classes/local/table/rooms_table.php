@@ -55,7 +55,7 @@ class rooms_table extends \table_sql {
             'true',
             ['time1' => time(), 'time2' => time()]
         );
-        $this->column_nosort = ['internalnotes', 'tools'];
+        $this->column_nosort = ['internalnotes', 'tools', 'active'];
         $this->define_columns([
             'name',
             'shortname',
@@ -63,6 +63,7 @@ class rooms_table extends \table_sql {
             'location',
             'description',
             'activeweekplan',
+            'active',
             'tools',
         ]);
         $this->define_headers([
@@ -72,8 +73,36 @@ class rooms_table extends \table_sql {
             get_string('room_location', 'mod_bookit'),
             get_string('description'),
             get_string('weekplan_active', 'mod_bookit'),
+            get_string('active'),
             get_string('tools', 'mod_bookit'),
         ]);
+    }
+
+    /**
+     * Render active toggle column.
+     *
+     * @param object $row Row data.
+     * @return string
+     */
+    public function col_active($row) {
+        $id = 'room-active-' . (int) $row->id;
+        $label = !empty($row->active) ? get_string('active') : get_string('inactive');
+        $attrs = [
+            'type' => 'checkbox',
+            'class' => 'custom-control-input',
+            'data-action' => 'toggle-room-active',
+            'data-room-id' => (int) $row->id,
+            'id' => $id,
+        ];
+        if (!empty($row->active)) {
+            $attrs['checked'] = 'checked';
+        }
+
+        return \html_writer::div(
+            \html_writer::empty_tag('input', $attrs) .
+            \html_writer::label($label, $id, true, ['class' => 'custom-control-label']),
+            'custom-control custom-switch'
+        );
     }
 
     /**

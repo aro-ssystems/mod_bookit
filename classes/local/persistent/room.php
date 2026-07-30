@@ -36,6 +36,12 @@ class room extends persistent {
     /** Table name for the persistent. */
     const TABLE = 'bookit_room';
 
+    /** Maximum length of room shortname in characters (matches install.xml CHAR(6)). */
+    public const SHORTNAME_MAX_LENGTH = 6;
+
+    /** Default shortname for the baseline default room. */
+    public const DEFAULT_SHORTNAME = 'DFLT';
+
     /** @var int Constant for allowing free placement inside slots. */
     const MODE_FREE = 0;
     /** @var int Constant for only allowing events to start at starts of slots. */
@@ -61,6 +67,8 @@ class room extends persistent {
             ],
             'shortname' => [
                 'type' => PARAM_TEXT,
+                'null' => NULL_ALLOWED,
+                'default' => '',
             ],
             'description' => [
                 'type' => PARAM_TEXT,
@@ -107,5 +115,18 @@ class room extends persistent {
                 ],
             ],
         ];
+    }
+
+    /**
+     * Validate shortname length (Unicode-aware characters).
+     *
+     * @param string|null $value Shortname value.
+     * @return true|\lang_string
+     */
+    protected function validate_shortname($value) {
+        if (\core_text::strlen((string) $value) > self::SHORTNAME_MAX_LENGTH) {
+            return new \lang_string('error_room_shortname_too_long', 'mod_bookit', self::SHORTNAME_MAX_LENGTH);
+        }
+        return true;
     }
 }

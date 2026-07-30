@@ -58,7 +58,7 @@ final class install_helper_test extends advanced_testcase {
         $institution = $DB->get_record('bookit_institution', [], '*', MUST_EXIST);
 
         $this->assertSame(install_helper::DEFAULT_ROOM_NAME, $room->name);
-        $this->assertSame('', (string)$room->shortname);
+        $this->assertSame(room::DEFAULT_SHORTNAME, (string)$room->shortname);
         $this->assertSame(install_helper::DEFAULT_ROOM_DESCRIPTION, (string)$room->description);
         $this->assertSame('', (string)$room->eventcolor);
         $this->assertSame('', (string)$room->location);
