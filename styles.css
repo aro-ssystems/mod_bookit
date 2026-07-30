@@ -523,6 +523,37 @@
     color: #664d03;
 }
 
+/* Booking-facing room legend above calendar (WP-2). */
+.mod_bookit-view-calendar_view .bookit-room-legend {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-bottom: 0.75rem;
+}
+
+.mod_bookit-view-calendar_view .bookit-room-legend-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.35rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.mod_bookit-view-calendar_view .bookit-room-legend-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.mod_bookit-view-calendar_view .bookit-room-legend-overflow {
+    display: inline-block;
+}
+
+.mod_bookit-view-room_overview .bookit-room-overview-table {
+    margin-top: 0.5rem;
+}
+
 /* ===========================================================================
    Export modal - subtle modern polish. Scoped to #bookit-export-modal and the
    .bookit-export-* classes. Reuses the canonical booking-status palette so the

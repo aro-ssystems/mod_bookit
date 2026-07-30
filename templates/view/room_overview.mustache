@@ -1,0 +1,91 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_bookit/view/room_overview
+
+    Booking-facing room comparison table with multi-select filter.
+
+    Context variables required for this template:
+    * calendarurl
+    * hasrooms
+    * rooms - id, shortname, name, description, seats, resourceslabel
+    * filteroptions - id, label
+
+    Example context (json):
+    {
+      "calendarurl": "/mod/bookit/view.php?id=5",
+      "hasrooms": true,
+      "filteroptions": [{"id":1,"label":"A1 — Room A"}],
+      "rooms": [{"id":1,"shortname":"A1","name":"Room A","description":"Beamer","seats":30,"resourceslabel":"Mic"}]
+    }
+}}
+<div class="mod_bookit-view-room_overview">
+    <p>
+        <a href="{{calendarurl}}" class="btn btn-link">
+            {{#str}}room_overview_back_to_calendar, mod_bookit{{/str}}
+        </a>
+    </p>
+
+    {{^hasrooms}}
+    <div class="alert alert-info" role="status">
+        {{#str}}room_overview_empty, mod_bookit{{/str}}
+    </div>
+    {{/hasrooms}}
+
+    {{#hasrooms}}
+    <div class="mb-3">
+        <label for="bookit-room-overview-filter" class="form-label">
+            {{#str}}room_overview_filter, mod_bookit{{/str}}
+        </label>
+        <select id="bookit-room-overview-filter"
+                class="form-select"
+                multiple
+                size="6"
+                data-region="room-overview-filter"
+                aria-label="{{#str}}room_overview_filter, mod_bookit{{/str}}">
+            {{#filteroptions}}
+            <option value="{{id}}">{{label}}</option>
+            {{/filteroptions}}
+        </select>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-hover bookit-room-overview-table">
+            <thead>
+                <tr>
+                    <th scope="col">{{#str}}room_overview_column_shortname, mod_bookit{{/str}}</th>
+                    <th scope="col">{{#str}}room_overview_column_name, mod_bookit{{/str}}</th>
+                    <th scope="col">{{#str}}room_overview_column_description, mod_bookit{{/str}}</th>
+                    <th scope="col">{{#str}}room_overview_column_seats, mod_bookit{{/str}}</th>
+                    <th scope="col">{{#str}}room_overview_column_resources, mod_bookit{{/str}}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#rooms}}
+                <tr data-region="room-overview-row" data-room-id="{{id}}">
+                    <td>{{shortname}}</td>
+                    <td>{{name}}</td>
+                    <td>{{description}}</td>
+                    <td>{{seats}}</td>
+                    <td>{{resourceslabel}}</td>
+                </tr>
+                {{/rooms}}
+            </tbody>
+        </table>
+    </div>
+    {{/hasrooms}}
+</div>

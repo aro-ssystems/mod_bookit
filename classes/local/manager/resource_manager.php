@@ -25,6 +25,7 @@
  */
 namespace mod_bookit\local\manager;
 
+use core_text;
 use dml_exception;
 use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\entity\resource\bookit_resource;
@@ -646,5 +647,102 @@ class resource_manager {
         }
 
         return $map;
+    }
+
+    /**
+     * Active rooms for the booking-facing calendar room legend.
+     *
+     * Only rooms with active = 1. Does not use unfiltered get_rooms().
+     *
+     * @return array[] List of rooms with id, shortname, name, description, seats, eventcolor
+     * @throws dml_exception
+     */
+    public static function get_active_rooms_for_legend(): array {
+        global $DB;
+
+        $records = $DB->get_records(
+            'bookit_room',
+            ['active' => 1],
+            'name ASC',
+            'id, shortname, name, description, seats, eventcolor'
+        );
+
+        $rooms = [];
+        foreach ($records as $record) {
+            $name = (string) $record->name;
+            $shortname = trim((string) ($record->shortname ?? ''));
+            if ($shortname === '') {
+                $shortname = core_text::substr($name, 0, 6);
+            }
+            $rooms[] = [
+                'id' => (int) $record->id,
+                'shortname' => $shortname,
+                'name' => $name,
+                'description' => (string) ($record->description ?? ''),
+                'seats' => (int) ($record->seats ?? 0),
+                'eventcolor' => trim((string) ($record->eventcolor ?? '')),
+            ];
+        }
+
+        return $rooms;
+    }
+
+    /**
+     * Active rooms with associated active resources for the booking-facing overview.
+     *
+     * Association: resource roomids empty/null ⇒ all active rooms; otherwise room id must be listed.
+     *
+     * @return array[] Rooms from get_active_rooms_for_legend() plus resources[] and resourceslabel
+     * @throws dml_exception
+     */
+    public static function get_active_rooms_with_resources(): array {
+        global $DB;
+
+        $rooms = self::get_active_rooms_for_legend();
+        if ($rooms === []) {
+            return [];
+        }
+
+        $resourcerecords = $DB->get_records(
+            'bookit_resource',
+            ['active' => 1],
+            'name ASC',
+            'id, name, roomids'
+        );
+
+        $parsedresources = [];
+        foreach ($resourcerecords as $resource) {
+            $roomids = null;
+            $raw = $resource->roomids ?? null;
+            if ($raw !== null && $raw !== '') {
+                $decoded = json_decode((string) $raw, true);
+                if (is_array($decoded) && $decoded !== []) {
+                    $roomids = array_map('intval', $decoded);
+                }
+            }
+            $parsedresources[] = [
+                'id' => (int) $resource->id,
+                'name' => (string) $resource->name,
+                'roomids' => $roomids,
+            ];
+        }
+
+        $result = [];
+        foreach ($rooms as $room) {
+            $linked = [];
+            foreach ($parsedresources as $resource) {
+                if ($resource['roomids'] === null || in_array($room['id'], $resource['roomids'], true)) {
+                    $linked[] = [
+                        'id' => $resource['id'],
+                        'name' => $resource['name'],
+                    ];
+                }
+            }
+            $room['resources'] = $linked;
+            $room['resourceslabel'] = implode(', ', array_column($linked, 'name'));
+            $result[] = $room;
+        }
+
+        return $result;
     }
 }
