@@ -295,6 +295,29 @@ final class install_helper_test extends advanced_testcase {
     }
 
     /**
+     * Role-install operations must not seed demo checklist content.
+     *
+     * @return void
+     */
+    public function test_role_install_path_does_not_create_demo_checklist(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+
+        $beforecategories = $DB->count_records('bookit_checklist_category');
+        $beforeitems = $DB->count_records('bookit_checklist_item');
+        $beforemasters = $DB->count_records('bookit_checklist_master');
+
+        install_helper::import_default_roles_with_report(false, false);
+        install_helper::ensure_fresh_install_baseline(false);
+
+        $this->assertSame($beforemasters, $DB->count_records('bookit_checklist_master'));
+        $this->assertSame($beforecategories, $DB->count_records('bookit_checklist_category'));
+        $this->assertSame($beforeitems, $DB->count_records('bookit_checklist_item'));
+        $this->assertSame(0, $DB->count_records('bookit_checklist_item'));
+    }
+
+    /**
      * Former shipped default texts must not be rewritten when still stored as site config.
      *
      * @return void

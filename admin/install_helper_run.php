@@ -51,6 +51,8 @@ function mod_bookit_resolve_install_helper_status(array $statuses): string {
 }
 
 $rolereport = install_helper::import_default_roles_with_report(false, false);
+// Roles + calendar baseline only — never seed demo checklist here.
+// Demo checklist/content is created exclusively via demo_data_helper::generate().
 $baselinereport = install_helper::ensure_fresh_install_baseline(false);
 $status = mod_bookit_resolve_install_helper_status([
     $rolereport['status'],
