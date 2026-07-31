@@ -921,7 +921,8 @@ final class event_manager_test extends advanced_testcase {
     }
 
     /**
-     * Observer mode must return only accepted events in a neutral reserved projection.
+     * Observer mode must return only confirmed events in a reserved projection that still
+     * includes room info (WP-6 / R2.1).
      *
      * @return void
      */
@@ -931,17 +932,26 @@ final class event_manager_test extends advanced_testcase {
         $context = $this->create_observer_context_for_user($observer->id);
         $this->setUser($observer);
 
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_bookit');
+        $roomid = $generator->create_room([
+            'name' => 'Observer Hall',
+            'shortname' => 'OBS1',
+            'location' => 'North',
+        ]);
+
         $this->create_event_record([
-                'name' => 'Observer hidden request',
-                'bookingstatus' => event_access_manager::BOOKINGSTATUS_NEW,
-                'starttime' => strtotime('2026-05-08 08:00:00'),
-                'endtime' => strtotime('2026-05-08 09:00:00'),
+            'name' => 'Observer hidden request',
+            'roomid' => $roomid,
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_NEW,
+            'starttime' => strtotime('2026-05-08 08:00:00'),
+            'endtime' => strtotime('2026-05-08 09:00:00'),
         ]);
         $acceptedid = $this->create_event_record([
-                'name' => 'Observer accepted booking',
-                'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
-                'starttime' => strtotime('2026-05-08 10:00:00'),
-                'endtime' => strtotime('2026-05-08 11:00:00'),
+            'name' => 'Observer accepted booking',
+            'roomid' => $roomid,
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            'starttime' => strtotime('2026-05-08 10:00:00'),
+            'endtime' => strtotime('2026-05-08 11:00:00'),
         ]);
 
         $events = event_manager::get_events_in_timerange('2026-05-08 00:00', '2026-05-08 23:59', (int)$context->instanceid);
@@ -949,8 +959,46 @@ final class event_manager_test extends advanced_testcase {
         $this->assertCount(1, $events);
         $this->assert_is_canonical_calendar_event($events[0]);
         $this->assertSame($acceptedid, (int)$events[0]['id']);
-        $this->assertSame('Reserved (All rooms)', $events[0]['title']);
+        $this->assertStringContainsString('Reserved', $events[0]['title']);
+        $this->assertStringContainsString('Observer Hall', $events[0]['title']);
+        $this->assertStringContainsString('OBS1', $events[0]['title']);
+        $this->assertStringNotContainsString('Observer accepted booking', $events[0]['title']);
+        $this->assertSame('Reserved (Observer Hall: OBS1, North)', $events[0]['title']);
         $this->assertSame('reserved_projection', $events[0]['extendedProps']['visibilitymode']);
+        $this->assertSame($roomid, (int)$events[0]['extendedProps']['room']['roomid']);
+        $this->assertSame('Observer Hall', $events[0]['extendedProps']['room']['roomname']);
+        $this->assertSame('OBS1', $events[0]['extendedProps']['room']['shortname']);
+        $this->assertSame('North', $events[0]['extendedProps']['room']['location']);
+        $this->assertArrayNotHasKey('resources', $events[0]);
+        $this->assertArrayNotHasKey('resources', $events[0]['extendedProps']);
+    }
+
+    /**
+     * Observer empty-room fallback must match the non-observer all-rooms label (WP-6 FR-006).
+     *
+     * @return void
+     */
+    public function test_get_events_in_timerange_observer_uses_all_rooms_fallback(): void {
+        $this->resetAfterTest(true);
+        $observer = $this->getDataGenerator()->create_user();
+        $context = $this->create_observer_context_for_user($observer->id);
+        $this->setUser($observer);
+
+        $this->create_event_record([
+            'name' => 'Confirmed without room',
+            'roomid' => null,
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            'starttime' => strtotime('2026-05-08 10:00:00'),
+            'endtime' => strtotime('2026-05-08 11:00:00'),
+        ]);
+
+        $events = event_manager::get_events_in_timerange('2026-05-08 00:00', '2026-05-08 23:59', (int)$context->instanceid);
+
+        $this->assertCount(1, $events);
+        $fallback = get_string('resources:all_rooms', 'mod_bookit');
+        $this->assertSame('Reserved (' . $fallback . ')', $events[0]['title']);
+        $this->assertSame($fallback, $events[0]['extendedProps']['room']['roomname']);
+        $this->assertArrayNotHasKey('resources', $events[0]['extendedProps']);
     }
 
     /**
