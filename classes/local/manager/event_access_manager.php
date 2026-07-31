@@ -232,6 +232,28 @@ class event_access_manager {
     }
 
     /**
+     * Whether the user may edit the exam-course template selection.
+     *
+     * @param context_module $context
+     * @param int|null $userid
+     * @return bool
+     */
+    public static function can_select_examcourse_template(context_module $context, ?int $userid = null): bool {
+        return has_capability('mod/bookit:selectexamcoursetemplate', $context, $userid);
+    }
+
+    /**
+     * Whether the user may see created exam-course linkage (R2.9).
+     *
+     * @param context_module $context
+     * @param int|null $userid
+     * @return bool
+     */
+    public static function can_view_examcourse(context_module $context, ?int $userid = null): bool {
+        return has_capability('mod/bookit:viewexamcourse', $context, $userid);
+    }
+
+    /**
      * Check whether the current user is in restricted observer mode.
      *
      * @param context_module $context

@@ -78,6 +78,42 @@ if ($hassiteconfig) {
         0
     ));
 
+    $settings->add(new admin_setting_heading(
+        'mod_bookit_examcourse_heading',
+        get_string('examcourse_heading', 'mod_bookit'),
+        get_string('examcourse_heading_desc', 'mod_bookit')
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_bookit/' . install_helper::CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED,
+        get_string('examcourse_autocreate_enabled', 'mod_bookit'),
+        get_string('examcourse_autocreate_enabled_desc', 'mod_bookit'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_bookit/' . install_helper::CONFIG_EXAMCOURSE_INCLUDE_TEACHER_COURSES,
+        get_string('examcourse_include_teacher_courses', 'mod_bookit'),
+        get_string('examcourse_include_teacher_courses_desc', 'mod_bookit'),
+        0
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'mod_bookit/' . install_helper::CONFIG_EXAMCOURSE_TEMPLATE_CATEGORYID,
+        get_string('examcourse_template_categoryid', 'mod_bookit'),
+        get_string('examcourse_template_categoryid_desc', 'mod_bookit'),
+        0,
+        PARAM_INT
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'mod_bookit/' . install_helper::CONFIG_EXAMCOURSE_TARGET_CATEGORYID,
+        get_string('examcourse_target_categoryid', 'mod_bookit'),
+        get_string('examcourse_target_categoryid_desc', 'mod_bookit'),
+        0,
+        PARAM_INT
+    ));
+
     $installhelperfinished = (int)get_config('mod_bookit', 'installhelperfinished');
     $installhelperstatus = optional_param('installhelperstatus', '', PARAM_ALPHAEXT);
     $rolesimported = optional_param('rolesimported', 0, PARAM_INT);

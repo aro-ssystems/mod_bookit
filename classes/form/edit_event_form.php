@@ -38,6 +38,7 @@ use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\examiner_pool_resolver;
 use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\event_manager;
+use mod_bookit\local\manager\examcourse_manager;
 use mod_bookit\local\manager\resource_manager;
 use mod_bookit\local\persistent\institution;
 use mod_bookit\local\persistent\room;
@@ -417,6 +418,46 @@ class edit_event_form extends dynamic_form {
             $mform->setType('otherexaminers', PARAM_TEXT);
         }
 
+        // Exam course template selection (WP-5): driven by resources + autocreate + options.
+        $eventforoptions = $existingevent ?: (object)[
+            'institutionid' => 0,
+            'semester' => 0,
+            'usercreated' => (int)$USER->id,
+            'coursetemplate' => 0,
+        ];
+        $canselectexamtemplate = event_access_manager::can_select_examcourse_template($context, (int)$USER->id);
+        $showexamtemplate = examcourse_manager::should_show_template_field($eventforoptions, (int)$USER->id);
+        if ($showexamtemplate) {
+            $coursetemplates = [0 => get_string('choosedots')]
+                + examcourse_manager::get_template_options($eventforoptions, (int)$USER->id);
+            if ($canselectexamtemplate && $caneditevent) {
+                $mform->addElement(
+                    'select',
+                    'coursetemplate',
+                    get_string('examcourse_template_field', 'mod_bookit'),
+                    $coursetemplates
+                );
+                $mform->disabledIf('coursetemplate', 'editevent', 'neq');
+                $mform->setType('coursetemplate', PARAM_INT);
+                $mform->addHelpButton('coursetemplate', 'examcourse_template_field', 'mod_bookit');
+            } else {
+                $selected = (int)($existingevent->coursetemplate ?? 0);
+                $display = $coursetemplates[$selected] ?? get_string('choosedots');
+                $mform->addElement(
+                    'static',
+                    'coursetemplate_readonly',
+                    get_string('examcourse_template_field', 'mod_bookit'),
+                    s($display)
+                );
+                $mform->addHelpButton('coursetemplate_readonly', 'examcourse_template_field', 'mod_bookit');
+                $mform->addElement('hidden', 'coursetemplate', $selected);
+                $mform->setType('coursetemplate', PARAM_INT);
+            }
+        } else {
+            $mform->addElement('hidden', 'coursetemplate');
+            $mform->setType('coursetemplate', PARAM_INT);
+        }
+
         if ($this->is_optional_field_enabled($config, 'compensationfordisadvantages')) {
             $mform->addElement(
                 'editor',
@@ -477,6 +518,35 @@ class edit_event_form extends dynamic_form {
             $mform->setType('totalparticipantsamount', PARAM_RAW_TRIMMED);
             $mform->addRule('totalparticipantsamount', null, 'numeric', null, 'client');
             $mform->addHelpButton('totalparticipantsamount', 'event_totalparticipants', 'mod_bookit');
+        }
+        $canviewexamcourse = event_access_manager::can_view_examcourse($context, (int)$USER->id);
+        if ($caneditinternal) {
+            $mform->addElement(
+                'course',
+                'refcourseid',
+                get_string('examcourse_created_field', 'mod_bookit'),
+                ['multiple' => false, 'showhidden' => true, 'exclude' => '']
+            );
+            $mform->setType('refcourseid', PARAM_INT);
+            $mform->setDefault('refcourseid', 0);
+            $mform->hideIf('refcourseid', 'editinternal', 'neq');
+            $mform->addHelpButton('refcourseid', 'examcourse_created_field', 'mod_bookit');
+        } else if ($canviewexamcourse) {
+            $refcourselabel = get_string('examcourse_created_field', 'mod_bookit');
+            $refcoursedisplay = '';
+            $refcoursevalue = 0;
+            if ($existingevent && !empty($existingevent->refcourseid)) {
+                $refcoursevalue = (int)$existingevent->refcourseid;
+                $refcourse = get_course($refcoursevalue, false);
+                $refcoursedisplay = $refcourse ? format_string($refcourse->fullname) : '';
+            }
+            $mform->addElement('static', 'refcourseid_readonly', $refcourselabel, s($refcoursedisplay));
+            $mform->addHelpButton('refcourseid_readonly', 'examcourse_created_field', 'mod_bookit');
+            $mform->addElement('hidden', 'refcourseid', $refcoursevalue);
+            $mform->setType('refcourseid', PARAM_INT);
+        } else {
+            $mform->addElement('hidden', 'refcourseid');
+            $mform->setType('refcourseid', PARAM_INT);
         }
 
         // Add the "bookingstatus" field.
@@ -1140,6 +1210,15 @@ class edit_event_form extends dynamic_form {
             $formdata->notes = $currentevent->notes;
             $formdata->refcourseid = $currentevent->refcourseid;
             $formdata->name = $currentevent->name;
+        }
+
+        // WP-5: reject unauthorized exam template changes.
+        if (!event_access_manager::can_select_examcourse_template($context, (int)$USER->id)) {
+            if ($currentevent) {
+                $formdata->coursetemplate = $currentevent->coursetemplate;
+            } else {
+                $formdata->coursetemplate = 0;
+            }
         }
 
         if (is_array($formdata->supportpersons)) {

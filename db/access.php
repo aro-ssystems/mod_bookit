@@ -57,6 +57,12 @@ $capabilities = [
                 'contextlevel' => CONTEXT_MODULE,
                 'archetypes' => [],
         ],
+        // Select exam-course template on a booking (WP-5 / R2.5).
+        'mod/bookit:selectexamcoursetemplate' => [
+                'captype' => 'write',
+                'contextlevel' => CONTEXT_MODULE,
+                'archetypes' => [],
+        ],
         // Gate for all admin area functions: rooms, resources, resource checklist, weekplans,
         // institutions, calendar. Assign this to Service Team for unrestricted admin access.
         'mod/bookit:managebasics' => [
@@ -75,6 +81,12 @@ $capabilities = [
         'mod/bookit:view' => [
                 'captype' => 'view',
                 'contextlevel' => CONTEXT_COURSE,
+                'archetypes' => [],
+        ],
+        // View created exam-course linkage on a booking (WP-5 / R2.9); opt-in for support.
+        'mod/bookit:viewexamcourse' => [
+                'captype' => 'read',
+                'contextlevel' => CONTEXT_MODULE,
                 'archetypes' => [],
         ],
         // View all details of event.
