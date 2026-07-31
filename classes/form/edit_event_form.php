@@ -156,6 +156,27 @@ class edit_event_form extends dynamic_form {
         $mform->addRule('name', null, 'maxlength', 255, 'client');
         $mform->addHelpButton('name', 'event_name', 'mod_bookit');
 
+        // WP-8: Checklist shortcut for existing events (same gate/URL as overview).
+        if (
+            $existingevent
+            && !empty($cmid)
+            && event_access_manager::can_view_event_checklist($existingevent, $context, (int)$USER->id)
+        ) {
+            $checklisturl = new \moodle_url('/mod/bookit/view/event_checklist_view.php', [
+                'id' => (int)$cmid,
+                'eventid' => (int)$existingevent->id,
+            ]);
+            $checklistlink = \html_writer::link(
+                $checklisturl,
+                get_string('checklist', 'mod_bookit'),
+                [
+                    'class' => 'btn btn-secondary btn-sm',
+                    'data-region' => 'bookit-event-form-checklist',
+                ]
+            );
+            $mform->addElement('static', 'checklist_action', get_string('checklist', 'mod_bookit'), $checklistlink);
+        }
+
         // Semester.
         $currentyear = (int) date('Y');
         // Generate semesters dynamically.

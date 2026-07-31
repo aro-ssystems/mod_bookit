@@ -90,7 +90,7 @@ class edit_checklist_item_form extends dynamic_form {
         $mform->addHelpButton('categoryid', 'checklistcategory', 'mod_bookit');
 
         $allrooms = array_column(checklist_manager::get_bookit_rooms(), 'name', 'id');
-        $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
+        $allroles = array_column(checklist_manager::get_assignable_checklist_roles(), 'name', 'id');
 
         $select = $mform->addElement('select', 'roomids', get_string('rooms', 'mod_bookit'), $allrooms, [
             'style' => 'width:50%; max-height:150px;',
@@ -237,6 +237,11 @@ class edit_checklist_item_form extends dynamic_form {
      */
     public function process_put_request($data) {
         global $USER;
+
+        if (isset($data['roleids'])) {
+            $roleids = is_array($data['roleids']) ? $data['roleids'] : [$data['roleids']];
+            $data['roleids'] = checklist_manager::strip_observer_roleids($roleids);
+        }
 
         if (!empty($data['itemid'])) {
             $item = bookit_checklist_item::from_database($data['itemid']);

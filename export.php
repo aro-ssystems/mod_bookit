@@ -38,6 +38,12 @@ require_capability('mod/bookit:managemasterchecklist', $context);
 $masterid = required_param('masterid', PARAM_INT);
 $format = required_param('format', PARAM_ALPHA);
 $title = optional_param('title', '', PARAM_TEXT);
+$filename = optional_param('filename', '', PARAM_TEXT);
+if ($filename !== '') {
+    $filename = clean_filename($filename);
+    // Drop accidental .pdf extension; manager appends it.
+    $filename = preg_replace('/\.pdf$/i', '', $filename) ?? $filename;
+}
 
 if (!in_array($format, ['csv', 'pdf'])) {
     throw new moodle_exception('invalidformat', 'mod_bookit');
@@ -49,7 +55,7 @@ try {
             sharing_manager::export_master_checklist_csv($masterid);
             break;
         case 'pdf':
-            sharing_manager::export_master_checklist_pdf($masterid, '', $title);
+            sharing_manager::export_master_checklist_pdf($masterid, $filename, $title);
             break;
     }
 } catch (Exception $e) {

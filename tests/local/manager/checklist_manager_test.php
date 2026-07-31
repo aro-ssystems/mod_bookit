@@ -163,4 +163,27 @@ final class checklist_manager_test extends advanced_testcase {
         $reloaded = bookit_checklist_item::from_database($itemid);
         $this->assertSame(0, (int)$reloaded->active);
     }
+
+    /**
+     * Assignable checklist roles exclude Observer; strip removes Observer ids.
+     */
+    public function test_assignable_roles_exclude_observer(): void {
+        $all = checklist_manager::get_bookit_roles();
+        $assignable = checklist_manager::get_assignable_checklist_roles();
+
+        $allshort = array_map(static fn($r) => $r->shortname, $all);
+        $assignshort = array_map(static fn($r) => $r->shortname, $assignable);
+
+        if (in_array('bookit_observer', $allshort, true)) {
+            $this->assertNotContains('bookit_observer', $assignshort);
+            $observerid = checklist_manager::get_observer_role_id();
+            $this->assertNotNull($observerid);
+            $stripped = checklist_manager::strip_observer_roleids([(int)$observerid, 999]);
+            $this->assertSame([999], $stripped);
+        } else {
+            $this->assertSame($allshort, $assignshort);
+            $this->assertNull(checklist_manager::get_observer_role_id());
+            $this->assertSame([1, 2], checklist_manager::strip_observer_roleids([1, 2]));
+        }
+    }
 }

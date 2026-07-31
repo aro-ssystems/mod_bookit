@@ -108,10 +108,11 @@
             {{{name}}}
         </div>
         {{#items}}
-        <div class="list-group-item d-flex align-items-center px-3 py-2"
+        <div class="list-group-item d-flex align-items-center px-3 py-2{{#isoverdue}} mod-bookit-checklist-item-overdue{{/isoverdue}}"
              data-region="event-checklist-item-row"
              data-itemid="{{id}}"
-             data-itemdone="{{done}}">
+             data-itemdone="{{done}}"
+             data-itemoverdue="{{#isoverdue}}1{{/isoverdue}}{{^isoverdue}}0{{/isoverdue}}">
             <input type="checkbox"
                    class="mr-3"
                    data-region="event-checklist-item-checkbox"
@@ -122,7 +123,7 @@
             <label class="form-check-label mb-0 flex-grow-1 {{#done}}text-decoration-line-through text-muted{{/done}}"
                    for="event-checklist-item-{{id}}"
                    data-region="event-checklist-item-label">
-                {{{title}}}
+                {{#isoverdue}}<span class="mod-bookit-checklist-overdue-emoji" aria-hidden="true">{{overdueemoji}}</span> {{/isoverdue}}{{{title}}}
             </label>
         </div>
         {{/items}}

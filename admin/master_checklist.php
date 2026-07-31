@@ -47,6 +47,11 @@ $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('master_checklist', 'mod_bookit'));
 $PAGE->set_heading(get_string('settings_overview', 'mod_bookit'));
 
+$importsuccess = optional_param('importsuccess', 0, PARAM_INT);
+if ($importsuccess) {
+    \core\notification::success(get_string('checklist_import_success', 'mod_bookit'));
+}
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('master_checklist', 'mod_bookit'));
 

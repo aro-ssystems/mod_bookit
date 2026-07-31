@@ -523,6 +523,15 @@
     color: #664d03;
 }
 
+/* Overdue checklist items in the event checklist. */
+.mod-bookit-checklist-item-overdue .mod-bookit-checklist-overdue-emoji {
+    margin-right: 0.15rem;
+}
+
+.mod-bookit-checklist-item-overdue label {
+    color: #a94442;
+}
+
 /* ===========================================================================
    Export modal - subtle modern polish. Scoped to #bookit-export-modal and the
    .bookit-export-* classes. Reuses the canonical booking-status palette so the

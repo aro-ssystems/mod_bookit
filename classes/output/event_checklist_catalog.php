@@ -139,6 +139,7 @@ class event_checklist_catalog implements renderable, templatable {
                 continue;
             }
 
+            $eventstart = ($event && !empty($event->starttime)) ? (int)$event->starttime : 0;
             $itemsdata = [];
             foreach ($items as $item) {
                 $itemid = (int)$item->id;
@@ -146,12 +147,20 @@ class event_checklist_catalog implements renderable, templatable {
                     continue;
                 }
                 $done   = $statebyitem[$itemid] ?? false;
+                $isoverdue = checklist_manager::is_checklist_item_overdue(
+                    $eventstart,
+                    $item->duedaysrelation ?? null,
+                    isset($item->duedaysoffset) ? (int)$item->duedaysoffset : null,
+                    $done
+                );
 
                 $itemdata = new stdClass();
                 $itemdata->id    = $itemid;
                 $itemdata->title = format_string($item->title);
                 $itemdata->done  = $done;
                 $itemdata->canedit = $this->can_edit_item($item->roleids ?? []);
+                $itemdata->isoverdue = $isoverdue;
+                $itemdata->overdueemoji = $isoverdue ? '⚠️' : '';
 
                 $itemsdata[] = $itemdata;
             }

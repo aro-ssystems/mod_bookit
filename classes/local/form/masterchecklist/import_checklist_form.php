@@ -152,15 +152,19 @@ class import_checklist_form extends dynamic_form {
             $result = $sharingmanager->import_master_checklist_csv($masterid, $csvdata, $importrooms);
 
             if ($result['success']) {
+                $redirecturl = new \moodle_url('/mod/bookit/admin/master_checklist.php', [
+                    'importsuccess' => 1,
+                ]);
                 return [
                     'success' => true,
                     'message' => get_string('importsuccessful', 'mod_bookit', $result['imported']),
-                    'reload' => true,
+                    'redirecturl' => $redirecturl->out(false),
+                    'reload' => false,
                 ];
             } else {
                 return [
                     'success' => false,
-                    'message' => $result['message'],
+                    'message' => $result['message'] ?? get_string('importfailed', 'mod_bookit', ''),
                 ];
             }
         }

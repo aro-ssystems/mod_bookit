@@ -136,6 +136,112 @@ class checklist_manager {
     }
 
     /**
+     * BookIt roles that may be assigned to checklist items (excludes Observer).
+     *
+     * @return array Array of role objects
+     */
+    public static function get_assignable_checklist_roles(): array {
+        return array_values(array_filter(
+            self::get_bookit_roles(),
+            static fn($role): bool => ($role->shortname ?? '') !== 'bookit_observer'
+        ));
+    }
+
+    /**
+     * Role id for bookit_observer, or null if the role is not installed.
+     *
+     * @return int|null
+     */
+    public static function get_observer_role_id(): ?int {
+        foreach (self::get_bookit_roles() as $role) {
+            if (($role->shortname ?? '') === 'bookit_observer') {
+                return (int)$role->id;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Remove Observer from a list of checklist role ids (WP-8 strip-on-save).
+     *
+     * @param array $roleids
+     * @return array
+     */
+    public static function strip_observer_roleids(array $roleids): array {
+        $observerid = self::get_observer_role_id();
+        if ($observerid === null) {
+            return array_values(array_map('intval', $roleids));
+        }
+        $filtered = [];
+        foreach ($roleids as $roleid) {
+            $id = (int)$roleid;
+            if ($id !== $observerid) {
+                $filtered[] = $id;
+            }
+        }
+        return array_values($filtered);
+    }
+
+    /**
+     * Absolute due timestamp for a checklist item relative to an event start.
+     *
+     * @param int $eventstart Event start unix timestamp
+     * @param string|null $duedaysrelation none|before|after
+     * @param int|null $duedaysoffset Day offset (not seconds)
+     * @return int|null Null when no due date applies
+     */
+    public static function get_absolute_due_timestamp(
+        int $eventstart,
+        ?string $duedaysrelation,
+        ?int $duedaysoffset
+    ): ?int {
+        if ($eventstart <= 0) {
+            return null;
+        }
+        $relation = $duedaysrelation ?? 'none';
+        if ($relation === '' || $relation === 'none') {
+            return null;
+        }
+        $days = max(0, (int)($duedaysoffset ?? 0));
+        $offset = $days * DAYSECS;
+        if ($relation === 'before') {
+            return $eventstart - $offset;
+        }
+        if ($relation === 'after') {
+            return $eventstart + $offset;
+        }
+        return null;
+    }
+
+    /**
+     * Whether an open checklist item is overdue for an event.
+     *
+     * @param int $eventstart
+     * @param string|null $duedaysrelation
+     * @param int|null $duedaysoffset
+     * @param bool $done
+     * @param int|null $now Defaults to time()
+     * @return bool
+     */
+    public static function is_checklist_item_overdue(
+        int $eventstart,
+        ?string $duedaysrelation,
+        ?int $duedaysoffset,
+        bool $done,
+        ?int $now = null
+    ): bool {
+        if ($done) {
+            return false;
+        }
+        $due = self::get_absolute_due_timestamp($eventstart, $duedaysrelation, $duedaysoffset);
+        if ($due === null) {
+            return false;
+        }
+        $now = $now ?? time();
+        return $due < $now;
+    }
+
+    /**
      * Get all BookIt role IDs assigned to a user.
      *
      * @param int $userid
