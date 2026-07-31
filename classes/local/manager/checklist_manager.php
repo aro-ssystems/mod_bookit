@@ -306,4 +306,65 @@ class checklist_manager {
 
         return $DB->count_records_sql($sql, [$roleid, $USER->id]) > 0;
     }
+
+    /**
+     * Whether a master checklist category still has items.
+     *
+     * @param int $categoryid
+     * @return bool
+     */
+    public static function category_has_items(int $categoryid): bool {
+        global $DB;
+        return $DB->record_exists('bookit_checklist_item', ['categoryid' => $categoryid]);
+    }
+
+    /**
+     * Whether a master item has any event checklist state rows.
+     *
+     * @param int $itemid
+     * @return bool
+     */
+    public static function item_has_event_states(int $itemid): bool {
+        global $DB;
+        return $DB->record_exists('bookit_event_checklist_state', ['checklistitemid' => $itemid]);
+    }
+
+    /**
+     * Guard category delete — throws when the category still contains items.
+     *
+     * @param int $categoryid
+     * @return void
+     * @throws \moodle_exception
+     */
+    public static function assert_can_delete_category(int $categoryid): void {
+        if (self::category_has_items($categoryid)) {
+            throw new \moodle_exception('checklistcategory_has_items', 'mod_bookit');
+        }
+    }
+
+    /**
+     * Guard item delete — throws when the item is linked to any event state.
+     *
+     * @param int $itemid
+     * @return void
+     * @throws \moodle_exception
+     */
+    public static function assert_can_delete_item(int $itemid): void {
+        if (self::item_has_event_states($itemid)) {
+            throw new \moodle_exception('checklistitem_has_event_states', 'mod_bookit');
+        }
+    }
+
+    /**
+     * Set master checklist item active flag.
+     *
+     * @param int $itemid
+     * @param bool $active
+     * @return void
+     */
+    public static function set_item_active(int $itemid, bool $active): void {
+        $item = bookit_checklist_item::from_database($itemid);
+        $item->active = $active ? 1 : 0;
+        $item->save();
+    }
 }

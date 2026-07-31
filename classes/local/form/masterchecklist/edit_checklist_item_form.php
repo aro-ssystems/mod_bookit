@@ -114,6 +114,11 @@ class edit_checklist_item_form extends dynamic_form {
         $select->setMultiple(true);
         $mform->addHelpButton('roleids', 'role', 'mod_bookit');
 
+        $mform->addElement('advcheckbox', 'active', get_string('checklistitem_active', 'mod_bookit'));
+        $mform->setDefault('active', 1);
+        $mform->setType('active', PARAM_INT);
+        $mform->addHelpButton('active', 'checklistitem_active', 'mod_bookit');
+
         $duedateradio = [
             $mform->createElement('radio', 'duedate', '', get_string('checklist_due_noduedate', 'mod_bookit'), 'none'),
             $mform->createElement('radio', 'duedate', '', get_string('checklist_due_before_event', 'mod_bookit'), 'before'),
@@ -245,6 +250,7 @@ class edit_checklist_item_form extends dynamic_form {
                 }
             }
 
+            $active = array_key_exists('active', $data) ? (!empty($data['active']) ? 1 : 0) : 1;
             $fields = [
                     'title' => $data['title'],
                     'order' => 0,
@@ -253,6 +259,7 @@ class edit_checklist_item_form extends dynamic_form {
                     'roleids' => $data['roleids'],
                     'duedaysrelation' => $data['duedate'],
                     'duedaysoffset' => $duedaysoffset,
+                    'active' => $active,
             ];
 
             foreach ($fields as $key => $value) {
@@ -267,6 +274,7 @@ class edit_checklist_item_form extends dynamic_form {
             $item->timemodified = time();
             $item->itemid = $item->id;
         } else {
+            $active = array_key_exists('active', $data) ? (!empty($data['active']) ? 1 : 0) : 1;
             $item = new bookit_checklist_item(
                 0,
                 1,
@@ -285,7 +293,8 @@ class edit_checklist_item_form extends dynamic_form {
                 null,
                 $USER->id,
                 time(),
-                time()
+                time(),
+                $active
             );
         }
 
@@ -376,6 +385,7 @@ class edit_checklist_item_form extends dynamic_form {
      * @return array Result of the delete operation
      */
     public function process_delete_request($id) {
+        checklist_manager::assert_can_delete_item((int)$id);
 
         $item = bookit_checklist_item::from_database($id);
         $categoryid = $item->categoryid;

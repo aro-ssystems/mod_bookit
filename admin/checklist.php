@@ -28,6 +28,7 @@ use mod_bookit\local\tabs;
 
 require_once(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/filelib.php');
 
 require_login();
 
@@ -47,31 +48,44 @@ if (!install_helper::is_checklist_enabled()) {
     redirect($settingsurl, get_string('optional_part_disabled', 'mod_bookit'), null, \core\output\notification::NOTIFY_WARNING);
 }
 
-$mform = new settings_checklist_form();
+$fileoptions = [
+    'subdirs' => 0,
+    'maxfiles' => 1,
+    'accepted_types' => ['.png', '.jpg', '.jpeg'],
+];
+
+$mform = new settings_checklist_form(null, ['fileoptions' => $fileoptions]);
 
 // Standard form processing if statement.
 if ($mform->is_cancelled()) {
     redirect($returnurl);
 } else if ($data = $mform->get_data()) {
-    foreach ($data as $key => $value) {
-        unset($data->submitbutton);
-        // Create data object for each entry.
-        // Fields: id, plugin, name, value.
-        $c = new stdClass();
-        $c->plugin = 'mod_bookit';
-        $c->name = $key;
-        $c->value = (is_array($value) ? implode(',', $value) : $value);
-        $record = $DB->get_record('config_plugins', ['plugin' => 'mod_bookit', 'name' => $key], 'id');
-        if ($record) {
-            $c->id = $record->id;
-            $DB->update_record('config_plugins', $c);
-        } else {
-            $DB->insert_record('config_plugins', $c);
+    $draftid = (int)($data->pdf_logo_custom ?? 0);
+    if ($draftid > 0) {
+        file_save_draft_area_files(
+            $draftid,
+            $context->id,
+            'mod_bookit',
+            'pdf_logo_custom',
+            0,
+            $fileoptions
+        );
+    }
+
+    $configkeys = ['pdf_logo_enable', 'pdf_logo_source'];
+    foreach ($configkeys as $key) {
+        if (property_exists($data, $key)) {
+            set_config($key, $data->$key, 'mod_bookit');
         }
     }
+    redirect($returnurl, get_string('changessaved'), null, \core\output\notification::NOTIFY_SUCCESS);
 }
 
+$draftid = file_get_submitted_draft_itemid('pdf_logo_custom');
+file_prepare_draft_area($draftid, $context->id, 'mod_bookit', 'pdf_logo_custom', 0, $fileoptions);
+
 $config = get_config('mod_bookit');
+$config->pdf_logo_custom = $draftid;
 $mform->set_data($config);
 
 echo $OUTPUT->header();

@@ -213,6 +213,7 @@ class edit_checklist_category_form extends dynamic_form {
      * @return array Result of the delete operation
      */
     public function process_delete_request($id): array {
+        checklist_manager::assert_can_delete_category((int)$id);
         $category = bookit_checklist_category::from_database($id);
         $category->delete();
 

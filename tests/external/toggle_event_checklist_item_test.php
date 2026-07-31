@@ -22,6 +22,7 @@ use mod_bookit\local\entity\masterchecklist\bookit_checklist_category;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
 use mod_bookit\local\install_helper;
+use mod_bookit\local\manager\checklist_manager;
 use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\event_manager;
 
@@ -133,5 +134,186 @@ final class toggle_event_checklist_item_test extends advanced_testcase {
         );
         $this->assertCount(1, $governedafter);
         $this->assertSame($eventid, (int)$governedafter[0]['id']);
+    }
+
+    /**
+     * Support-only users follow roleids intersection (WP-7 R3.3).
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function test_support_only_respects_roleids_intersection(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+        set_config(install_helper::CONFIG_CHECKLIST_ENABLED, 1, 'mod_bookit');
+
+        $dbman = $DB->get_manager();
+        $table = new \xmldb_table('bookit_checklist_item');
+        $field = new \xmldb_field('active', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $course = $this->getDataGenerator()->create_course();
+        $bookit = $this->getDataGenerator()->create_module('bookit', ['course' => $course->id, 'name' => 'Support checklist']);
+        $context = context_module::instance($bookit->cmid);
+
+        $supportrole = $DB->get_record('role', ['shortname' => 'bookit_supportonsite']);
+        if (!$supportrole) {
+            $supportroleid = \create_role('Bookit support on site', 'bookit_supportonsite', '');
+        } else {
+            $supportroleid = (int)$supportrole->id;
+        }
+        $bookingrole = $DB->get_record('role', ['shortname' => 'bookit_bookingperson']);
+        if (!$bookingrole) {
+            $bookingroleid = \create_role('Bookit booking person', 'bookit_bookingperson', '');
+        } else {
+            $bookingroleid = (int)$bookingrole->id;
+        }
+
+        \assign_capability('mod/bookit:view', CAP_ALLOW, $supportroleid, $context->id, true);
+        \assign_capability('mod/bookit:viewownoverview', CAP_ALLOW, $supportroleid, $context->id, true);
+        \assign_capability('mod/bookit:viewalldetailsofownevent', CAP_ALLOW, $supportroleid, $context->id, true);
+        // Explicitly ensure no Service bypass caps.
+        \assign_capability('mod/bookit:managebasics', CAP_PREVENT, $supportroleid, $context->id, true);
+        \assign_capability('mod/bookit:viewalldetailsofevent', CAP_PREVENT, $supportroleid, $context->id, true);
+
+        $supportuser = $this->getDataGenerator()->create_user();
+        \role_assign($supportroleid, $supportuser->id, $context->id);
+        $this->getDataGenerator()->enrol_user($supportuser->id, $course->id);
+
+        $eventid = (int)$DB->insert_record('bookit_event', (object)[
+            'name' => 'Support checklist event',
+            'semester' => 20261,
+            'institutionid' => 1,
+            'starttime' => strtotime('2026-05-20 09:00:00'),
+            'endtime' => strtotime('2026-05-20 11:00:00'),
+            'duration' => 120,
+            'roomid' => null,
+            'participantsamount' => 12,
+            'compensationfordisadvantages' => '',
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            'personinchargeid' => 0,
+            'otherexaminers' => '',
+            'coursetemplate' => null,
+            'notes' => '',
+            'internalnotes' => '',
+            'supportpersons' => (string)$supportuser->id,
+            'extratimebefore' => 0,
+            'extratimeafter' => 0,
+            'refcourseid' => null,
+            'usercreated' => 0,
+            'usermodified' => get_admin()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $master = new bookit_checklist_master(null, 'Support master', '');
+        $masterid = $master->save();
+        $category = new bookit_checklist_category(null, $masterid, 'Cat', '');
+        $categoryid = $category->save();
+
+        $ownitem = new bookit_checklist_item(
+            null,
+            $masterid,
+            $categoryid,
+            null,
+            [],
+            [$supportroleid],
+            'Support item',
+            '',
+            1,
+            null,
+            0,
+            1,
+            null,
+            null,
+            null,
+            get_admin()->id,
+            time(),
+            time(),
+            1
+        );
+        $ownitemid = $ownitem->save();
+
+        $foreignitem = new bookit_checklist_item(
+            null,
+            $masterid,
+            $categoryid,
+            null,
+            [],
+            [$bookingroleid],
+            'Booking only',
+            '',
+            1,
+            null,
+            0,
+            1,
+            null,
+            null,
+            null,
+            get_admin()->id,
+            time(),
+            time(),
+            1
+        );
+        $foreignitemid = $foreignitem->save();
+
+        $emptyroles = new bookit_checklist_item(
+            null,
+            $masterid,
+            $categoryid,
+            null,
+            [],
+            [],
+            'Empty roles',
+            '',
+            1,
+            null,
+            0,
+            1,
+            null,
+            null,
+            null,
+            get_admin()->id,
+            time(),
+            time(),
+            1
+        );
+        $emptyrolesid = $emptyroles->save();
+
+        $event = $DB->get_record('bookit_event', ['id' => $eventid], '*', MUST_EXIST);
+        $userroles = checklist_manager::get_user_bookit_role_ids($supportuser->id);
+
+        $this->assertTrue(event_access_manager::can_toggle_event_checklist_item(
+            $event,
+            [$supportroleid],
+            $context,
+            $supportuser->id,
+            $userroles
+        ));
+        $this->assertFalse(event_access_manager::can_toggle_event_checklist_item(
+            $event,
+            [$bookingroleid],
+            $context,
+            $supportuser->id,
+            $userroles
+        ));
+        $this->assertTrue(event_access_manager::can_toggle_event_checklist_item(
+            $event,
+            [],
+            $context,
+            $supportuser->id,
+            $userroles
+        ));
+
+        $this->setUser($supportuser);
+        $ok = toggle_event_checklist_item::execute($bookit->cmid, $eventid, $ownitemid, true);
+        $this->assertTrue($ok['done']);
+
+        $this->expectException(\moodle_exception::class);
+        toggle_event_checklist_item::execute($bookit->cmid, $eventid, $foreignitemid, true);
     }
 }
