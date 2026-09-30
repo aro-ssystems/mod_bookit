@@ -134,23 +134,26 @@ class edit_room_form extends \core\form\persistent {
     }
 
     /**
-     * Extra validation for Unicode-aware shortname length.
+     * Reject a shortname longer than the stored character limit.
      *
-     * @param array $data
-     * @param array $files
+     * @param \stdClass $data Submitted data.
+     * @param array $files Uploaded files.
+     * @param array $errors Errors already found.
      * @return array
      */
-    public function validation($data, $files) {
-        $errors = parent::validation($data, $files);
-        $shortname = (string) ($data['shortname'] ?? '');
+    #[\Override]
+    protected function extra_validation($data, $files, array &$errors) {
+        $shortname = (string) ($data->shortname ?? '');
         if (\core_text::strlen($shortname) > room::SHORTNAME_MAX_LENGTH) {
-            $errors['shortname'] = get_string(
-                'error_room_shortname_too_long',
-                'mod_bookit',
-                room::SHORTNAME_MAX_LENGTH
-            );
+            return [
+                'shortname' => get_string(
+                    'error_room_shortname_too_long',
+                    'mod_bookit',
+                    room::SHORTNAME_MAX_LENGTH
+                ),
+            ];
         }
-        return $errors;
+        return [];
     }
 
     #[\Override]
