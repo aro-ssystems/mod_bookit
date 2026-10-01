@@ -193,6 +193,28 @@ class behat_mod_bookit extends behat_base {
     }
 
     /**
+     * Configure exam course creation: template and target course categories by idnumber.
+     *
+     * Enables the resources module and automatic exam course creation, so a confirmed booking
+     * with a template creates its exam course in the target category.
+     *
+     * @Given the Bookit exam course templates come from category :tplidnumber and exam courses go to category :targetidnumber
+     * @param string $tplidnumber
+     * @param string $targetidnumber
+     */
+    public function the_bookit_exam_course_categories_are(string $tplidnumber, string $targetidnumber): void {
+        global $DB;
+
+        $templatecategory = (int)$DB->get_field('course_categories', 'id', ['idnumber' => $tplidnumber], MUST_EXIST);
+        $targetcategory = (int)$DB->get_field('course_categories', 'id', ['idnumber' => $targetidnumber], MUST_EXIST);
+
+        set_config(\mod_bookit\local\install_helper::CONFIG_RESOURCES_ENABLED, 1, 'mod_bookit');
+        set_config(\mod_bookit\local\install_helper::CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED, 1, 'mod_bookit');
+        set_config(\mod_bookit\local\install_helper::CONFIG_EXAMCOURSE_TEMPLATE_CATEGORYID, $templatecategory, 'mod_bookit');
+        set_config(\mod_bookit\local\install_helper::CONFIG_EXAMCOURSE_TARGET_CATEGORYID, $targetcategory, 'mod_bookit');
+    }
+
+    /**
      * Assert that the main Bookit activity tab row contains the given text.
      *
      * @Then the Bookit main tabs should contain :text
@@ -1914,6 +1936,16 @@ class behat_mod_bookit extends behat_base {
      */
     public function the_bookit_default_resource_data_exists(): void {
         \mod_bookit\local\install_helper::create_default_resources(false, false);
+    }
+
+    /**
+     * Import the shipped Bookit role presets when a scenario relies on them.
+     *
+     * @Given the Bookit default roles are imported
+     * @return void
+     */
+    public function the_bookit_default_roles_are_imported(): void {
+        \mod_bookit\local\install_helper::import_default_roles_with_report();
     }
 
     /**

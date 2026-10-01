@@ -1823,6 +1823,9 @@ class event_manager {
                 $newstatus,
                 'created'
             );
+            if ($newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
+                examcourse_manager::ensure_created_for_event($persistedrecord, $userid);
+            }
             return $persistedevent;
         }
 
@@ -1861,6 +1864,10 @@ class event_manager {
             $newstatus,
             $action
         );
+
+        if ($oldstatus !== $newstatus && $newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
+            examcourse_manager::ensure_created_for_event($persistedrecord, $userid);
+        }
 
         return $persistedevent;
     }
@@ -1920,6 +1927,10 @@ class event_manager {
         }
 
         self::trigger_booking_lifecycle_audit($event, $context, $userid, $oldstatus, $newstatus, $action);
+
+        if ($newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
+            examcourse_manager::ensure_created_for_event($event, $userid);
+        }
 
         return $event;
     }

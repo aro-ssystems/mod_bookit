@@ -31,7 +31,6 @@ use core_external\external_single_structure;
 use core_external\external_value;
 use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\event_manager;
-use mod_bookit\local\manager\examcourse_manager;
 use mod_bookit\local\tabs;
 
 defined('MOODLE_INTERNAL') || die;
@@ -163,11 +162,6 @@ class update_event_booking_status extends external_api {
         }
 
         event_manager::transition_booking_status($event, $effectivestatus, (int)$USER->id, $context, (int)$params['cmid']);
-
-        if ($effectivestatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
-            $event = $DB->get_record('bookit_event', ['id' => $params['eventid']], '*', MUST_EXIST);
-            examcourse_manager::ensure_created_for_event($event);
-        }
 
         $redirecttab = match (true) {
             in_array($params['tab'], ['openrequests', 'confirmedrequests', 'rejectedcancelled'], true)

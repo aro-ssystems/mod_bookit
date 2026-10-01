@@ -426,10 +426,10 @@ class edit_event_form extends dynamic_form {
             'coursetemplate' => 0,
         ];
         $canselectexamtemplate = event_access_manager::can_select_examcourse_template($context, (int)$USER->id);
-        $showexamtemplate = examcourse_manager::should_show_template_field($eventforoptions, (int)$USER->id);
+        $showexamtemplate = examcourse_manager::should_show_template_field($eventforoptions);
         if ($showexamtemplate) {
             $coursetemplates = [0 => get_string('choosedots')]
-                + examcourse_manager::get_template_options($eventforoptions, (int)$USER->id);
+                + examcourse_manager::get_template_options($eventforoptions);
             if ($canselectexamtemplate && $caneditevent) {
                 $mform->addElement(
                     'select',
@@ -520,18 +520,8 @@ class edit_event_form extends dynamic_form {
             $mform->addHelpButton('totalparticipantsamount', 'event_totalparticipants', 'mod_bookit');
         }
         $canviewexamcourse = event_access_manager::can_view_examcourse($context, (int)$USER->id);
-        if ($caneditinternal) {
-            $mform->addElement(
-                'course',
-                'refcourseid',
-                get_string('examcourse_created_field', 'mod_bookit'),
-                ['multiple' => false, 'showhidden' => true, 'exclude' => '']
-            );
-            $mform->setType('refcourseid', PARAM_INT);
-            $mform->setDefault('refcourseid', 0);
-            $mform->hideIf('refcourseid', 'editinternal', 'neq');
-            $mform->addHelpButton('refcourseid', 'examcourse_created_field', 'mod_bookit');
-        } else if ($canviewexamcourse) {
+        // The exam course link is only written by the exam course creation, so it is shown read-only.
+        if ($caneditinternal || $canviewexamcourse) {
             $refcourselabel = get_string('examcourse_created_field', 'mod_bookit');
             $refcoursedisplay = '';
             $refcoursevalue = 0;
@@ -1212,7 +1202,10 @@ class edit_event_form extends dynamic_form {
             $formdata->name = $currentevent->name;
         }
 
-        // WP-5: reject unauthorized exam template changes.
+        // The exam course link is written only by the exam course creation, never from submitted form data.
+        $formdata->refcourseid = $currentevent ? $currentevent->refcourseid : 0;
+
+        // Without the selection right the stored exam course template stays unchanged.
         if (!event_access_manager::can_select_examcourse_template($context, (int)$USER->id)) {
             if ($currentevent) {
                 $formdata->coursetemplate = $currentevent->coursetemplate;
@@ -1784,6 +1777,26 @@ class edit_event_form extends dynamic_form {
         );
         foreach ($poolerrors as $fieldname => $message) {
             $errors[$fieldname] = $message;
+        }
+
+        // A newly chosen exam course template must be one of the templates offered to this user. The raw
+        // submitted value is checked, because a hidden template field would accept any course id.
+        $submittedtemplate = (int)($this->_ajaxformdata['coursetemplate'] ?? $data['coursetemplate'] ?? 0);
+        $storedtemplate = (int)($existingevent->coursetemplate ?? 0);
+        if (
+            $submittedtemplate > 0
+            && $submittedtemplate !== $storedtemplate
+            && event_access_manager::can_select_examcourse_template($context, (int)$USER->id)
+        ) {
+            $eventforoptions = $existingevent ?: (object)[
+                'institutionid' => 0,
+                'semester' => 0,
+                'usercreated' => (int)$USER->id,
+                'coursetemplate' => 0,
+            ];
+            if (!array_key_exists($submittedtemplate, examcourse_manager::get_template_options($eventforoptions))) {
+                $errors['coursetemplate'] = get_string('examcourse_template_not_allowed', 'mod_bookit');
+            }
         }
 
         if ($existingevent === null || $caneditpublic) {
