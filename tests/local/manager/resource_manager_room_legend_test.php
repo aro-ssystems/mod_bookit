@@ -168,4 +168,66 @@ final class resource_manager_room_legend_test extends advanced_testcase {
         $this->assertStringContainsString('Linked Mic', $byid[$rooma]['resourceslabel']);
         $this->assertStringContainsString('Shared Projector', $byid[$roomb]['resourceslabel']);
     }
+
+    /**
+     * Stored room ids keep their name after the room is deactivated.
+     *
+     * Two resources with the same id both resolve it. An empty room list still
+     * means active rooms only.
+     *
+     * @return void
+     */
+    public function test_explicit_room_assignment_keeps_inactive_room_name(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_bookit');
+        $generator->create_room([
+            'name' => 'Kept Hall',
+            'shortname' => 'KEPT',
+            'active' => 0,
+        ]);
+        $generator->create_room([
+            'name' => 'Open Hall',
+            'shortname' => 'OPEN',
+            'active' => 1,
+        ]);
+        $generator->create_resource_category(['name' => 'Keep Cat']);
+        $firstid = $generator->create_resource([
+            'name' => 'Mic One',
+            'category_name' => 'Keep Cat',
+            'rooms' => 'Kept Hall',
+            'active' => 1,
+        ]);
+        $secondid = $generator->create_resource([
+            'name' => 'Mic Two',
+            'category_name' => 'Keep Cat',
+            'rooms' => 'Kept Hall',
+            'active' => 1,
+        ]);
+        $allid = $generator->create_resource([
+            'name' => 'Shared Screen',
+            'category_name' => 'Keep Cat',
+            'active' => 1,
+        ]);
+
+        $first = resource_manager::get_resource_by_id($firstid);
+        $second = resource_manager::get_resource_by_id($secondid);
+        $this->assertSame(['Kept Hall'], resource_manager::get_room_names_for_resource($first));
+        $this->assertSame(['Kept Hall'], resource_manager::get_room_names_for_resource($second));
+
+        $mapped = resource_manager::get_resource_rooms();
+        $this->assertSame('Kept Hall', $mapped[$firstid][0]['name']);
+        $this->assertSame('Kept Hall', $mapped[$secondid][0]['name']);
+        $this->assertSame([], $mapped[$allid]);
+
+        $activerows = resource_manager::get_active_rooms_with_resources();
+        $activenames = array_column($activerows, 'name');
+        $this->assertNotContains('Kept Hall', $activenames);
+        $this->assertContains('Open Hall', $activenames);
+        $this->assertArrayNotHasKey(
+            $generator->create_room(['name' => 'Unused Off', 'shortname' => 'UOFF', 'active' => 0]),
+            resource_manager::get_rooms()
+        );
+    }
 }

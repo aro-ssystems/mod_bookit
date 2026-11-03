@@ -21,12 +21,12 @@
 
     Context variables required for this template:
     * overviewurl - URL to room overview page
-    * previewhtml - Escaped HTML for overflow popover (shortnames)
+    * previewhtml - Shortnames escaped once; the attribute escapes them again
     * hasrooms - Whether any active rooms exist
     * rooms - Array of:
       - shortname
       - name
-      - tooltiphtml (escaped HTML: description + seats)
+      - tooltiphtml (text escaped once, joined with br; the attribute escapes again)
       - hascolor
       - eventcolor
       - textcolor
@@ -36,7 +36,7 @@
       "overviewurl": "/mod/bookit/room_overview.php?id=5",
       "previewhtml": "A1, B2",
       "hasrooms": true,
-      "rooms": [{"shortname":"A1","name":"Room A","tooltiphtml":"Desc&lt;br&gt;Seats: 10","hascolor":true,"eventcolor":"#3a87ad","textcolor":"#fff"}]
+      "rooms": [{"shortname":"A1","name":"Room A","tooltiphtml":"Desc<br>Seats: 10","hascolor":true,"eventcolor":"#3a87ad","textcolor":"#fff"}]
     }
 }}
 {{#hasrooms}}
@@ -54,8 +54,8 @@
                 data-bs-placement="bottom"
                 data-html="true"
                 data-bs-html="true"
-                data-content="{{{tooltiphtml}}}"
-                data-bs-content="{{{tooltiphtml}}}"
+                data-content="{{tooltiphtml}}"
+                data-bs-content="{{tooltiphtml}}"
                 title="{{name}}">
             {{shortname}}
         </button>
@@ -72,8 +72,8 @@
            data-bs-placement="bottom"
            data-html="true"
            data-bs-html="true"
-           data-content="{{{previewhtml}}}"
-           data-bs-content="{{{previewhtml}}}"
+           data-content="{{previewhtml}}"
+           data-bs-content="{{previewhtml}}"
            title="{{#str}}room_overview, mod_bookit{{/str}}">
             {{#str}}room_overview, mod_bookit{{/str}}
         </a>

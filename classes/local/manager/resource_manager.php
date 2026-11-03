@@ -132,9 +132,17 @@ class resource_manager {
      * @throws dml_exception
      */
     public static function get_room_names_for_resource(bookit_resource $resource): array {
-        $allrooms = self::get_rooms();
+        global $DB;
+
         $roomids = $resource->get_roomids() ?? [];
-        return array_values(array_filter(array_map(fn($rid) => $allrooms[$rid] ?? null, $roomids)));
+        $names = [];
+        foreach ($roomids as $roomid) {
+            $name = $DB->get_field('bookit_room', 'name', ['id' => $roomid]);
+            if ($name !== false && $name !== null) {
+                $names[] = $name;
+            }
+        }
+        return $names;
     }
 
     // Category CRUD Methods.
@@ -605,8 +613,8 @@ class resource_manager {
 
         $resources = $DB->get_records('bookit_resource', ['active' => 1], '', 'id, roomids');
 
-        // Get all active rooms.
-        $rooms = $DB->get_records('bookit_room', ['active' => 1], '', 'id, name, shortname, eventcolor');
+        // Stored room ids keep their name, including rooms that are no longer bookable.
+        $rooms = $DB->get_records('bookit_room', null, '', 'id, name, shortname, eventcolor');
         $roomsbyid = [];
         foreach ($rooms as $room) {
             $eventcolor = trim((string)($room->eventcolor ?? ''));

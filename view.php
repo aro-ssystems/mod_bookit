@@ -233,24 +233,25 @@ $overviewurl = (new moodle_url('/mod/bookit/room_overview.php', ['id' => $cm->id
 $legendbuttons = [];
 $previewparts = [];
 foreach ($legendrooms as $legendroom) {
-    $description = format_string($legendroom['description']);
+    $description = trim((string) $legendroom['description']);
     $seatsline = get_string('room_legend_seats', 'mod_bookit', $legendroom['seats']);
     $tooltipparts = [];
     if ($description !== '') {
+        // Keep "<" as text. format_string() drops unknown tags such as "<Studio>".
         $tooltipparts[] = s($description);
     }
     $tooltipparts[] = s($seatsline);
     $eventcolor = $legendroom['eventcolor'];
     $hascolor = $eventcolor !== '';
     $legendbuttons[] = [
-        'shortname' => format_string($legendroom['shortname']),
-        'name' => format_string($legendroom['name']),
+        'shortname' => $legendroom['shortname'],
+        'name' => $legendroom['name'],
         'tooltiphtml' => implode('<br>', $tooltipparts),
         'hascolor' => $hascolor,
         'eventcolor' => $eventcolor,
         'textcolor' => $hascolor ? color_manager::get_textcolor_for_background($eventcolor) : '',
     ];
-    $previewparts[] = s(format_string($legendroom['shortname']));
+    $previewparts[] = s($legendroom['shortname']);
 }
 $templatecontext['roomlegend'] = [
     'overviewurl' => $overviewurl,
