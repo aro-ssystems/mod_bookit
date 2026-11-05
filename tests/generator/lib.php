@@ -57,7 +57,13 @@ class mod_bookit_generator extends testing_module_generator {
 
         $roomid = 1;
         if (!empty($event['room'])) {
-            $room = $DB->get_record('bookit_room', ['name' => $event['room']], 'id', IGNORE_MISSING);
+            $room = $DB->get_record_select(
+                'bookit_room',
+                $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+                ['name' => $event['room']],
+                'id',
+                IGNORE_MULTIPLE
+            );
             if ($room) {
                 $roomid = (int)$room->id;
             }
