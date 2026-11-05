@@ -692,4 +692,211 @@ final class resource_manager_test extends advanced_testcase {
         $this->assertArrayHasKey('amountirrelevant', $wifi);
         $this->assertTrue($wifi['amountirrelevant']);
     }
+
+    /**
+     * Helper: true when any event_resource row exists for the catalog resource.
+     */
+    public function test_resource_has_event_bookings(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+        $resource = new bookit_resource(null, 'Res', null, $categoryid, 1, false, 0, true, null, 0, 0, 2);
+        $resourceid = resource_manager::save_resource($resource, 2);
+
+        $this->assertFalse(resource_manager::resource_has_event_bookings($resourceid));
+
+        $eventid = (int)$DB->insert_record('bookit_event', (object)[
+            'name' => 'Event',
+            'starttime' => time() + DAYSECS,
+            'endtime' => time() + DAYSECS + HOURSECS,
+            'bookingstatus' => 0,
+            'usercreated' => 2,
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $DB->insert_record('bookit_event_resource', (object)[
+            'eventid' => $eventid,
+            'resourceid' => $resourceid,
+            'amount' => 1,
+            'status' => 'requested',
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $this->assertTrue(resource_manager::resource_has_event_bookings($resourceid));
+    }
+
+    /**
+     * Never-booked catalog items may be hard-deleted.
+     */
+    public function test_delete_resource_never_booked_succeeds(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+        $resource = new bookit_resource(null, 'Res', null, $categoryid, 1, false, 0, true, null, 0, 0, 2);
+        $resourceid = resource_manager::save_resource($resource, 2);
+
+        resource_manager::delete_resource($resourceid);
+        $this->assertFalse($DB->record_exists('bookit_resource', ['id' => $resourceid]));
+    }
+
+    /**
+     * Booked items cannot be hard-deleted; event_resource rows must remain.
+     */
+    public function test_delete_resource_with_bookings_throws_and_keeps_event_rows(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+        $resource = new bookit_resource(null, 'Res', null, $categoryid, 1, false, 0, true, null, 0, 0, 2);
+        $resourceid = resource_manager::save_resource($resource, 2);
+
+        $eventid = (int)$DB->insert_record('bookit_event', (object)[
+            'name' => 'Event',
+            'starttime' => time() + DAYSECS,
+            'endtime' => time() + DAYSECS + HOURSECS,
+            'bookingstatus' => 2,
+            'usercreated' => 2,
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $DB->insert_record('bookit_event_resource', (object)[
+            'eventid' => $eventid,
+            'resourceid' => $resourceid,
+            'amount' => 1,
+            'status' => 'requested',
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        try {
+            resource_manager::delete_resource($resourceid);
+            $this->fail('Expected moodle_exception not thrown.');
+        } catch (\moodle_exception $e) {
+            $this->assertEquals('resources:resource_has_bookings', $e->errorcode);
+        }
+
+        $this->assertTrue($DB->record_exists('bookit_resource', ['id' => $resourceid]));
+        $this->assertTrue($DB->record_exists('bookit_event_resource', ['resourceid' => $resourceid]));
+    }
+
+    /**
+     * Links on canceled/rejected-only events still block hard-delete.
+     */
+    public function test_delete_resource_canceled_or_rejected_only_link_blocks(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        foreach ([3, 4] as $bookingstatus) {
+            $category = new bookit_resource_category(null, 'Cat' . $bookingstatus, null, 0, 0, 0, 2);
+            $categoryid = resource_manager::save_category($category, 2);
+            $resource = new bookit_resource(null, 'Res' . $bookingstatus, null, $categoryid, 1, false, 0, true, null, 0, 0, 2);
+            $resourceid = resource_manager::save_resource($resource, 2);
+
+            $eventid = (int)$DB->insert_record('bookit_event', (object)[
+                'name' => 'Event' . $bookingstatus,
+                'starttime' => time() + DAYSECS,
+                'endtime' => time() + DAYSECS + HOURSECS,
+                'bookingstatus' => $bookingstatus,
+                'usercreated' => 2,
+                'usermodified' => 2,
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ]);
+            $DB->insert_record('bookit_event_resource', (object)[
+                'eventid' => $eventid,
+                'resourceid' => $resourceid,
+                'amount' => 1,
+                'status' => 'requested',
+                'usermodified' => 2,
+                'timecreated' => time(),
+                'timemodified' => time(),
+            ]);
+
+            try {
+                resource_manager::delete_resource($resourceid);
+                $this->fail('Expected moodle_exception for bookingstatus ' . $bookingstatus);
+            } catch (\moodle_exception $e) {
+                $this->assertEquals('resources:resource_has_bookings', $e->errorcode);
+            }
+            $this->assertTrue($DB->record_exists('bookit_event_resource', ['resourceid' => $resourceid]));
+        }
+    }
+
+    /**
+     * Category with only inactive items still cannot be deleted.
+     */
+    public function test_delete_category_with_inactive_items_throws(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+        $resource = new bookit_resource(null, 'Inactive', null, $categoryid, 1, false, 0, false, null, 0, 0, 2);
+        resource_manager::save_resource($resource, 2);
+
+        try {
+            resource_manager::delete_category($categoryid);
+            $this->fail('Expected moodle_exception not thrown.');
+        } catch (\moodle_exception $e) {
+            $this->assertEquals('resources:category_has_resources', $e->errorcode);
+        }
+    }
+
+    /**
+     * Deactivated resources are excluded from new-booking selection grouping.
+     */
+    public function test_get_active_resources_grouped_excludes_inactive(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+
+        $category = new bookit_resource_category(null, 'Cat', null, 0, 0, 0, 2);
+        $categoryid = resource_manager::save_category($category, 2);
+
+        $active = new bookit_resource(null, 'ActiveRes', null, $categoryid, 1, false, 0, true, null, 0, 0, 2);
+        $activeid = resource_manager::save_resource($active, 2);
+        $inactive = new bookit_resource(null, 'InactiveRes', null, $categoryid, 1, false, 0, false, null, 0, 0, 2);
+        $inactiveid = resource_manager::save_resource($inactive, 2);
+
+        $grouped = resource_manager::get_active_resources_grouped();
+        $ids = [];
+        foreach ($grouped as $group) {
+            foreach ($group['resources'] as $row) {
+                $ids[] = (int)$row['id'];
+            }
+        }
+
+        $this->assertContains($activeid, $ids);
+        $this->assertNotContains($inactiveid, $ids);
+
+        $reactivated = resource_manager::get_resource_by_id($inactiveid);
+        $reactivated->set_active(true);
+        resource_manager::save_resource($reactivated, 2);
+
+        $groupedagain = resource_manager::get_active_resources_grouped();
+        $idsagain = [];
+        foreach ($groupedagain as $group) {
+            foreach ($group['resources'] as $row) {
+                $idsagain[] = (int)$row['id'];
+            }
+        }
+        $this->assertContains($inactiveid, $idsagain);
+    }
 }

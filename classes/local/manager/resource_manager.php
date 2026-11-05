@@ -25,6 +25,7 @@
  */
 namespace mod_bookit\local\manager;
 
+use core_text;
 use dml_exception;
 use mod_bookit\local\entity\resource\bookit_event_resource;
 use mod_bookit\local\entity\resource\bookit_resource;
@@ -104,7 +105,10 @@ class resource_manager {
         return $resources;
     }
         /**
-         * Get list of rooms as [id => name].
+         * Get list of active rooms as [id => name].
+         *
+         * Only rooms with active = 1 (calendar filter and shared callers). Inactive rooms are
+         * excluded. Fresh-Install path only — no legacy rooms-as-resources fallback.
          *
          * @return array
          * @throws \dml_exception
@@ -113,20 +117,9 @@ class resource_manager {
         global $DB;
 
         $rooms = [];
-        $records = $DB->get_records('bookit_room', null, 'name ASC', 'id, name');
+        $records = $DB->get_records('bookit_room', ['active' => 1], 'name ASC', 'id, name');
         foreach ($records as $r) {
             $rooms[(int)$r->id] = $r->name;
-        }
-        if (!empty($rooms)) {
-            return $rooms;
-        }
-
-        // Fallback: legacy rooms stored as resources.
-        $resources = self::get_resources();
-        if (!empty($resources['Rooms']['resources'])) {
-            foreach ($resources['Rooms']['resources'] as $rid => $r) {
-                $rooms[$rid] = $r['name'];
-            }
         }
         return $rooms;
     }
@@ -366,17 +359,40 @@ class resource_manager {
     }
 
     /**
+     * Whether the catalog resource is (or was) linked on any event.
+     *
+     * Any `{bookit_event_resource}` row counts, regardless of the parent event booking status
+     * (including canceled/rejected).
+     *
+     * @param int $resourceid Catalog resource id
+     * @return bool
+     * @throws dml_exception
+     */
+    public static function resource_has_event_bookings(int $resourceid): bool {
+        global $DB;
+
+        return $DB->record_exists('bookit_event_resource', ['resourceid' => $resourceid]);
+    }
+
+    /**
      * Delete a resource.
+     *
+     * Hard delete is allowed only when the item was never booked on any event. Booked items must
+     * be deactivated instead; event_resource rows are never cascade-deleted.
      *
      * @param int $id Resource ID
      * @return void
+     * @throws \moodle_exception If the resource has any event bookings
      * @throws dml_exception
      */
     public static function delete_resource(int $id): void {
         global $DB;
 
+        if (self::resource_has_event_bookings($id)) {
+            throw new \moodle_exception('resources:resource_has_bookings', 'mod_bookit');
+        }
+
         resource_settings_manager::delete_checklist_item_by_resource($id);
-        $DB->delete_records('bookit_event_resource', ['resourceid' => $id]);
         $DB->delete_records('bookit_resource', ['id' => $id]);
     }
 
@@ -646,5 +662,102 @@ class resource_manager {
         }
 
         return $map;
+    }
+
+    /**
+     * Active rooms for the booking-facing calendar room legend.
+     *
+     * Only rooms with active = 1. Does not use unfiltered get_rooms().
+     *
+     * @return array[] List of rooms with id, shortname, name, description, seats, eventcolor
+     * @throws dml_exception
+     */
+    public static function get_active_rooms_for_legend(): array {
+        global $DB;
+
+        $records = $DB->get_records(
+            'bookit_room',
+            ['active' => 1],
+            'name ASC',
+            'id, shortname, name, description, seats, eventcolor'
+        );
+
+        $rooms = [];
+        foreach ($records as $record) {
+            $name = (string) $record->name;
+            $shortname = trim((string) ($record->shortname ?? ''));
+            if ($shortname === '') {
+                $shortname = core_text::substr($name, 0, 6);
+            }
+            $rooms[] = [
+                'id' => (int) $record->id,
+                'shortname' => $shortname,
+                'name' => $name,
+                'description' => (string) ($record->description ?? ''),
+                'seats' => (int) ($record->seats ?? 0),
+                'eventcolor' => trim((string) ($record->eventcolor ?? '')),
+            ];
+        }
+
+        return $rooms;
+    }
+
+    /**
+     * Active rooms with associated active resources for the booking-facing overview.
+     *
+     * Association: resource roomids empty/null ⇒ all active rooms; otherwise room id must be listed.
+     *
+     * @return array[] Rooms from get_active_rooms_for_legend() plus resources[] and resourceslabel
+     * @throws dml_exception
+     */
+    public static function get_active_rooms_with_resources(): array {
+        global $DB;
+
+        $rooms = self::get_active_rooms_for_legend();
+        if ($rooms === []) {
+            return [];
+        }
+
+        $resourcerecords = $DB->get_records(
+            'bookit_resource',
+            ['active' => 1],
+            'name ASC',
+            'id, name, roomids'
+        );
+
+        $parsedresources = [];
+        foreach ($resourcerecords as $resource) {
+            $roomids = null;
+            $raw = $resource->roomids ?? null;
+            if ($raw !== null && $raw !== '') {
+                $decoded = json_decode((string) $raw, true);
+                if (is_array($decoded) && $decoded !== []) {
+                    $roomids = array_map('intval', $decoded);
+                }
+            }
+            $parsedresources[] = [
+                'id' => (int) $resource->id,
+                'name' => (string) $resource->name,
+                'roomids' => $roomids,
+            ];
+        }
+
+        $result = [];
+        foreach ($rooms as $room) {
+            $linked = [];
+            foreach ($parsedresources as $resource) {
+                if ($resource['roomids'] === null || in_array($room['id'], $resource['roomids'], true)) {
+                    $linked[] = [
+                        'id' => $resource['id'],
+                        'name' => $resource['name'],
+                    ];
+                }
+            }
+            $room['resources'] = $linked;
+            $room['resourceslabel'] = implode(', ', array_column($linked, 'name'));
+            $result[] = $room;
+        }
+
+        return $result;
     }
 }

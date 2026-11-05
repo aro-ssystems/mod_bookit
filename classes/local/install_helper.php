@@ -66,6 +66,18 @@ class install_helper {
     /** Config key for the optional checklist module state. */
     public const CONFIG_CHECKLIST_ENABLED = 'checklistenabled';
 
+    /** Master enable for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED = 'resourcestatus_notifications_enabled';
+
+    /** Include booking person (usercreated) for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON = 'resourcestatus_notify_bookingperson';
+
+    /** Include person in charge for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFY_PERSONINCHARGE = 'resourcestatus_notify_personincharge';
+
+    /** Include other examiners for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS = 'resourcestatus_notify_otherexaminers';
+
     /**
      * Check whether the optional resources module is enabled.
      *
@@ -140,15 +152,15 @@ class install_helper {
                 'subjectstring' => 'bookingstatus_subject_confirmed',
                 'bodystring' => 'bookingstatus_body_confirmed',
             ],
-            'cancelled' => [
+            'canceled' => [
                 'id' => event_access_manager::BOOKINGSTATUS_CANCELED,
-                'key' => 'cancelled',
-                'enabledconfig' => 'bookingstatus_enabled_cancelled',
-                'subjectconfig' => 'bookingstatus_subject_cancelled',
-                'bodyconfig' => 'bookingstatus_body_cancelled',
-                'enabledstring' => 'bookingstatus_enabled_cancelled',
-                'subjectstring' => 'bookingstatus_subject_cancelled',
-                'bodystring' => 'bookingstatus_body_cancelled',
+                'key' => 'canceled',
+                'enabledconfig' => 'bookingstatus_enabled_canceled',
+                'subjectconfig' => 'bookingstatus_subject_canceled',
+                'bodyconfig' => 'bookingstatus_body_canceled',
+                'enabledstring' => 'bookingstatus_enabled_canceled',
+                'subjectstring' => 'bookingstatus_subject_canceled',
+                'bodystring' => 'bookingstatus_body_canceled',
             ],
             'rejected' => [
                 'id' => event_access_manager::BOOKINGSTATUS_REJECTED,
@@ -259,6 +271,25 @@ class install_helper {
      */
     public static function get_booking_status_notification_closing(?string $lang = null): string {
         return self::get_notification_shared_string('bookingstatus_notification_closing', $lang);
+    }
+
+    /**
+     * Ensure resource status-change notification defaults exist for fresh installs.
+     *
+     * @return void
+     */
+    public static function ensure_resource_status_notification_defaults(): void {
+        $defaults = [
+            self::CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED => 1,
+            self::CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON => 1,
+            self::CONFIG_RESOURCESTATUS_NOTIFY_PERSONINCHARGE => 1,
+            self::CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS => 0,
+        ];
+        foreach ($defaults as $configkey => $defaultvalue) {
+            if (get_config('mod_bookit', $configkey) === false) {
+                set_config($configkey, $defaultvalue, 'mod_bookit');
+            }
+        }
     }
 
     /**
@@ -1397,11 +1428,7 @@ class install_helper {
 
         $record = self::default_weekplan_record();
         $weekplanid = (int)$DB->insert_record('bookit_weekplan', $record);
-        weekplan_manager::save_string_weekplan_to_db(
-            self::DEFAULT_WEEKPLAN_SCHEDULE,
-            $weekplanid,
-            self::get_actor_userid()
-        );
+        weekplan_manager::save_string_weekplan_to_db(self::DEFAULT_WEEKPLAN_SCHEDULE, $weekplanid);
         self::ensure_weekplan_room_assignment($weekplanid, $roomid);
         if ($verbose) {
             mtrace('Created default weekplan: ' . self::DEFAULT_WEEKPLAN_NAME . ' (ID: ' . $weekplanid . ')');
@@ -1505,11 +1532,7 @@ class install_helper {
         }
 
         if (!self::has_default_weekplan_schedule($weekplanid)) {
-            weekplan_manager::save_string_weekplan_to_db(
-                self::DEFAULT_WEEKPLAN_SCHEDULE,
-                $weekplanid,
-                self::get_actor_userid()
-            );
+            weekplan_manager::save_string_weekplan_to_db(self::DEFAULT_WEEKPLAN_SCHEDULE, $weekplanid);
             $haschanges = true;
         }
 
@@ -1556,7 +1579,7 @@ class install_helper {
     private static function default_room_record(): \stdClass {
         return (object)[
             'name' => self::DEFAULT_ROOM_NAME,
-            'shortname' => '',
+            'shortname' => room::DEFAULT_SHORTNAME,
             'description' => self::DEFAULT_ROOM_DESCRIPTION,
             'location' => '',
             'eventcolor' => '',

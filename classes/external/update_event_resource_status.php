@@ -91,22 +91,24 @@ class update_event_resource_status extends external_api {
         // Verify event exists before acting on it.
         $DB->get_record('bookit_event', ['id' => $params['eventid']], '*', MUST_EXIST);
 
-        $updated = event_resource_manager::update_status(
+        $result = event_resource_manager::update_status(
             $params['eventid'],
             $params['resourceid'],
             $status
         );
 
-        if (!$updated) {
+        if (empty($result['success'])) {
             throw new \moodle_exception('invalidrecord', 'error');
         }
 
-        resource_notification_manager::notify_status_changed(
-            $params['cmid'],
-            $params['eventid'],
-            $params['resourceid'],
-            $status
-        );
+        if (!empty($result['changed'])) {
+            resource_notification_manager::notify_status_changed(
+                $params['cmid'],
+                $params['eventid'],
+                $params['resourceid'],
+                $status
+            );
+        }
 
         return ['status' => $status->value];
     }

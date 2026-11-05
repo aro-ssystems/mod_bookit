@@ -28,6 +28,7 @@ namespace mod_bookit\local\manager;
 use core_user;
 use dml_exception;
 use mod_bookit\local\entity\resource\bookit_resource_status;
+use mod_bookit\local\install_helper;
 use mod_bookit\local\manager\event_manager;
 use moodle_url;
 
@@ -43,9 +44,8 @@ class resource_notification_manager {
     /**
      * Notify all relevant users when a resource status changes for an event.
      *
-     * Recipients are: the booker (usercreated), the person in charge (personinchargeid)
-     * and any other examiners (comma-separated IDs in otherexaminers).
-     * Duplicate IDs are skipped so nobody receives the message twice.
+     * Recipients honour site plugin settings (master enable + role checkboxes). Booking person
+     * resolves from bookit_event.usercreated only.
      *
      * @param int $cmid Course-module ID (used to build the context URL)
      * @param int $eventid Bookit event ID
@@ -60,7 +60,11 @@ class resource_notification_manager {
         int $resourceid,
         bookit_resource_status $status
     ): int {
-        global $DB, $USER;
+        global $DB;
+
+        if (!self::is_notifications_enabled()) {
+            return 0;
+        }
 
         $event = $DB->get_record('bookit_event', ['id' => $eventid]);
         if (!$event) {
@@ -129,7 +133,7 @@ class resource_notification_manager {
     }
 
     /**
-     * Collect unique recipient user IDs from an event record.
+     * Collect unique recipient user IDs from an event record using plugin config toggles.
      *
      * @param \stdClass $event Database record from bookit_event
      * @return int[] Unique user IDs
@@ -137,13 +141,25 @@ class resource_notification_manager {
     private static function collect_recipient_ids(\stdClass $event): array {
         $ids = [];
 
-        if (!empty($event->usercreated)) {
+        if (
+            self::is_config_enabled(install_helper::CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON)
+                && !empty($event->usercreated)
+        ) {
             $ids[] = (int)$event->usercreated;
         }
-        if (!empty($event->personinchargeid)) {
+        if (
+            self::is_config_enabled(install_helper::CONFIG_RESOURCESTATUS_NOTIFY_PERSONINCHARGE)
+                && !empty($event->personinchargeid)
+        ) {
             $ids[] = (int)$event->personinchargeid;
         }
-        if (!empty($event->otherexaminers)) {
+        if (
+            self::is_config_enabled(
+                install_helper::CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS,
+                false
+            )
+                && !empty($event->otherexaminers)
+        ) {
             foreach (explode(',', $event->otherexaminers) as $raw) {
                 $id = (int)trim($raw);
                 if ($id > 0) {
@@ -153,6 +169,32 @@ class resource_notification_manager {
         }
 
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * Whether resource status-change notifications are master-enabled.
+     *
+     * Missing config is treated as enabled (fresh-install default).
+     *
+     * @return bool
+     */
+    private static function is_notifications_enabled(): bool {
+        return self::is_config_enabled(install_helper::CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED);
+    }
+
+    /**
+     * Whether a checkbox config is on (missing config ⇒ default on).
+     *
+     * @param string $configkey Plugin config key without component prefix
+     * @param bool $defaultwhenmissing Value when the config key has never been set
+     * @return bool
+     */
+    private static function is_config_enabled(string $configkey, bool $defaultwhenmissing = true): bool {
+        $value = get_config('mod_bookit', $configkey);
+        if ($value === false) {
+            return $defaultwhenmissing;
+        }
+        return (int)$value !== 0;
     }
 
     /**

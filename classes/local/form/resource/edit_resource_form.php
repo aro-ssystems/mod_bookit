@@ -357,7 +357,7 @@ class edit_resource_form extends dynamic_form {
      * @return array Result of the delete operation
      */
     private function process_delete_request(int $id): array {
-        $resource = resource_manager::get_resource_by_id($id);
+        // Throws moodle_exception (e.g. resources:resource_has_bookings) — surfaced by dynamic form.
         resource_manager::delete_resource($id);
 
         return [

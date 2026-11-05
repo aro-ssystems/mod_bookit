@@ -228,6 +228,43 @@ class mod_bookit_generator extends testing_module_generator {
     }
 
     /**
+     * Link a catalog resource to an event for testing.
+     *
+     * @param array $link event_name, resource_name, optional amount
+     * @return int Inserted event_resource id
+     */
+    final public function create_event_resource(array $link): int {
+        global $DB;
+
+        $eventname = $link['event_name'] ?? $link['event'] ?? null;
+        $resourcename = $link['resource_name'] ?? $link['resource'] ?? null;
+        if ($eventname === null || $resourcename === null) {
+            throw new \coding_exception('Generator: event_resource requires event_name and resource_name');
+        }
+
+        $eventid = (int)$DB->get_field_sql(
+            'SELECT id FROM {bookit_event} WHERE ' . $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $eventname],
+            MUST_EXIST
+        );
+        $resourceid = (int)$DB->get_field_sql(
+            'SELECT id FROM {bookit_resource} WHERE ' . $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $resourcename],
+            MUST_EXIST
+        );
+
+        return (int)$DB->insert_record('bookit_event_resource', (object)[
+            'eventid' => $eventid,
+            'resourceid' => $resourceid,
+            'amount' => (int)($link['amount'] ?? 1),
+            'status' => $link['status'] ?? 'requested',
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
      * Create an institution for testing.
      *
      * @param array $institution
@@ -288,6 +325,7 @@ class mod_bookit_generator extends testing_module_generator {
         install_helper::ensure_fresh_install_baseline();
         install_helper::ensure_optional_part_defaults(false);
         install_helper::ensure_booking_status_notification_defaults();
+        install_helper::ensure_resource_status_notification_defaults();
 
         return [
             'roomid' => (int)$DB->get_field_sql(

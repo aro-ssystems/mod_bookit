@@ -127,4 +127,81 @@ final class update_event_resource_status_test extends advanced_testcase {
         $this->assertCount(1, $governedafter);
         $this->assertSame($eventid, (int)$governedafter[0]['id']);
     }
+
+    /**
+     * Same status save must not send resource status-change notifications.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function test_execute_same_status_sends_no_notification(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+        set_config(install_helper::CONFIG_RESOURCES_ENABLED, 1, 'mod_bookit');
+        message_update_providers('mod_bookit');
+
+        $course = $this->getDataGenerator()->create_course();
+        $bookit = $this->getDataGenerator()->create_module('bookit', ['course' => $course->id, 'name' => 'Notify skip']);
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_bookit');
+        $roomid = $generator->create_room([
+            'name' => 'Notify room',
+            'shortname' => 'NR-1',
+        ]);
+        $generator->create_resource_category(['name' => 'Equipment']);
+        $resourceid = $generator->create_resource([
+            'name' => 'Camera',
+            'category_name' => 'Equipment',
+            'rooms' => 'Notify room',
+            'amount' => 1,
+        ]);
+        $booker = $this->getDataGenerator()->create_user();
+
+        $eventid = (int)$DB->insert_record('bookit_event', (object)[
+            'name' => 'Notify skip event',
+            'semester' => 20261,
+            'institutionid' => 1,
+            'starttime' => strtotime('2026-05-20 09:00:00'),
+            'endtime' => strtotime('2026-05-20 11:00:00'),
+            'duration' => 120,
+            'roomid' => $roomid,
+            'participantsamount' => 12,
+            'compensationfordisadvantages' => '',
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            'personinchargeid' => 0,
+            'otherexaminers' => '',
+            'coursetemplate' => null,
+            'notes' => '',
+            'internalnotes' => '',
+            'supportpersons' => '',
+            'extratimebefore' => 0,
+            'extratimeafter' => 0,
+            'refcourseid' => null,
+            'usercreated' => $booker->id,
+            'usermodified' => get_admin()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        event_resource_manager::add_resource_to_event(
+            $eventid,
+            $resourceid,
+            1,
+            get_admin()->id,
+            bookit_resource_status::CONFIRMED
+        );
+
+        $sink = $this->redirectMessages();
+        $response = update_event_resource_status::execute(
+            $bookit->cmid,
+            $eventid,
+            $resourceid,
+            bookit_resource_status::CONFIRMED->value
+        );
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertSame(bookit_resource_status::CONFIRMED->value, $response['status']);
+        $this->assertCount(0, $messages);
+    }
 }
