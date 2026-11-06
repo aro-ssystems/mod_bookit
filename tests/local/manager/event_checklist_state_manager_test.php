@@ -98,6 +98,11 @@ final class event_checklist_state_manager_test extends advanced_testcase {
 
     /**
      * Create a checklist item under the test category.
+     *
+     * @param string $title
+     * @param int $active
+     * @param int|null $categoryid
+     * @return int
      */
     private function create_item(string $title, int $active = 1, ?int $categoryid = null): int {
         $item = new bookit_checklist_item(
@@ -126,6 +131,8 @@ final class event_checklist_state_manager_test extends advanced_testcase {
 
     /**
      * Mark item done for the test event.
+     *
+     * @param int $itemid
      */
     private function mark_done(int $itemid): void {
         global $USER;

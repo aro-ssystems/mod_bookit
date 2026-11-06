@@ -893,14 +893,6 @@ class event_access_manager {
      * items assigned to one of their BookIt roles.
      *
      * @param stdClass $event
-     * Toggle permission for event checklist items.
-     *
-     * Bypass: managebasics or viewalldetailsofevent (Service-Team).
-     * Else empty item roleids ⇒ unrestricted for checklist viewers.
-     * Else require intersection of item roleids with the user's Bookit roles
-     * (Support ≡ Booking Person; no person-specific event fields).
-     *
-     * @param stdClass $event
      * @param int[]|null $itemroleids
      * @param context_module $context
      * @param int $userid
