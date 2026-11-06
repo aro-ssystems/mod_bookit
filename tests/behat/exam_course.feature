@@ -66,7 +66,7 @@ Feature: Create the exam course when a booking is confirmed
   Scenario: Saving the confirmed status in the booking form creates the exam course
     Given the following "mod_bookit > events" exist:
       | name              | username    | personincharge_username | coursetemplate_shortname | startdate                            | enddate                              | bookingstatus | institution |
-      | Physics exam      | bertbooking | erikexam                | TPLVIS                   | ##tomorrow 12:00##%Y-%m-%dT%H:%M:%S## | ##tomorrow 14:00##%Y-%m-%dT%H:%M:%S## | 1             | 1           |
+      | Physics exam      | bertbooking | erikexam                | TPLVIS                   | ##next monday 12:00##%Y-%m-%dT%H:%M:%S## | ##next monday 14:00##%Y-%m-%dT%H:%M:%S## | 1             | 1           |
     When I log in as "susiservice"
     And I open the filtered Bookit overview "allrequests" for "My BookIt Activity" with status "-1" faculty "0" and semesters "current,next"
     And I open the Bookit event details for "Physics exam"
