@@ -13,7 +13,7 @@ Feature: Delete master checklist item
     And I navigate to "Plugins > Activity modules > BookIt" in site administration
     And I check "Enable checklist module"
     And I press "Save changes"
-    And I click on "Run install helper" "link"
+    And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the following "role assigns" exist:
       | user         | role               | contextlevel | reference |
@@ -47,3 +47,21 @@ Feature: Delete master checklist item
     And I should see "Confirm"
     And I click on "button[data-action='delete']" "css_element"
     Then I should not see "Reserve room"
+
+  Scenario: An item shown on a confirmed booking cannot be deleted
+    Given the following "mod_bookit > events" exist:
+      | name           | startdate                               | enddate                                 | bookingstatus | institution | username |
+      | Confirmed exam | ##tomorrow 09:00##%Y-%m-%dT%H:%M:%S## | ##tomorrow 11:00##%Y-%m-%dT%H:%M:%S## | 2             | 1           | admin    |
+    And I log in as "admin"
+    And I change window size to "large"
+    And I navigate to "Plugins > Activity modules > BookIt" in site administration
+    And I click on "Master checklist" "link"
+    And I should see "Reserve room"
+    And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"
+    And I should see "Delete"
+    And I click on "button[data-action='delete']" "css_element"
+    And I wait "1" seconds
+    And I should see "Confirm"
+    And I click on "button[data-action='delete']" "css_element"
+    Then I should see "Deactivate it instead."
+    And I should see "Reserve room"

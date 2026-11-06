@@ -89,7 +89,7 @@ class export_checklist_form extends dynamic_form {
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
-        // Add capability check if needed.
+        require_capability('mod/bookit:managemasterchecklist', \context_system::instance());
     }
 
     /**

@@ -195,11 +195,11 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, async(response) => {
+            if (response.detail.redirecturl) {
+                window.location.assign(response.detail.redirecturl);
+                return;
+            }
             if (response.detail.success) {
-                if (response.detail.redirecturl) {
-                    window.location.assign(response.detail.redirecturl);
-                    return;
-                }
                 Toast.add(response.detail.message || await getString('importsuccessful', 'mod_bookit'), {type: 'success'});
                 if (response.detail.reload) {
                     window.location.reload();

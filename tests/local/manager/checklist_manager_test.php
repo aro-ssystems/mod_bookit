@@ -30,6 +30,7 @@ use advanced_testcase;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_category;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
+use mod_bookit\local\form\masterchecklist\edit_checklist_master_form;
 
 /**
  * Unit tests for checklist_manager delete/deactivate guards.
@@ -185,5 +186,108 @@ final class checklist_manager_test extends advanced_testcase {
             $this->assertNull(checklist_manager::get_observer_role_id());
             $this->assertSame([1, 2], checklist_manager::strip_observer_roleids([1, 2]));
         }
+    }
+
+    /**
+     * An active item of the default checklist is assigned once a booking is confirmed.
+     */
+    public function test_confirmed_booking_assigns_active_item(): void {
+        global $DB;
+
+        [$masterid, $itemid] = $this->create_default_item();
+        $this->insert_event(event_access_manager::BOOKINGSTATUS_NEW);
+        checklist_manager::assert_can_delete_item($itemid);
+
+        $this->insert_event(event_access_manager::BOOKINGSTATUS_CONFIRMED);
+        $this->assertTrue(checklist_manager::item_is_assigned($itemid));
+        try {
+            checklist_manager::assert_can_delete_item($itemid);
+            $this->fail('Expected moodle_exception');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('checklistitem_has_event_states', $e->errorcode);
+        }
+
+        checklist_manager::set_item_active($itemid, false);
+        $this->assertFalse(checklist_manager::item_is_assigned($itemid));
+        checklist_manager::assert_can_delete_item($itemid);
+
+        $form = new edit_checklist_master_form();
+        $DB->set_field('bookit_checklist_item', 'active', 1, ['id' => $itemid]);
+        try {
+            $form->process_delete_request($masterid);
+            $this->fail('Expected moodle_exception');
+        } catch (\moodle_exception $e) {
+            $this->assertSame('checklistmaster_has_assigned_items', $e->errorcode);
+        }
+        $this->assertTrue($DB->record_exists('bookit_checklist_master', ['id' => $masterid]));
+    }
+
+    /**
+     * Create the default master, one category and one active item.
+     *
+     * @return int[] master id and item id
+     */
+    private function create_default_item(): array {
+        $master = new bookit_checklist_master(null, 'Default master', 'Desc', 1);
+        $masterid = $master->save();
+        $category = new bookit_checklist_category(null, $masterid, 'Cat', 'Desc');
+        $categoryid = $category->save();
+        $item = new bookit_checklist_item(
+            null,
+            $masterid,
+            $categoryid,
+            null,
+            [],
+            [],
+            'Shown item',
+            '',
+            1,
+            null,
+            0,
+            0,
+            null,
+            null,
+            null,
+            get_admin()->id,
+            time(),
+            time(),
+            1
+        );
+        return [$masterid, $item->save()];
+    }
+
+    /**
+     * Insert a booking with the given status.
+     *
+     * @param int $status Booking status
+     * @return int
+     */
+    private function insert_event(int $status): int {
+        global $DB;
+        return (int) $DB->insert_record('bookit_event', (object) [
+            'name' => 'Checklist booking',
+            'semester' => 20261,
+            'institutionid' => 1,
+            'starttime' => strtotime('2026-05-20 09:00:00'),
+            'endtime' => strtotime('2026-05-20 11:00:00'),
+            'duration' => 120,
+            'roomid' => null,
+            'participantsamount' => 12,
+            'compensationfordisadvantages' => '',
+            'bookingstatus' => $status,
+            'personinchargeid' => 0,
+            'otherexaminers' => '',
+            'coursetemplate' => null,
+            'notes' => '',
+            'internalnotes' => '',
+            'supportpersons' => '',
+            'extratimebefore' => 0,
+            'extratimeafter' => 0,
+            'refcourseid' => null,
+            'usercreated' => 0,
+            'usermodified' => get_admin()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
     }
 }

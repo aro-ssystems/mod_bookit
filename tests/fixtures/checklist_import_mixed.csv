@@ -1,0 +1,3 @@
+type,name,description,role_shortnames
+category,Imported category,From file,
+item,Mixed item,From file,"[""bookit_observer"",""bookit_serviceteam""]"

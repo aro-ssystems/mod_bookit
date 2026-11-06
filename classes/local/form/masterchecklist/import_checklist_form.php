@@ -95,7 +95,7 @@ class import_checklist_form extends dynamic_form {
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
-        // Add capability check if needed.
+        require_capability('mod/bookit:managemasterchecklist', \context_system::instance());
     }
 
     /**
@@ -151,22 +151,26 @@ class import_checklist_form extends dynamic_form {
             $importrooms = !empty($data->import_rooms);
             $result = $sharingmanager->import_master_checklist_csv($masterid, $csvdata, $importrooms);
 
+            $redirecturl = new \moodle_url('/mod/bookit/admin/master_checklist.php');
             if ($result['success']) {
-                $redirecturl = new \moodle_url('/mod/bookit/admin/master_checklist.php', [
-                    'importsuccess' => 1,
-                ]);
+                $redirecturl->param('importsuccess', 1);
                 return [
                     'success' => true,
                     'message' => get_string('importsuccessful', 'mod_bookit', $result['imported']),
                     'redirecturl' => $redirecturl->out(false),
                     'reload' => false,
                 ];
-            } else {
-                return [
-                    'success' => false,
-                    'message' => $result['message'] ?? get_string('importfailed', 'mod_bookit', ''),
-                ];
             }
+
+            global $SESSION;
+            $message = $result['message'] ?? get_string('importfailed', 'mod_bookit', '');
+            $SESSION->mod_bookit_checklist_import_error = $message;
+            $redirecturl->param('importerror', 1);
+            return [
+                'success' => false,
+                'message' => $message,
+                'redirecturl' => $redirecturl->out(false),
+            ];
         }
 
         return ['success' => false, 'message' => get_string('missingdata', 'mod_bookit')];

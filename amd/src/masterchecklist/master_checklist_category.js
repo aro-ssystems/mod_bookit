@@ -5,6 +5,7 @@ import ModalForm from 'core_form/modalform';
 import {getString} from 'core/str';
 import ChecklistHelper from 'mod_bookit/helpers/checklist_helper';
 import Notification from 'core/notification';
+import ModalEvents from 'core/modal_events';
 
 export default class extends BaseComponent {
 
@@ -87,15 +88,29 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            if (response.detail && response.detail.redirecturl) {
+                window.location.assign(response.detail.redirecturl);
+                return;
+            }
             this.reactive.stateManager.processUpdates(response.detail);
         });
 
+        modalForm.addEventListener(modalForm.events.SERVER_VALIDATION_ERROR, () => {
+            modalForm.modal.show();
+        });
+
         modalForm.addEventListener(modalForm.events.LOADED, () => {
+            // Keep the edit dialog mounted. Closing it here drops the refusal text.
+            modalForm.modal.getRoot().on(ModalEvents.delete, (event) => {
+                event.preventDefault();
+            });
 
             const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
 
             deleteButton.on('click', async(e) => {
                 e.preventDefault();
+                // One visible delete button: the confirm dialog sits on top of a hidden edit dialog.
+                modalForm.modal.hide();
                 const confirmTitle = await getString('confirm', 'core');
                 const confirmMessage = await getString('areyousure', 'core');
                 const deleteText = await getString('delete', 'core');
@@ -107,6 +122,9 @@ export default class extends BaseComponent {
                     () => {
                         modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
                         modalForm.submitFormAjax();
+                    },
+                    () => {
+                        modalForm.modal.show();
                     }
                 );
             });

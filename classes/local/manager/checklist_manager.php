@@ -30,6 +30,7 @@ use mod_bookit\local\entity\masterchecklist\bookit_checklist_category;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
 use mod_bookit\local\entity\bookit_notification_slot;
 use mod_bookit\local\manager\color_manager;
+use mod_bookit\local\manager\event_access_manager;
 
 /**
  * Checklist manager class.
@@ -449,15 +450,85 @@ class checklist_manager {
     }
 
     /**
-     * Guard item delete — throws when the item is linked to any event state.
+     * Whether the item is shown on a confirmed booking or already has a saved state.
+     *
+     * Shown means: the item belongs to the default master checklist, has a category,
+     * is active, and at least one booking is confirmed. Event pages list that master.
+     *
+     * @param int $itemid
+     * @return bool
+     */
+    public static function item_is_assigned(int $itemid): bool {
+        if (self::item_has_event_states($itemid)) {
+            return true;
+        }
+        return self::item_is_shown_on_confirmed_booking($itemid);
+    }
+
+    /**
+     * Active item of the default master, displayed because a confirmed booking exists.
+     *
+     * @param int $itemid
+     * @return bool
+     */
+    public static function item_is_shown_on_confirmed_booking(int $itemid): bool {
+        global $DB;
+
+        $default = self::get_default_master();
+        if ($default === null) {
+            return false;
+        }
+
+        $sql = "SELECT i.id
+                  FROM {bookit_checklist_item} i
+                 WHERE i.id = :itemid
+                   AND i.masterid = :masterid
+                   AND i.categoryid IS NOT NULL
+                   AND i.categoryid <> 0
+                   AND COALESCE(i.active, 1) = 1
+                   AND EXISTS (
+                       SELECT 1
+                         FROM {bookit_event} e
+                        WHERE e.bookingstatus = :confirmed
+                   )";
+
+        return $DB->record_exists_sql($sql, [
+            'itemid' => $itemid,
+            'masterid' => $default->id,
+            'confirmed' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+        ]);
+    }
+
+    /**
+     * Guard item delete. Assigned items can only be deactivated.
      *
      * @param int $itemid
      * @return void
      * @throws \moodle_exception
      */
     public static function assert_can_delete_item(int $itemid): void {
-        if (self::item_has_event_states($itemid)) {
+        if (self::item_is_assigned($itemid)) {
             throw new \moodle_exception('checklistitem_has_event_states', 'mod_bookit');
+        }
+    }
+
+    /**
+     * Guard deleting a whole checklist while one of its items is assigned.
+     *
+     * Does not delete the master row. Callers keep the existing no-op delete.
+     *
+     * @param int $masterid
+     * @return void
+     * @throws \moodle_exception
+     */
+    public static function assert_can_delete_master(int $masterid): void {
+        global $DB;
+
+        $itemids = $DB->get_fieldset_select('bookit_checklist_item', 'id', 'masterid = ?', [$masterid]);
+        foreach ($itemids as $itemid) {
+            if (self::item_is_assigned((int) $itemid)) {
+                throw new \moodle_exception('checklistmaster_has_assigned_items', 'mod_bookit');
+            }
         }
     }
 

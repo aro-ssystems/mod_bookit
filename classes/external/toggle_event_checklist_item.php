@@ -99,6 +99,16 @@ class toggle_event_checklist_item extends external_api {
             throw new \required_capability_exception($context, 'mod/bookit:viewalldetailsofownevent', 'nopermissions', '');
         }
 
+        if (empty($item->active)) {
+            $hasstate = $DB->record_exists('bookit_event_checklist_state', [
+                'eventid' => $params['eventid'],
+                'checklistitemid' => $params['checklistitemid'],
+            ]);
+            if (!$hasstate) {
+                throw new \moodle_exception('checklistitem_inactive', 'mod_bookit');
+            }
+        }
+
         event_checklist_state_manager::set_item_state(
             $params['eventid'],
             $params['checklistitemid'],

@@ -13,7 +13,7 @@ Feature: Edit master checklist item
     And I navigate to "Plugins > Activity modules > BookIt" in site administration
     And I check "Enable checklist module"
     And I press "Save changes"
-    And I click on "Run install helper" "link"
+    And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the Bookit legacy test rooms exist
     And the following "role assigns" exist:
@@ -36,18 +36,18 @@ Feature: Edit master checklist item
     And I wait "1" seconds
     And I set the field "Time" to "14"
     And I set the field "roomids[]" to "Lecture Hall A, Seminar Room B"
-    And I set the field "roleids[]" to "BookIt_Observer, BookIt_Service-Team"
+    And I set the field "roleids[]" to "BookIt_Examiner, BookIt_Service-Team"
     And I set the field "Before due" to "1"
     And I wait "1" seconds
     And I set the field "before_due_time[number]" to "7"
     And I set the field "before_due_messagetext[text]" to "This is my behat notification edit test message. Cool."
-    And I set the field "Recipient" to "BookIt_Observer, BookIt_Service-Team"
+    And I set the field "Recipient" to "BookIt_Examiner, BookIt_Service-Team"
     And I click on "button[data-action='save']" "css_element"
     Then I should see "Reserve room EDITED"
     And I wait "1" seconds
     And I should see "LH-A" in the "Reserve room EDITED" "table_row"
     And I should see "SR-B" in the "Reserve room EDITED" "table_row"
-    And I should see "BookIt_Observer" in the "Reserve room EDITED" "table_row"
+    And I should see "BookIt_Examiner" in the "Reserve room EDITED" "table_row"
     And I should see "BookIt_Service-Team" in the "Reserve room EDITED" "table_row"
     And I wait "1" seconds
     And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room EDITED" "table_row"
@@ -73,18 +73,18 @@ Feature: Edit master checklist item
     And I wait "1" seconds
     And I set the field "Time" to "14"
     And I set the field "roomids[]" to "Lecture Hall A, Seminar Room B"
-    And I set the field "roleids[]" to "BookIt_Observer, BookIt_Service-Team"
+    And I set the field "roleids[]" to "BookIt_Examiner, BookIt_Service-Team"
     And I set the field "Before due" to "1"
     And I wait "1" seconds
     And I set the field "before_due_time[number]" to "7"
     And I set the field "before_due_messagetext[text]" to "This is my behat notification edit test message. Cool."
-    And I set the field "Recipient" to "BookIt_Observer, BookIt_Service-Team"
+    And I set the field "Recipient" to "BookIt_Examiner, BookIt_Service-Team"
     And I click on "button[data-action='save']" "css_element"
     Then I should see "Reserve room EDITED ServiceTeam"
     And I wait "1" seconds
     And I should see "LH-A" in the "Reserve room EDITED ServiceTeam" "table_row"
     And I should see "SR-B" in the "Reserve room EDITED ServiceTeam" "table_row"
-    And I should see "BookIt_Observer" in the "Reserve room EDITED ServiceTeam" "table_row"
+    And I should see "BookIt_Examiner" in the "Reserve room EDITED ServiceTeam" "table_row"
     And I should see "BookIt_Service-Team" in the "Reserve room EDITED ServiceTeam" "table_row"
     And I wait "1" seconds
     And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room EDITED ServiceTeam" "table_row"

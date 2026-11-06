@@ -14,7 +14,7 @@ Feature: Create master checklist category
     #And I click on "Checklist" "link"
     And I check "Enable checklist module"
     And I press "Save changes"
-    And I click on "Run install helper" "link"
+    And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the following "role assigns" exist:
       | user         | role               | contextlevel | reference |

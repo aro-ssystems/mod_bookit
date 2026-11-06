@@ -24,6 +24,7 @@ use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
 use mod_bookit\local\install_helper;
 use mod_bookit\local\manager\checklist_manager;
 use mod_bookit\local\manager\event_access_manager;
+use mod_bookit\local\manager\event_checklist_state_manager;
 use mod_bookit\local\manager\event_manager;
 
 /**
@@ -315,5 +316,141 @@ final class toggle_event_checklist_item_test extends advanced_testcase {
 
         $this->expectException(\moodle_exception::class);
         toggle_event_checklist_item::execute($bookit->cmid, $eventid, $foreignitemid, true);
+    }
+
+    /**
+     * An inactive item without a saved state cannot be checked off.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function test_inactive_item_without_state_does_not_change_progress(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+        set_config(install_helper::CONFIG_CHECKLIST_ENABLED, 1, 'mod_bookit');
+
+        $course = $this->getDataGenerator()->create_course();
+        $bookit = $this->getDataGenerator()->create_module('bookit', ['course' => $course->id, 'name' => 'Inactive item']);
+        $eventid = $this->insert_confirmed_event();
+        [$masterid, $itemid] = $this->insert_item('Inactive cables');
+        checklist_manager::set_item_active($itemid, false);
+
+        $before = event_checklist_state_manager::get_progress_for_event($eventid, $masterid);
+        $this->expectException(\moodle_exception::class);
+        try {
+            toggle_event_checklist_item::execute($bookit->cmid, $eventid, $itemid, true);
+        } finally {
+            $this->assertFalse($DB->record_exists('bookit_event_checklist_state', [
+                'eventid' => $eventid,
+                'checklistitemid' => $itemid,
+            ]));
+            $after = event_checklist_state_manager::get_progress_for_event($eventid, $masterid);
+            $this->assertSame($before, $after);
+        }
+    }
+
+    /**
+     * An inactive item that already has a state can still be changed.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function test_inactive_item_with_state_can_be_changed(): void {
+        global $DB, $USER;
+
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+        set_config(install_helper::CONFIG_CHECKLIST_ENABLED, 1, 'mod_bookit');
+
+        $course = $this->getDataGenerator()->create_course();
+        $bookit = $this->getDataGenerator()->create_module('bookit', ['course' => $course->id, 'name' => 'Inactive state']);
+        $eventid = $this->insert_confirmed_event();
+        [$masterid, $itemid] = $this->insert_item('Already checked');
+        checklist_manager::set_item_active($itemid, false);
+        $DB->insert_record('bookit_event_checklist_state', (object) [
+            'eventid' => $eventid,
+            'checklistitemid' => $itemid,
+            'userid' => $USER->id,
+            'done' => 0,
+            'usermodified' => $USER->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+
+        $response = toggle_event_checklist_item::execute($bookit->cmid, $eventid, $itemid, true);
+        $this->assertTrue($response['done']);
+        $progress = event_checklist_state_manager::get_progress_for_event($eventid, $masterid);
+        $this->assertSame(1, $progress['total']);
+        $this->assertSame(1, $progress['done']);
+    }
+
+    /**
+     * Confirmed booking used by the toggle cases.
+     *
+     * @return int
+     */
+    private function insert_confirmed_event(): int {
+        global $DB;
+        return (int) $DB->insert_record('bookit_event', (object) [
+            'name' => 'Inactive checklist event',
+            'semester' => 20261,
+            'institutionid' => 1,
+            'starttime' => strtotime('2026-05-20 09:00:00'),
+            'endtime' => strtotime('2026-05-20 11:00:00'),
+            'duration' => 120,
+            'roomid' => null,
+            'participantsamount' => 12,
+            'compensationfordisadvantages' => '',
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            'personinchargeid' => 0,
+            'otherexaminers' => '',
+            'coursetemplate' => null,
+            'notes' => '',
+            'internalnotes' => '',
+            'supportpersons' => '',
+            'extratimebefore' => 0,
+            'extratimeafter' => 0,
+            'refcourseid' => null,
+            'usercreated' => 0,
+            'usermodified' => get_admin()->id,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
+     * One active item on its own master checklist.
+     *
+     * @param string $title
+     * @return int[] master id and item id
+     */
+    private function insert_item(string $title): array {
+        $master = new bookit_checklist_master(null, 'Toggle master', 'Desc');
+        $masterid = $master->save();
+        $category = new bookit_checklist_category(null, $masterid, 'Prep', 'Desc');
+        $categoryid = $category->save();
+        $item = new bookit_checklist_item(
+            null,
+            $masterid,
+            $categoryid,
+            null,
+            [],
+            [],
+            $title,
+            '',
+            1,
+            null,
+            0,
+            1,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+        return [$masterid, $item->save()];
     }
 }

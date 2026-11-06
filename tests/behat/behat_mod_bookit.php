@@ -1917,6 +1917,16 @@ class behat_mod_bookit extends behat_base {
     }
 
     /**
+     * Import the shipped Bookit role presets when a scenario relies on them.
+     *
+     * @Given the Bookit default roles are imported
+     * @return void
+     */
+    public function the_bookit_default_roles_are_imported(): void {
+        \mod_bookit\local\install_helper::import_default_roles_with_report();
+    }
+
+    /**
      * Seed the legacy multi-room test fixtures used by older checklist scenarios.
      *
      * @Given the Bookit legacy test rooms exist
@@ -2682,12 +2692,32 @@ class behat_mod_bookit extends behat_base {
             );
         }
 
-        if ($checked) {
-            $field->check();
-            return;
+        // The default browser window leaves admin checkboxes outside the viewport.
+        // Geckodriver then refuses the click. Resize first, then set the control
+        // directly so the saved setting does not depend on click coordinates.
+        $this->resize_window('large');
+        $field = $this->find_field($identifier);
+        $want = $checked ? 'true' : 'false';
+        $expected = $checked ? 'on' : 'off';
+        $xpath = json_encode($field->getXpath());
+        $result = $this->getSession()->evaluateScript(
+            "(function() {
+                var node = document.evaluate({$xpath}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                if (!node) {
+                    return 'missing';
+                }
+                node.scrollIntoView({block: 'center', inline: 'nearest'});
+                node.checked = {$want};
+                node.dispatchEvent(new Event('change', {bubbles: true}));
+                return node.checked ? 'on' : 'off';
+            })();"
+        );
+        if ($result !== $expected) {
+            throw new ExpectationException(
+                "The checkbox field \"$identifier\" could not be set.",
+                $this->getSession()
+            );
         }
-
-        $field->uncheck();
     }
 
     /**

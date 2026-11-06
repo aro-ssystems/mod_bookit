@@ -147,6 +147,7 @@ class edit_checklist_item_form extends dynamic_form {
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
+        require_capability('mod/bookit:managemasterchecklist', \context_system::instance());
     }
 
     /**
@@ -390,7 +391,16 @@ class edit_checklist_item_form extends dynamic_form {
      * @return array Result of the delete operation
      */
     public function process_delete_request($id) {
-        checklist_manager::assert_can_delete_item((int)$id);
+        try {
+            checklist_manager::assert_can_delete_item((int)$id);
+        } catch (\moodle_exception $e) {
+            \core\notification::error($e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'redirecturl' => (new \moodle_url('/mod/bookit/admin/master_checklist.php'))->out(false),
+            ];
+        }
 
         $item = bookit_checklist_item::from_database($id);
         $categoryid = $item->categoryid;
@@ -432,6 +442,10 @@ class edit_checklist_item_form extends dynamic_form {
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+
+        if (($data['action'] ?? '') === 'delete') {
+            return $errors;
+        }
 
         if (!isset($data['title']) || trim((string) $data['title']) === '') {
             $errors['title'] = get_string('checklistitemname_required', 'mod_bookit');
