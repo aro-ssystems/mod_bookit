@@ -188,7 +188,8 @@ class demo_data_helper {
         $weekplanid = (int)$DB->insert_record('bookit_weekplan', $weekplan);
         weekplan_manager::save_string_weekplan_to_db(
             "Mo 08:00-18:00\nDi 08:00-18:00\nMi 08:00-18:00\nDo 08:00-18:00\nFr 08:00-16:00",
-            $weekplanid
+            $weekplanid,
+            $userid
         );
 
         foreach ($demorooms as $demo) {
