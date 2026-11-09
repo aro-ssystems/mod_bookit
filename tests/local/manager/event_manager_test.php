@@ -922,7 +922,7 @@ final class event_manager_test extends advanced_testcase {
 
     /**
      * Observer mode must return only confirmed events in a reserved projection that still
-     * includes room info (WP-6 / R2.1).
+     * includes room info.
      *
      * @return void
      */
@@ -974,7 +974,7 @@ final class event_manager_test extends advanced_testcase {
     }
 
     /**
-     * Observer empty-room fallback must match the non-observer all-rooms label (WP-6 FR-006).
+     * Observer empty-room fallback must match the non-observer all-rooms label.
      *
      * @return void
      */
