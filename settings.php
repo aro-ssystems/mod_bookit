@@ -108,6 +108,16 @@ if ($hassiteconfig) {
             get_string('demoreset_result_success', 'mod_bookit'),
             'alert alert-success'
         );
+    } else if ($demoresetstatus === 'cancelled') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demoreset_cancelled', 'mod_bookit'),
+            'alert alert-info'
+        );
+    } else if ($demoresetstatus === 'failed') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demoreset_result_failed', 'mod_bookit'),
+            'alert alert-danger'
+        );
     }
 
     $demogenerateurl = new moodle_url('/mod/bookit/admin/demo_generate_run.php', ['sesskey' => sesskey()]);

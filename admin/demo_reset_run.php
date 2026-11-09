@@ -30,6 +30,7 @@ require_once($CFG->libdir . '/adminlib.php');
 require_admin();
 
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
+$cancel = optional_param('cancel', 0, PARAM_BOOL);
 $returnurl = new moodle_url('/admin/settings.php', ['section' => 'modsettingbookit']);
 $pageurl = new moodle_url('/mod/bookit/admin/demo_reset_run.php');
 
@@ -39,16 +40,29 @@ $PAGE->set_pagelayout('admin');
 $PAGE->set_title(get_string('demoreset', 'mod_bookit'));
 $PAGE->set_heading(get_string('demoreset', 'mod_bookit'));
 
+if ($cancel) {
+    redirect(new moodle_url($returnurl, ['demoresetstatus' => 'cancelled']));
+}
+
 if (!$confirm) {
     $confirmurl = new moodle_url('/mod/bookit/admin/demo_reset_run.php', [
         'confirm' => 1,
         'sesskey' => sesskey(),
     ]);
+    $cancelurl = new moodle_url('/mod/bookit/admin/demo_reset_run.php', ['cancel' => 1]);
+    // Name the scope before anything is deleted.
+    $counts = demo_data_helper::collect_counts();
+    $scope = (object)[
+        'events' => $counts['events'],
+        'rooms' => max(0, $counts['rooms'] - 1),
+        'resources' => $counts['resources'],
+        'checklistitems' => $counts['checklist_items'],
+    ];
     echo $OUTPUT->header();
     echo $OUTPUT->confirm(
-        get_string('demoreset_confirm', 'mod_bookit'),
+        get_string('demoreset_confirm', 'mod_bookit', $scope),
         $confirmurl,
-        $returnurl
+        $cancelurl
     );
     echo $OUTPUT->footer();
     exit;
