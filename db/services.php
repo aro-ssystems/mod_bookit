@@ -67,4 +67,10 @@ $functions = [
         'type'        => 'write',
         'ajax'        => true,
     ],
+    'mod_bookit_toggle_room_active' => [
+        'classname'   => 'mod_bookit\external\toggle_room_active',
+        'description' => 'Toggles the active flag of a room from the rooms admin list.',
+        'type'        => 'write',
+        'ajax'        => true,
+    ],
 ];

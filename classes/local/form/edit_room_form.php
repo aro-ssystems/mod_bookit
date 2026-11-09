@@ -56,6 +56,13 @@ class edit_room_form extends \core\form\persistent {
 
         $mform->addElement('text', 'shortname', get_string('room_shortname', 'mod_bookit'));
         $mform->addHelpButton('shortname', 'room_shortname', 'mod_bookit');
+        $mform->addRule(
+            'shortname',
+            get_string('error_room_shortname_too_long', 'mod_bookit', room::SHORTNAME_MAX_LENGTH),
+            'maxlength',
+            room::SHORTNAME_MAX_LENGTH,
+            'client'
+        );
 
         $mform->addElement('text', 'seats', get_string('room_seats', 'mod_bookit'));
         $mform->addRule('seats', get_string('required'), 'required');
@@ -124,6 +131,29 @@ class edit_room_form extends \core\form\persistent {
         $mform->addElement('checkbox', 'active', get_string('room_active', 'mod_bookit'));
 
         $this->add_action_buttons();
+    }
+
+    /**
+     * Reject a shortname longer than the stored character limit.
+     *
+     * @param \stdClass $data Submitted data.
+     * @param array $files Uploaded files.
+     * @param array $errors Errors already found.
+     * @return array
+     */
+    #[\Override]
+    protected function extra_validation($data, $files, array &$errors) {
+        $shortname = (string) ($data->shortname ?? '');
+        if (\core_text::strlen($shortname) > room::SHORTNAME_MAX_LENGTH) {
+            return [
+                'shortname' => get_string(
+                    'error_room_shortname_too_long',
+                    'mod_bookit',
+                    room::SHORTNAME_MAX_LENGTH
+                ),
+            ];
+        }
+        return [];
     }
 
     #[\Override]

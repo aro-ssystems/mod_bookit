@@ -3299,4 +3299,34 @@ class behat_mod_bookit extends behat_base {
             );
         }
     }
+
+    /**
+     * Open a path that must refuse the current user.
+     *
+     * The usual visit step aborts on the permission page. This step reads that page.
+     *
+     * @Given I should be denied access to :path
+     * @param string $path
+     * @throws ExpectationException
+     */
+    public function i_should_be_denied_access_to(string $path): void {
+        global $CFG;
+
+        // Read the response outside the browser. A browser visit leaves the permission
+        // page open, and the framework then fails the step for that page.
+        $pairs = [];
+        foreach ($this->getSession()->getDriver()->getWebDriver()->manage()->getCookies() as $cookie) {
+            $pairs[] = $cookie->getName() . '=' . $cookie->getValue();
+        }
+        $url = rtrim($CFG->behat_wwwroot, '/') . $path;
+        $curl = new \curl();
+        $curl->setHeader('Cookie: ' . implode('; ', $pairs));
+        $body = (string) $curl->get($url);
+        if (stripos($body, 'permissions') === false) {
+            throw new ExpectationException(
+                'Expected a permission error for ' . $path,
+                $this->getSession()
+            );
+        }
+    }
 }

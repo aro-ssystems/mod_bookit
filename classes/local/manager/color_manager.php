@@ -80,6 +80,10 @@ class color_manager {
         if (str_starts_with($color, '#')) {
             $color = substr($color, 1);
         }
+        // Empty or incomplete colours are treated as light backgrounds (use dark text).
+        if (strlen($color) < 6 || !ctype_xdigit(substr($color, 0, 6))) {
+            return 1.0;
+        }
         $r = hexdec(substr($color, 0, 2)) / 255; // Red value.
         $g = hexdec(substr($color, 2, 2)) / 255; // Green value.
         $b = hexdec(substr($color, 4, 2)) / 255; // Blue value.
