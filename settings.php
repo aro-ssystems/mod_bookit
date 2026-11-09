@@ -24,6 +24,7 @@
 
 use mod_bookit\local\tabs;
 use mod_bookit\local\install_helper;
+use mod_bookit\local\hidden_checkbox_setting;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -55,7 +56,7 @@ if ($hassiteconfig) {
         '',
         $tabsoutput,
     ));
-    // XXX TODO: write some text as introduction to bookit.
+
 
     $settings->add(new admin_setting_heading(
         'mod_bookit_optional_parts_heading',
@@ -63,14 +64,14 @@ if ($hassiteconfig) {
         get_string('optional_plugin_parts_desc', 'mod_bookit')
     ));
 
-    $settings->add(new admin_setting_configcheckbox(
+    $settings->add(new hidden_checkbox_setting(
         'mod_bookit/' . install_helper::CONFIG_RESOURCES_ENABLED,
         get_string('optional_resources_enabled', 'mod_bookit'),
         get_string('optional_resources_enabled_desc', 'mod_bookit'),
         0
     ));
 
-    $settings->add(new admin_setting_configcheckbox(
+    $settings->add(new hidden_checkbox_setting(
         'mod_bookit/' . install_helper::CONFIG_CHECKLIST_ENABLED,
         get_string('optional_checklist_enabled', 'mod_bookit'),
         get_string('optional_checklist_enabled_desc', 'mod_bookit'),

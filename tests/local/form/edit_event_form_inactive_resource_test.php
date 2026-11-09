@@ -83,6 +83,9 @@ final class edit_event_form_inactive_resource_test extends advanced_testcase {
 
     /**
      * Create a service-team editor context.
+     *
+     * @param int $userid User who edits events
+     * @return context_module
      */
     private function create_editor_context(int $userid): context_module {
         $course = $this->getDataGenerator()->create_course();
@@ -157,6 +160,12 @@ final class edit_event_form_inactive_resource_test extends advanced_testcase {
 
     /**
      * Submit the edit event form.
+     *
+     * @param context_module $context Activity context
+     * @param int $eventid Event to edit
+     * @param int $userid Submitting user
+     * @param array $overrides Form values that replace the event values
+     * @return void
      */
     private function submit_edit_event_form(
         context_module $context,
@@ -204,6 +213,7 @@ final class edit_event_form_inactive_resource_test extends advanced_testcase {
     /**
      * Return resource IDs assigned to an event.
      *
+     * @param int $eventid Event id
      * @return int[]
      */
     private function get_assigned_resource_ids(int $eventid): array {
@@ -215,7 +225,11 @@ final class edit_event_form_inactive_resource_test extends advanced_testcase {
     /**
      * Create a persisted event with optional resource mappings.
      *
-     * @param int[] $resourceids
+     * @param context_module $context Activity context
+     * @param int $userid Booking user
+     * @param int $bookingstatus Booking status of the event
+     * @param int[] $resourceids Resources to assign
+     * @return bookit_event
      */
     private function create_event_with_resources(
         context_module $context,

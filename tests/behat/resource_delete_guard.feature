@@ -5,10 +5,10 @@ Feature: Resource delete guards in the catalog
   I need visible rejection when delete is not allowed and deactivation when a resource was booked
 
   Background:
-    Given I log in as "admin"
+    Given the following config values are set as admin:
+      | resourcesenabled | 1 | mod_bookit |
+    And I log in as "admin"
     And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I check "Enable resources module"
-    And I press "Save changes"
     And I click on "Run install helper" "link"
     And the Bookit default resource data exists
     And I log out
