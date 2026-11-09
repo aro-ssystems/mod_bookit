@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for checklist_manager delete/deactivate guards (WP-7).
+ * Unit tests for checklist_manager delete/deactivate guards.
  *
  * @package     mod_bookit
  * @category    test

@@ -78,7 +78,7 @@ class export_checklist_form extends dynamic_form {
         // Hide title field initially (show only when PDF is selected).
         $mform->hideIf('pdf_title', 'format', 'neq', 'pdf');
 
-        // WP-8: optional download filename (independent of title).
+        // Optional download filename (independent of title).
         $mform->addElement('text', 'pdf_filename', get_string('pdf_filename', 'mod_bookit'), ['size' => 50]);
         $mform->setType('pdf_filename', PARAM_TEXT);
         $mform->addHelpButton('pdf_filename', 'pdf_filename', 'mod_bookit');

@@ -138,7 +138,7 @@ final class toggle_event_checklist_item_test extends advanced_testcase {
     }
 
     /**
-     * Support-only users follow roleids intersection (WP-7 R3.3).
+     * Support-only users follow roleids intersection.
      *
      * @runInSeparateProcess
      * @return void

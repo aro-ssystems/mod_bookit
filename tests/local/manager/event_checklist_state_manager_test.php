@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for event checklist progress parity (WP-7).
+ * Unit tests for event checklist progress parity.
  *
  * @package     mod_bookit
  * @category    test
@@ -32,7 +32,7 @@ use mod_bookit\local\entity\masterchecklist\bookit_checklist_item;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
 
 /**
- * Progress countable-set tests (≥5 fixtures for SC-001).
+ * Progress countable-set tests with at least five fixtures.
  *
  * @covers \mod_bookit\local\manager\event_checklist_state_manager
  */

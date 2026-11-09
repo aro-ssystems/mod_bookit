@@ -163,7 +163,7 @@ class checklist_manager {
     }
 
     /**
-     * Remove Observer from a list of checklist role ids (WP-8 strip-on-save).
+     * Remove Observer from a list of checklist role ids before saving.
      *
      * @param array $roleids
      * @return array

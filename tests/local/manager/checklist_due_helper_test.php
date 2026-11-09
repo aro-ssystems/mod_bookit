@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Unit tests for checklist due/overdue helpers (WP-8).
+ * Unit tests for checklist due/overdue helpers.
  *
  * @package     mod_bookit
  * @category    test

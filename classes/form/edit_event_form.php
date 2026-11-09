@@ -156,7 +156,7 @@ class edit_event_form extends dynamic_form {
         $mform->addRule('name', null, 'maxlength', 255, 'client');
         $mform->addHelpButton('name', 'event_name', 'mod_bookit');
 
-        // WP-8: Checklist shortcut for existing events (same gate/URL as overview).
+        // Checklist shortcut for existing events (same gate/URL as overview).
         if (
             $existingevent
             && !empty($cmid)
