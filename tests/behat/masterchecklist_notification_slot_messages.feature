@@ -10,9 +10,8 @@ Feature: Preserve notification slot messages
       | username     | firstname | lastname | email                    |
       | serviceteam1 | Service   | Team     | serviceteam@example.com |
     And I log in as "admin"
-    And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I check "Enable checklist module"
-    And I press "Save changes"
+    And the following config values are set as admin:
+      | checklistenabled | 1 | mod_bookit |
     And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the following "role assigns" exist:

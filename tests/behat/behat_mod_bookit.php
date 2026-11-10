@@ -2692,32 +2692,12 @@ class behat_mod_bookit extends behat_base {
             );
         }
 
-        // The default browser window leaves admin checkboxes outside the viewport.
-        // Geckodriver then refuses the click. Resize first, then set the control
-        // directly so the saved setting does not depend on click coordinates.
-        $this->resize_window('large');
-        $field = $this->find_field($identifier);
-        $want = $checked ? 'true' : 'false';
-        $expected = $checked ? 'on' : 'off';
-        $xpath = json_encode($field->getXpath());
-        $result = $this->getSession()->evaluateScript(
-            "(function() {
-                var node = document.evaluate({$xpath}, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                if (!node) {
-                    return 'missing';
-                }
-                node.scrollIntoView({block: 'center', inline: 'nearest'});
-                node.checked = {$want};
-                node.dispatchEvent(new Event('change', {bubbles: true}));
-                return node.checked ? 'on' : 'off';
-            })();"
-        );
-        if ($result !== $expected) {
-            throw new ExpectationException(
-                "The checkbox field \"$identifier\" could not be set.",
-                $this->getSession()
-            );
+        if ($checked) {
+            $field->check();
+            return;
         }
+
+        $field->uncheck();
     }
 
     /**
