@@ -353,12 +353,22 @@ class edit_resource_form extends dynamic_form {
     /**
      * Process DELETE requests for removing resources.
      *
+     * A rejected delete (resource already booked) is shown as a notice on the reloaded catalog page.
+     *
      * @param int $id The ID of the resource to delete
      * @return array Result of the delete operation
      */
     private function process_delete_request(int $id): array {
-        // Throws moodle_exception (e.g. resources:resource_has_bookings) — surfaced by dynamic form.
-        resource_manager::delete_resource($id);
+        try {
+            resource_manager::delete_resource($id);
+        } catch (\moodle_exception $e) {
+            \core\notification::error($e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'redirecturl' => (new moodle_url('/mod/bookit/admin/resources.php', ['id' => 'resources']))->out(false),
+            ];
+        }
 
         return [
             [

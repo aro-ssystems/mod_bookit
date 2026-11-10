@@ -47,5 +47,5 @@ Feature: Resource delete guards in the catalog
     And I click on "button[data-action='delete']" "css_element"
     Then I should see "already been used in at least one booking"
     And I should see "Guard Resource"
-    When I click on "button[data-action='deactivate']" "css_element"
-    Then I should see "Inactive"
+    When I click on "[data-action='toggle-active']" "css_element" in the "Guard Resource" "table_row"
+    Then I should see "Inactive" in the "Guard Resource" "table_row"
