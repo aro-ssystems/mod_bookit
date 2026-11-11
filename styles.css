@@ -500,6 +500,15 @@
 }
 
 
+/* Overdue checklist items in the event checklist. */
+.mod-bookit-checklist-item-overdue .mod-bookit-checklist-overdue-emoji {
+    margin-right: 0.15rem;
+}
+
+.mod-bookit-checklist-item-overdue label {
+    color: #a94442;
+}
+
 /* Request Workspace navigation badges (Spec 068). */
 .bookit-nav-badge {
     display: inline-block;
@@ -521,15 +530,6 @@
 .bookit-nav-badge--inprogress {
     background-color: #fff3cd;
     color: #664d03;
-}
-
-/* Overdue checklist items in the event checklist. */
-.mod-bookit-checklist-item-overdue .mod-bookit-checklist-overdue-emoji {
-    margin-right: 0.15rem;
-}
-
-.mod-bookit-checklist-item-overdue label {
-    color: #a94442;
 }
 
 /* ===========================================================================
