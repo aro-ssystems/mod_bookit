@@ -7,11 +7,7 @@ Feature: Resource delete guards in the catalog
   Background:
     Given the following config values are set as admin:
       | resourcesenabled | 1 | mod_bookit |
-    And I log in as "admin"
-    And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I click on "Run install helper" "link"
     And the Bookit default resource data exists
-    And I log out
 
   Scenario: Admin cannot delete a category that still has resources
     Given I log in as "admin"
