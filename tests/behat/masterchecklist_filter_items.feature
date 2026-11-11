@@ -10,10 +10,9 @@ Feature: Filter master checklist items
       | username     | firstname | lastname | email                    |
       | serviceteam1 | Service   | Team     | serviceteam@example.com |
     And I log in as "admin"
-    And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I check "Enable checklist module"
-    And I press "Save changes"
-    And I click on "Install BookIt roles" "link"
+    And the following config values are set as admin:
+      | checklistenabled | 1 | mod_bookit |
+    And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the Bookit legacy test rooms exist
     And the following "role assigns" exist:

@@ -78,75 +78,6 @@ if ($hassiteconfig) {
         0
     ));
 
-    // Demo mode: generate and reset demo data.
-    $demogeneratestatus = optional_param('demogeneratestatus', '', PARAM_ALPHAEXT);
-    $demoresetstatus = optional_param('demoresetstatus', '', PARAM_ALPHAEXT);
-    $demodestatushtml = '';
-    if ($demogeneratestatus === 'success') {
-        $demodestatushtml .= \core\output\html_writer::div(
-            get_string('demogenerate_result_success', 'mod_bookit', (object)[
-                'rooms' => optional_param('demorooms', 0, PARAM_INT),
-                'resource_categories' => optional_param('demoresourcecategories', 0, PARAM_INT),
-                'checklist_categories' => optional_param('demochecklistcategories', 0, PARAM_INT),
-                'events' => optional_param('demoevents', 0, PARAM_INT),
-            ]),
-            'alert alert-success'
-        );
-    } else if ($demogeneratestatus === 'refused') {
-        $demodestatushtml .= \core\output\html_writer::div(
-            get_string('demogenerate_result_refused', 'mod_bookit'),
-            'alert alert-warning'
-        );
-    } else if ($demogeneratestatus !== '' && $demogeneratestatus !== 'success') {
-        $demodestatushtml .= \core\output\html_writer::div(
-            get_string('demogenerate_result_failed', 'mod_bookit'),
-            'alert alert-danger'
-        );
-    }
-    if ($demoresetstatus === 'success') {
-        $demodestatushtml .= \core\output\html_writer::div(
-            get_string('demoreset_result_success', 'mod_bookit'),
-            'alert alert-success'
-        );
-    } else if ($demoresetstatus === 'cancelled') {
-        $demodestatushtml .= \core\output\html_writer::div(
-            get_string('demoreset_cancelled', 'mod_bookit'),
-            'alert alert-info'
-        );
-    } else if ($demoresetstatus === 'failed') {
-        $demodestatushtml .= \core\output\html_writer::div(
-            get_string('demoreset_result_failed', 'mod_bookit'),
-            'alert alert-danger'
-        );
-    }
-
-    $demogenerateurl = new moodle_url('/mod/bookit/admin/demo_generate_run.php', ['sesskey' => sesskey()]);
-    $demoreseturl = new moodle_url('/mod/bookit/admin/demo_reset_run.php');
-    $demodescription = $demodestatushtml;
-    $demodescription .= \core\output\html_writer::div(get_string('demogenerateinfo', 'mod_bookit'));
-    $demodescription .= \core\output\html_writer::link(
-        $demogenerateurl,
-        get_string('demogenerate', 'mod_bookit'),
-        ['class' => 'btn btn-secondary mt-2 mb-3 me-2', 'role' => 'button']
-    );
-    $demodescription .= \core\output\html_writer::div(get_string('demoresetinfo', 'mod_bookit'), 'mt-2');
-    $demodescription .= \core\output\html_writer::link(
-        $demoreseturl,
-        get_string('demoreset', 'mod_bookit'),
-        ['class' => 'btn btn-outline-danger mt-2 mb-3', 'role' => 'button']
-    );
-
-    $settings->add(new admin_setting_heading(
-        'mod_bookit_demomode_heading',
-        get_string('demomode_heading', 'mod_bookit'),
-        get_string('demomode_heading_desc', 'mod_bookit')
-    ));
-    $settings->add(new admin_setting_heading(
-        'mod_bookit/demomode_actions',
-        '',
-        $demodescription
-    ));
-
     $installhelperfinished = (int)get_config('mod_bookit', 'installhelperfinished');
     $installhelperstatus = optional_param('installhelperstatus', '', PARAM_ALPHAEXT);
     $rolesimported = optional_param('rolesimported', 0, PARAM_INT);
@@ -223,5 +154,74 @@ if ($hassiteconfig) {
         'mod_bookit/runinstallhelper',
         '',
         $description
+    ));
+
+    // Demo mode: generate and reset demo data.
+    $demogeneratestatus = optional_param('demogeneratestatus', '', PARAM_ALPHAEXT);
+    $demoresetstatus = optional_param('demoresetstatus', '', PARAM_ALPHAEXT);
+    $demodestatushtml = '';
+    if ($demogeneratestatus === 'success') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demogenerate_result_success', 'mod_bookit', (object)[
+                'rooms' => optional_param('demorooms', 0, PARAM_INT),
+                'resource_categories' => optional_param('demoresourcecategories', 0, PARAM_INT),
+                'checklist_categories' => optional_param('demochecklistcategories', 0, PARAM_INT),
+                'events' => optional_param('demoevents', 0, PARAM_INT),
+            ]),
+            'alert alert-success'
+        );
+    } else if ($demogeneratestatus === 'refused') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demogenerate_result_refused', 'mod_bookit'),
+            'alert alert-warning'
+        );
+    } else if ($demogeneratestatus !== '' && $demogeneratestatus !== 'success') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demogenerate_result_failed', 'mod_bookit'),
+            'alert alert-danger'
+        );
+    }
+    if ($demoresetstatus === 'success') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demoreset_result_success', 'mod_bookit'),
+            'alert alert-success'
+        );
+    } else if ($demoresetstatus === 'cancelled') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demoreset_cancelled', 'mod_bookit'),
+            'alert alert-info'
+        );
+    } else if ($demoresetstatus === 'failed') {
+        $demodestatushtml .= \core\output\html_writer::div(
+            get_string('demoreset_result_failed', 'mod_bookit'),
+            'alert alert-danger'
+        );
+    }
+
+    $demogenerateurl = new moodle_url('/mod/bookit/admin/demo_generate_run.php', ['sesskey' => sesskey()]);
+    $demoreseturl = new moodle_url('/mod/bookit/admin/demo_reset_run.php');
+    $demodescription = $demodestatushtml;
+    $demodescription .= \core\output\html_writer::div(get_string('demogenerateinfo', 'mod_bookit'));
+    $demodescription .= \core\output\html_writer::link(
+        $demogenerateurl,
+        get_string('demogenerate', 'mod_bookit'),
+        ['class' => 'btn btn-secondary mt-2 mb-3 me-2', 'role' => 'button']
+    );
+    $demodescription .= \core\output\html_writer::div(get_string('demoresetinfo', 'mod_bookit'), 'mt-2');
+    $demodescription .= \core\output\html_writer::link(
+        $demoreseturl,
+        get_string('demoreset', 'mod_bookit'),
+        ['class' => 'btn btn-outline-danger mt-2 mb-3', 'role' => 'button']
+    );
+
+    $settings->add(new admin_setting_heading(
+        'mod_bookit_demomode_heading',
+        get_string('demomode_heading', 'mod_bookit'),
+        get_string('demomode_heading_desc', 'mod_bookit')
+    ));
+    $settings->add(new admin_setting_heading(
+        'mod_bookit/demomode_actions',
+        '',
+        $demodescription
     ));
 }

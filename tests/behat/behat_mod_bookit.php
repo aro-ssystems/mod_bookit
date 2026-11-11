@@ -1917,6 +1917,16 @@ class behat_mod_bookit extends behat_base {
     }
 
     /**
+     * Import the shipped Bookit role presets when a scenario relies on them.
+     *
+     * @Given the Bookit default roles are imported
+     * @return void
+     */
+    public function the_bookit_default_roles_are_imported(): void {
+        \mod_bookit\local\install_helper::import_default_roles_with_report();
+    }
+
+    /**
      * Seed the legacy multi-room test fixtures used by older checklist scenarios.
      *
      * @Given the Bookit legacy test rooms exist
