@@ -60,12 +60,6 @@ class install_helper {
     /** Default standalone weekplan schedule. */
     public const DEFAULT_WEEKPLAN_SCHEDULE = "Mo 09:00-17:00\nDi 09:00-17:00\nMi 09:00-17:00\nDo 09:00-17:00\nFr 09:00-17:00";
 
-    /** Config key for the optional resources module state. */
-    public const CONFIG_RESOURCES_ENABLED = 'resourcesenabled';
-
-    /** Config key for the optional checklist module state. */
-    public const CONFIG_CHECKLIST_ENABLED = 'checklistenabled';
-
     /** Auto-create exam course when booking status becomes confirmed. */
     public const CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED = 'examcourse_autocreate_enabled';
 
@@ -77,6 +71,12 @@ class install_helper {
 
     /** Site default Moodle category for newly created exam courses. */
     public const CONFIG_EXAMCOURSE_TARGET_CATEGORYID = 'examcourse_target_categoryid';
+
+    /** Config key for the optional resources module state. */
+    public const CONFIG_RESOURCES_ENABLED = 'resourcesenabled';
+
+    /** Config key for the optional checklist module state. */
+    public const CONFIG_CHECKLIST_ENABLED = 'checklistenabled';
 
     /**
      * Check whether the optional resources module is enabled.

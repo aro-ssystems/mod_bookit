@@ -78,6 +78,15 @@ if ($hassiteconfig) {
         0
     ));
 
+    $installhelperfinished = (int)get_config('mod_bookit', 'installhelperfinished');
+    $installhelperstatus = optional_param('installhelperstatus', '', PARAM_ALPHAEXT);
+    $rolesimported = optional_param('rolesimported', 0, PARAM_INT);
+    $rolesskipped = optional_param('rolesskipped', 0, PARAM_INT);
+    $baselinecreated = optional_param('baselinecreated', 0, PARAM_INT);
+    $baselineverified = optional_param('baselineverified', 0, PARAM_INT);
+    $installhelpererrors = optional_param('installhelpererrors', 0, PARAM_INT);
+    $installhelperdetails = trim((string)optional_param('installhelperdetails', '', PARAM_TEXT));
+
     $settings->add(new admin_setting_heading(
         'mod_bookit_examcourse_heading',
         get_string('examcourse_heading', 'mod_bookit'),
@@ -113,15 +122,6 @@ if ($hassiteconfig) {
         0,
         PARAM_INT
     ));
-
-    $installhelperfinished = (int)get_config('mod_bookit', 'installhelperfinished');
-    $installhelperstatus = optional_param('installhelperstatus', '', PARAM_ALPHAEXT);
-    $rolesimported = optional_param('rolesimported', 0, PARAM_INT);
-    $rolesskipped = optional_param('rolesskipped', 0, PARAM_INT);
-    $baselinecreated = optional_param('baselinecreated', 0, PARAM_INT);
-    $baselineverified = optional_param('baselineverified', 0, PARAM_INT);
-    $installhelpererrors = optional_param('installhelpererrors', 0, PARAM_INT);
-    $installhelperdetails = trim((string)optional_param('installhelperdetails', '', PARAM_TEXT));
 
     $settings->add(new admin_setting_heading(
         'mod_bookit_installation_heading',
