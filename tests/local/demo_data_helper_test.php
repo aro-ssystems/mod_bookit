@@ -72,6 +72,52 @@ final class demo_data_helper_test extends advanced_testcase {
     }
 
     /**
+     * Id of the first BookIt institution with the given name.
+     *
+     * @param string $name
+     * @return int
+     */
+    private function institution_id(string $name): int {
+        global $DB;
+
+        return (int)$DB->get_field_select(
+            'bookit_institution',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $name],
+            IGNORE_MULTIPLE
+        );
+    }
+
+    /**
+     * Id of the default BookIt institution.
+     *
+     * @return int
+     */
+    private function default_institution_id(): int {
+        return $this->institution_id(install_helper::DEFAULT_INSTITUTION_NAME);
+    }
+
+    /**
+     * Insert an institution-wide exam course target mapping.
+     *
+     * @param int $institutionid
+     * @return void
+     */
+    private function add_mapping(int $institutionid): void {
+        global $DB;
+
+        $DB->insert_record('bookit_examcourse_map', (object)[
+            'purpose' => 'target',
+            'institutionid' => $institutionid,
+            'semester' => 0,
+            'categoryid' => 1,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
      * Baseline-only is true after ensure_fresh_install_baseline on empty data.
      *
      * @return void
@@ -339,17 +385,79 @@ final class demo_data_helper_test extends advanced_testcase {
     }
 
     /**
+     * The reset drops exam course mappings of the institutions it removes and keeps those of the default one.
+     *
+     * Without the exam course mapping table the reset still succeeds.
+     *
+     * @return void
+     */
+    public function test_reset_removes_mappings_of_removed_institutions(): void {
+        global $DB;
+
+        $this->prepare_baseline();
+        demo_data_helper::generate();
+        $this->add_institution('Faculty of Law');
+
+        if (!$DB->get_manager()->table_exists('bookit_examcourse_map')) {
+            $this->assertSame('success', demo_data_helper::reset()['status']);
+            return;
+        }
+
+        $defaultid = $this->default_institution_id();
+        $lawid = $this->institution_id('Faculty of Law');
+        $this->add_mapping($defaultid);
+        $this->add_mapping($lawid);
+
+        $reset = demo_data_helper::reset();
+
+        $this->assertSame('success', $reset['status']);
+        $this->assertSame(1, $DB->count_records('bookit_examcourse_map'));
+        $this->assertTrue($DB->record_exists('bookit_examcourse_map', ['institutionid' => $defaultid]));
+    }
+
+    /**
+     * Generating demo data creates no exam course, even with automatic creation switched on.
+     *
+     * @return void
+     */
+    public function test_generate_creates_no_exam_courses(): void {
+        global $DB;
+
+        $this->prepare_baseline();
+        $autocreate = install_helper::class . '::CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED';
+        if (defined($autocreate)) {
+            set_config(constant($autocreate), 1, 'mod_bookit');
+        }
+        $coursesbefore = $DB->count_records('course');
+
+        demo_data_helper::generate();
+
+        $this->assertSame($coursesbefore, $DB->count_records('course'));
+        $taskclass = '\mod_bookit\task\create_exam_course_task';
+        if (class_exists($taskclass)) {
+            $this->assertEmpty(\core\task\manager::get_adhoc_tasks($taskclass));
+        }
+    }
+
+    /**
      * A reset that cannot restore the baseline changes nothing and reports the failure.
      *
      * @return void
      */
     public function test_reset_failure_rolls_back(): void {
+        global $DB;
+
         // PHPUnit wraps each test in a transaction; the rollback of the reset must be a real one.
         $this->preventResetByRollback();
         $this->prepare_baseline();
         demo_data_helper::generate();
         // A second institution with the default name cannot be resolved by the reset.
         $this->add_institution(install_helper::DEFAULT_INSTITUTION_NAME);
+        $this->add_institution('Faculty of Law');
+        $hasmappings = $DB->get_manager()->table_exists('bookit_examcourse_map');
+        if ($hasmappings) {
+            $this->add_mapping($this->institution_id('Faculty of Law'));
+        }
 
         $countsbefore = demo_data_helper::collect_counts();
         $reset = demo_data_helper::reset();
@@ -357,6 +465,9 @@ final class demo_data_helper_test extends advanced_testcase {
         $this->assertSame('failed', $reset['status']);
         $this->assertNotEmpty($reset['errors']);
         $this->assertSame($countsbefore, demo_data_helper::collect_counts());
+        if ($hasmappings) {
+            $this->assertSame(1, $DB->count_records('bookit_examcourse_map'));
+        }
         $this->assertSame(1, (int)get_config('mod_bookit', install_helper::CONFIG_RESOURCES_ENABLED));
     }
 }

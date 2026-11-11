@@ -237,6 +237,25 @@ class demo_data_helper {
 
         $now = self::now();
         $userid = self::actor_userid();
+        $weekstart = self::week_start();
+
+        // The demo week starts on Monday, the installation may have assigned the default room later.
+        $defaultroomid = $DB->get_field_select(
+            'bookit_room',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => install_helper::DEFAULT_ROOM_NAME],
+            IGNORE_MULTIPLE
+        );
+        if ($defaultroomid) {
+            $DB->set_field_select(
+                'bookit_weekplan_room',
+                'starttime',
+                $weekstart,
+                'roomid = :roomid AND starttime > :weekstart',
+                ['roomid' => (int)$defaultroomid, 'weekstart' => $weekstart]
+            );
+        }
 
         $demorooms = [
             [
@@ -516,6 +535,13 @@ class demo_data_helper {
             $DB->sql_compare_text('name') . ' <> ' . $DB->sql_compare_text(':name'),
             ['name' => install_helper::DEFAULT_INSTITUTION_NAME]
         );
+        // Exam course mappings of removed institutions would stay in the mapping list without a name.
+        if ($DB->get_manager()->table_exists('bookit_examcourse_map')) {
+            $DB->delete_records_select(
+                'bookit_examcourse_map',
+                'institutionid NOT IN (SELECT id FROM {bookit_institution})'
+            );
+        }
 
         if ($DB->get_manager()->table_exists('bookit_notification_slots')) {
             $DB->delete_records('bookit_notification_slots');
