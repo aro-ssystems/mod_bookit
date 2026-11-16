@@ -415,6 +415,7 @@ class demo_data_helper {
                 $resourceid = (int)$resourceids[$resourceindex % count($resourceids)];
                 $resourceindex++;
                 event_resource_manager::add_resource_to_event($eventid, $resourceid, 1, $userid, $data['resource']);
+                self::allow_resource_in_room($resourceid, (int)$rooms[$data['room']]);
             }
 
             $doneitems = match ($data['checklistdone']) {
@@ -426,6 +427,31 @@ class demo_data_helper {
                 event_checklist_state_manager::set_item_state($eventid, (int)$itemid, $userid, true);
             }
         }
+    }
+
+    /**
+     * Allow a booked demo resource in the room of its demo event.
+     *
+     * The default resources are created before the demo rooms exist, so their room list may miss the
+     * room of the event. A resource without room list (null) is available in all rooms and stays so.
+     *
+     * @param int $resourceid
+     * @param int $roomid
+     * @return void
+     */
+    private static function allow_resource_in_room(int $resourceid, int $roomid): void {
+        global $DB;
+
+        $stored = $DB->get_field('bookit_resource', 'roomids', ['id' => $resourceid]);
+        if ($stored === null || $stored === false) {
+            return;
+        }
+        $roomids = array_map('intval', json_decode((string)$stored, true) ?? []);
+        if (in_array($roomid, $roomids, true)) {
+            return;
+        }
+        $roomids[] = $roomid;
+        $DB->set_field('bookit_resource', 'roomids', json_encode($roomids), ['id' => $resourceid]);
     }
 
     /**

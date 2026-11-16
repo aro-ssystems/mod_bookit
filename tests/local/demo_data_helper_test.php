@@ -242,6 +242,42 @@ final class demo_data_helper_test extends advanced_testcase {
     }
 
     /**
+     * Every resource booked on a demo event is allowed in the room of that event.
+     *
+     * @return void
+     */
+    public function test_generated_resources_are_allowed_in_their_event_rooms(): void {
+        global $DB;
+        $this->prepare_baseline();
+        install_helper::import_default_roles_with_report();
+        $this->assertSame('success', demo_data_helper::generate()['status']);
+
+        $bookings = $DB->get_records_sql(
+            'SELECT er.id, e.roomid, r.roomids
+               FROM {bookit_event_resource} er
+               JOIN {bookit_event} e ON e.id = er.eventid
+               JOIN {bookit_resource} r ON r.id = er.resourceid'
+        );
+        $this->assertNotEmpty($bookings);
+        $defaultroomid = (int)$DB->get_field_select(
+            'bookit_room',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => install_helper::DEFAULT_ROOM_NAME]
+        );
+        $indemoroom = 0;
+        foreach ($bookings as $booking) {
+            $indemoroom += (int)$booking->roomid !== $defaultroomid ? 1 : 0;
+            if ($booking->roomids === null) {
+                continue;
+            }
+            $allowed = array_map('intval', json_decode($booking->roomids, true) ?? []);
+            $this->assertContains((int)$booking->roomid, $allowed);
+        }
+        $this->assertGreaterThan(0, $indemoroom);
+    }
+
+    /**
      * On Monday morning, before any demo event has started, an open item is already overdue.
      *
      * @return void
