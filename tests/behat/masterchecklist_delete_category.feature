@@ -66,3 +66,18 @@ Feature: Delete master checklist category
     And I click on "button[data-action='delete']" "css_element"
     Then I should see "This checklist category cannot be deleted because it still contains items. Empty it first."
     And I should see "Exam Preparation"
+
+  Scenario: Admin can cancel deleting a master checklist category
+    Given I log in as "admin"
+    And I change window size to "large"
+    And I navigate to "Plugins > Activity modules > BookIt" in site administration
+    And I click on "Master checklist" "link"
+    And I should see "Exam Preparation"
+    And I click on "button[id^='edit-checklistcategory-']" "css_element" in the "Exam Preparation" "table_row"
+    And I should see "Delete"
+    And I click on "button[data-action='delete']" "css_element"
+    And I should see "Confirm"
+    When I click on "Cancel" "button" in the "Confirm" "dialogue"
+    Then I should see "Exam Preparation"
+    And I click on "button[id^='edit-checklistcategory-']" "css_element" in the "Exam Preparation" "table_row"
+    And "button[data-action='delete']" "css_element" should exist in the ".modal-dialog" "css_element"

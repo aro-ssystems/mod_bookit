@@ -320,7 +320,7 @@ class sharing_manager {
                 }
                 $data = str_getcsv($lines[$i], ',', '"', '\\');
                 $linenumber = $i + 1;
-                if (count($data) < count($headers)) {
+                if (count($data) !== count($headers)) {
                     return [
                         'success' => false,
                         'message' => get_string('checklistimport_badline', 'mod_bookit', $linenumber),

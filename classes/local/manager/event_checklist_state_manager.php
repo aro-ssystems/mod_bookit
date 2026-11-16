@@ -184,23 +184,71 @@ class event_checklist_state_manager {
     }
 
     /**
-     * Get progress percent for multiple events.
+     * Get progress percent for multiple events in two queries for all events.
      *
-     * Returns a map of eventid => percent (0-100). Totals are per-event (inactive+state).
+     * Returns a map of eventid => percent (0-100). The counted items follow the same rule as
+     * get_countable_item_ids(): an item with a category counts when it is active or when the
+     * event has a state row for it. An item counts as done if any user marked it done.
      *
      * @param int[] $eventids List of event IDs
      * @param int $masterid Master checklist ID
      * @return array Map of eventid => percent
      */
     public static function get_progress_percent_for_events(array $eventids, int $masterid): array {
+        global $DB;
+
         if (empty($eventids) || $masterid <= 0) {
             return [];
         }
 
-        $result = [];
-        foreach ($eventids as $eid) {
-            $progress = self::get_progress_for_event((int)$eid, $masterid);
-            $result[(int)$eid] = $progress['percent'];
+        $eventids = array_map('intval', $eventids);
+        $result = array_fill_keys($eventids, 0);
+
+        $items = $DB->get_records_sql(
+            "SELECT i.id, COALESCE(i.active, 1) AS active
+               FROM {bookit_checklist_item} i
+               JOIN {bookit_checklist_category} c ON c.id = i.categoryid
+              WHERE i.masterid = :masterid",
+            ['masterid' => $masterid]
+        );
+        if (empty($items)) {
+            return $result;
+        }
+
+        $activecount = 0;
+        foreach ($items as $item) {
+            $activecount += (int)$item->active === 1 ? 1 : 0;
+        }
+
+        [$eventsql, $params] = $DB->get_in_or_equal($eventids, SQL_PARAMS_NAMED, 'eid');
+        [$itemsql, $itemparams] = $DB->get_in_or_equal(array_keys($items), SQL_PARAMS_NAMED, 'iid');
+        $states = $DB->get_recordset_sql(
+            "SELECT s.eventid, s.checklistitemid, MAX(s.done) AS done
+               FROM {bookit_event_checklist_state} s
+              WHERE s.eventid $eventsql
+                AND s.checklistitemid $itemsql
+           GROUP BY s.eventid, s.checklistitemid",
+            $params + $itemparams
+        );
+
+        // Inactive items count for an event once it has a state row for them.
+        $totals = array_fill_keys($eventids, $activecount);
+        $done = array_fill_keys($eventids, 0);
+        foreach ($states as $state) {
+            $eventid = (int)$state->eventid;
+            if ((int)$items[$state->checklistitemid]->active !== 1) {
+                $totals[$eventid]++;
+            }
+            if ((int)$state->done === 1) {
+                $done[$eventid]++;
+            }
+        }
+        $states->close();
+
+        foreach ($eventids as $eventid) {
+            if ($totals[$eventid] > 0) {
+                $result[$eventid] = (int)round(($done[$eventid] / $totals[$eventid]) * 100);
+            }
         }
         return $result;
     }

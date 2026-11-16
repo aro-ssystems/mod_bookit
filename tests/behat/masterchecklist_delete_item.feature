@@ -64,3 +64,19 @@ Feature: Delete master checklist item
     And I click on "button[data-action='delete']" "css_element"
     Then I should see "Deactivate it instead."
     And I should see "Reserve room"
+
+  Scenario: Admin can cancel deleting a master checklist item
+    Given I log in as "admin"
+    And I change window size to "large"
+    And I navigate to "Plugins > Activity modules > BookIt" in site administration
+    And I click on "Master checklist" "link"
+    And I should see "Reserve room"
+    And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"
+    And I should see "Delete"
+    And I click on "button[data-action='delete']" "css_element"
+    And I wait "1" seconds
+    And I should see "Confirm"
+    When I click on "Cancel" "button" in the "Confirm" "dialogue"
+    Then I should see "Reserve room"
+    And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"
+    And "button[data-action='delete']" "css_element" should exist in the ".modal-dialog" "css_element"

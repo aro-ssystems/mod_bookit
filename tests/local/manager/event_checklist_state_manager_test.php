@@ -212,4 +212,54 @@ final class event_checklist_state_manager_test extends advanced_testcase {
         $progress = event_checklist_state_manager::get_progress_for_event($this->eventid, $this->masterid);
         $this->assertSame(['done' => 0, 'total' => 0, 'percent' => 0], $progress);
     }
+
+    /**
+     * Fixture 6: the overview batch reads a fixed number of times and matches the single-event values.
+     */
+    public function test_batch_progress_uses_fixed_number_of_reads(): void {
+        global $DB, $USER;
+        $doneone = $this->create_item('Done one');
+        $donetwo = $this->create_item('Done two');
+        $this->create_item('Open');
+        $inactive = $this->create_item('Inactive with state');
+        $orphan = $this->create_item('Orphan');
+        $DB->set_field('bookit_checklist_item', 'categoryid', null, ['id' => $orphan]);
+
+        $template = $DB->get_record('bookit_event', ['id' => $this->eventid]);
+        unset($template->id);
+        $eventids = [$this->eventid];
+        for ($i = 1; $i < 20; $i++) {
+            $eventids[] = (int)$DB->insert_record('bookit_event', $template);
+        }
+        foreach ($eventids as $i => $eventid) {
+            if ($i % 2 === 0) {
+                event_checklist_state_manager::set_item_state($eventid, $doneone, $USER->id, true);
+            }
+            if ($i % 3 === 0) {
+                event_checklist_state_manager::set_item_state($eventid, $donetwo, $USER->id, true);
+            }
+            if ($i % 4 === 0) {
+                event_checklist_state_manager::set_item_state($eventid, $inactive, $USER->id, $i % 8 === 0);
+            }
+            if ($i % 5 === 0) {
+                event_checklist_state_manager::set_item_state($eventid, $orphan, $USER->id, true);
+            }
+        }
+        checklist_manager::set_item_active($inactive, false);
+
+        $before = $DB->perf_get_reads();
+        event_checklist_state_manager::get_progress_percent_for_events([$this->eventid], $this->masterid);
+        $readsone = $DB->perf_get_reads() - $before;
+
+        $before = $DB->perf_get_reads();
+        $batch = event_checklist_state_manager::get_progress_percent_for_events($eventids, $this->masterid);
+        $readsall = $DB->perf_get_reads() - $before;
+
+        $this->assertSame($readsone, $readsall);
+        foreach ($eventids as $eventid) {
+            $single = event_checklist_state_manager::get_progress_for_event($eventid, $this->masterid);
+            $this->assertSame($single['percent'], $batch[$eventid]);
+        }
+        $this->assertSame([], event_checklist_state_manager::get_progress_percent_for_events([], $this->masterid));
+    }
 }

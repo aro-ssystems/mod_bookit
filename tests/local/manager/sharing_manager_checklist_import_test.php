@@ -106,6 +106,20 @@ final class sharing_manager_checklist_import_test extends advanced_testcase {
     }
 
     /**
+     * A row with more fields than the header fails the whole import with its line number.
+     */
+    public function test_import_rejects_line_with_extra_fields_without_writing(): void {
+        global $DB;
+
+        $csv = "type,name,description\ncategory,Kept out,Desc\nitem,Too many,Desc,extra\n";
+        $result = sharing_manager::import_master_checklist_csv($this->masterid, $csv, false);
+        $this->assertFalse($result['success']);
+        $this->assertStringContainsString('3', $result['message']);
+        $this->assertFalse($DB->record_exists('bookit_checklist_category', ['masterid' => $this->masterid]));
+        $this->assertFalse($DB->record_exists('bookit_checklist_item', ['masterid' => $this->masterid]));
+    }
+
+    /**
      * Items of the fixture master, keyed by title.
      *
      * @return \stdClass[]

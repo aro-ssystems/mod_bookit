@@ -5,7 +5,6 @@ import ModalForm from 'core_form/modalform';
 import {getString} from 'core/str';
 import Templates from 'core/templates';
 import Notification from 'core/notification';
-import ModalEvents from 'core/modal_events';
 import {enhanceForm} from 'mod_bookit/form_multiselect_validation_bridge';
 
 export default class extends BaseComponent {
@@ -225,22 +224,11 @@ export default class extends BaseComponent {
 
         });
 
-        modalForm.addEventListener(modalForm.events.SERVER_VALIDATION_ERROR, () => {
-            modalForm.modal.show();
-        });
-
         modalForm.addEventListener(modalForm.events.LOADED, () => {
-            // Keep the edit dialog mounted. Closing it here drops the refusal text.
-            modalForm.modal.getRoot().on(ModalEvents.delete, (event) => {
-                event.preventDefault();
-            });
-
             const deleteButton = modalForm.modal.getRoot().find('button[data-action="delete"]');
 
             deleteButton.on('click', async(e) => {
                 e.preventDefault();
-                // One visible delete button: the confirm dialog sits on top of a hidden edit dialog.
-                modalForm.modal.hide();
 
                 const confirmTitle = await getString('confirm', 'core');
                 const confirmMessage = await getString('areyousure', 'core');
@@ -253,9 +241,6 @@ export default class extends BaseComponent {
                     () => {
                         modalForm.getFormNode().querySelector('input[name="action"]').value = 'delete';
                         modalForm.submitFormAjax();
-                    },
-                    () => {
-                        modalForm.modal.show();
                     }
                 );
 
