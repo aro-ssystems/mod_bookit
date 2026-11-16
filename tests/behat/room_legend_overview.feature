@@ -74,3 +74,25 @@ Feature: Room legend and overview
     And "//tr[contains(., 'Alpha')]" "xpath_element" should be visible
     When I set the field "Filter rooms" to ""
     Then I should see "Beta"
+
+  Scenario: Room names with special characters show correctly in the room overview
+    Given the following "mod_bookit > rooms" exist:
+      | name    | shortname | description | seats | active |
+      | R&D Lab | RD        | Prototypes  | 6     | 1      |
+      | Room 1  | RM0001    | Extra       | 1     | 1      |
+      | Room 2  | RM0002    | Extra       | 1     | 1      |
+      | Room 3  | RM0003    | Extra       | 1     | 1      |
+      | Room 4  | RM0004    | Extra       | 1     | 1      |
+      | Room 5  | RM0005    | Extra       | 1     | 1      |
+      | Room 6  | RM0006    | Extra       | 1     | 1      |
+      | Room 7  | RM0007    | Extra       | 1     | 1      |
+      | Room 8  | RM0008    | Extra       | 1     | 1      |
+    And I log in as "admin"
+    And I change viewport size to "320x700"
+    And I am on the "My BookIt Activity" "bookit activity" page
+    When I click on "Room overview" "link"
+    Then I should see "R&D Lab"
+    And I should not see "R&amp;D Lab"
+    When I set the field "Filter rooms" to "RD — R&D Lab"
+    Then "//tr[contains(., 'R&D Lab')]" "xpath_element" should be visible
+    And "//tr[contains(., 'Alpha')]" "xpath_element" should not be visible

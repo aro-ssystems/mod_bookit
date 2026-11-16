@@ -58,7 +58,7 @@
                 data-region="room-overview-filter"
                 aria-label="{{#str}}room_overview_filter, mod_bookit{{/str}}">
             {{#filteroptions}}
-            <option value="{{id}}">{{label}}</option>
+            <option value="{{id}}">{{{label}}}</option>
             {{/filteroptions}}
         </select>
     </div>
@@ -77,11 +77,11 @@
             <tbody>
                 {{#rooms}}
                 <tr data-region="room-overview-row" data-room-id="{{id}}">
-                    <td>{{shortname}}</td>
-                    <td>{{name}}</td>
-                    <td>{{description}}</td>
+                    <td>{{{shortname}}}</td>
+                    <td>{{{name}}}</td>
+                    <td>{{{description}}}</td>
                     <td>{{seats}}</td>
-                    <td>{{resourceslabel}}</td>
+                    <td>{{{resourceslabel}}}</td>
                 </tr>
                 {{/rooms}}
             </tbody>
