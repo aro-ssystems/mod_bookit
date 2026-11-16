@@ -324,4 +324,141 @@ final class edit_event_form_examcourse_test extends advanced_testcase {
         ]));
         $this->assertSame((int)$this->template->id, (int)$DB->get_field('bookit_event', 'coursetemplate', ['id' => $booking->id]));
     }
+
+    /**
+     * Build the form for an existing booking as the given user and return the inner QuickForm.
+     *
+     * @param \stdClass $user
+     * @param int $eventid
+     * @return \MoodleQuickForm
+     */
+    private function build_form(\stdClass $user, int $eventid): \MoodleQuickForm {
+        $this->setUser($user);
+        $ajaxdata = ['cmid' => $this->context->instanceid, 'id' => $eventid];
+        $form = new edit_event_form(null, null, 'post', '', [], true, $ajaxdata, true);
+        $form->set_data_for_dynamic_submission();
+        $reflection = new \ReflectionClass($form);
+        $property = $reflection->getProperty('_form');
+        $property->setAccessible(true);
+        return $property->getValue($form);
+    }
+
+    /**
+     * A booking whose exam course was deleted still opens, shows a hint and saves.
+     */
+    public function test_deleted_exam_course_keeps_form_usable(): void {
+        global $DB;
+        $this->submit($this->serviceteam, $this->payload(['name' => 'Deleted course booking']));
+        $booking = $this->booking('Deleted course booking');
+        $examcourse = $this->getDataGenerator()->create_course(['fullname' => 'Gone exam course']);
+        $DB->set_field('bookit_event', 'refcourseid', $examcourse->id, ['id' => $booking->id]);
+        delete_course($examcourse->id, false);
+
+        $mform = $this->build_form($this->serviceteam, (int)$booking->id);
+        $this->assertStringContainsString(
+            get_string('examcourse_deleted', 'mod_bookit'),
+            $mform->getElement('refcourseid_readonly')->toHtml()
+        );
+
+        $this->assertSame([], $this->submit($this->serviceteam, $this->payload([
+            'id' => (int)$booking->id,
+            'name' => 'Deleted course booking',
+        ])));
+        $this->assertSame((int)$examcourse->id, (int)$this->booking('Deleted course booking')->refcourseid);
+    }
+
+    /**
+     * Setting the template after the confirmation creates the exam course once.
+     */
+    public function test_template_set_after_confirmation_creates_course_once(): void {
+        global $DB;
+        $this->submit($this->booker, $this->payload(['name' => 'Late template booking']));
+        $booking = $this->booking('Late template booking');
+        event_manager::transition_booking_status(
+            event_manager::get_event((int)$booking->id),
+            event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            (int)$this->serviceteam->id,
+            $this->context
+        );
+        $this->runAdhocTasks(create_exam_course_task::class);
+        $this->assertSame(0, (int)$this->booking('Late template booking')->refcourseid);
+
+        $confirmed = [
+            'id' => (int)$booking->id,
+            'name' => 'Late template booking',
+            'bookingstatus' => event_access_manager::BOOKINGSTATUS_CONFIRMED,
+            'coursetemplate' => (int)$this->template->id,
+        ];
+        $this->assertSame([], $this->submit($this->serviceteam, $this->payload($confirmed)));
+        $this->assertCount(1, \core\task\manager::get_adhoc_tasks(create_exam_course_task::class));
+        $this->runAdhocTasks(create_exam_course_task::class);
+        $refcourseid = (int)$this->booking('Late template booking')->refcourseid;
+        $this->assertGreaterThan(0, $refcourseid);
+
+        // Saving again with the course in place queues nothing.
+        $this->assertSame([], $this->submit($this->serviceteam, $this->payload($confirmed)));
+        $this->assertCount(0, \core\task\manager::get_adhoc_tasks(create_exam_course_task::class));
+        $this->assertSame($refcourseid, (int)$this->booking('Late template booking')->refcourseid);
+        $targetcategory = $DB->get_field('course', 'category', ['id' => $refcourseid]);
+        $this->assertSame(1, $DB->count_records('course', ['category' => $targetcategory]));
+    }
+
+    /**
+     * A second institution with its own template category.
+     *
+     * @return array{institutionid:int,template:\stdClass}
+     */
+    private function create_institution_with_templates(): array {
+        global $DB;
+        $institutionid = (int)$DB->insert_record('bookit_institution', (object)[
+            'name' => 'Faculty two',
+            'active' => 1,
+            'usermodified' => 2,
+            'timecreated' => time(),
+            'timemodified' => time(),
+        ]);
+        $category = $this->getDataGenerator()->create_category();
+        $template = $this->getDataGenerator()->create_course(['category' => $category->id, 'fullname' => 'Faculty template']);
+        \mod_bookit\local\manager\examcourse_manager::upsert_mapping(
+            \mod_bookit\local\manager\examcourse_manager::PURPOSE_TEMPLATE,
+            $institutionid,
+            \mod_bookit\local\manager\examcourse_manager::SEMESTER_INSTITUTION_WIDE,
+            (int)$category->id
+        );
+        return ['institutionid' => $institutionid, 'template' => $template];
+    }
+
+    /**
+     * Changing the institution of a booking accepts a template of the new institution.
+     */
+    public function test_changed_institution_accepts_its_template(): void {
+        $faculty = $this->create_institution_with_templates();
+        $this->submit($this->serviceteam, $this->payload(['name' => 'Moved booking']));
+        $booking = $this->booking('Moved booking');
+
+        $this->assertSame([], $this->submit($this->serviceteam, $this->payload([
+            'id' => (int)$booking->id,
+            'name' => 'Moved booking',
+            'institutionid' => $faculty['institutionid'],
+            'coursetemplate' => (int)$faculty['template']->id,
+        ])));
+        $this->assertSame((int)$faculty['template']->id, (int)$this->booking('Moved booking')->coursetemplate);
+    }
+
+    /**
+     * Changing the institution of a booking rejects a template of the previous institution.
+     */
+    public function test_changed_institution_rejects_template_of_old_institution(): void {
+        $faculty = $this->create_institution_with_templates();
+        $this->submit($this->serviceteam, $this->payload(['name' => 'Moved booking old template']));
+        $booking = $this->booking('Moved booking old template');
+
+        $errors = $this->submit($this->serviceteam, $this->payload([
+            'id' => (int)$booking->id,
+            'name' => 'Moved booking old template',
+            'institutionid' => $faculty['institutionid'],
+            'coursetemplate' => (int)$this->template->id,
+        ]));
+        $this->assertArrayHasKey('coursetemplate', $errors);
+    }
 }

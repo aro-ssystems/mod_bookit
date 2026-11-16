@@ -419,12 +419,7 @@ class edit_event_form extends dynamic_form {
         }
 
         // Exam course template selection (WP-5): driven by resources + autocreate + options.
-        $eventforoptions = $existingevent ?: (object)[
-            'institutionid' => 0,
-            'semester' => 0,
-            'usercreated' => (int)$USER->id,
-            'coursetemplate' => 0,
-        ];
+        $eventforoptions = $this->get_event_for_template_options($existingevent, $caneditevent);
         $canselectexamtemplate = event_access_manager::can_select_examcourse_template($context, (int)$USER->id);
         $showexamtemplate = examcourse_manager::should_show_template_field($eventforoptions);
         if ($showexamtemplate) {
@@ -527,8 +522,11 @@ class edit_event_form extends dynamic_form {
             $refcoursevalue = 0;
             if ($existingevent && !empty($existingevent->refcourseid)) {
                 $refcoursevalue = (int)$existingevent->refcourseid;
-                $refcourse = get_course($refcoursevalue, false);
-                $refcoursedisplay = $refcourse ? format_string($refcourse->fullname) : '';
+                // The exam course may have been deleted in the meantime; the booking stays usable.
+                $refcourse = $DB->get_record('course', ['id' => $refcoursevalue], 'id, fullname', IGNORE_MISSING);
+                $refcoursedisplay = $refcourse
+                    ? format_string($refcourse->fullname)
+                    : get_string('examcourse_deleted', 'mod_bookit');
             }
             $mform->addElement('static', 'refcourseid_readonly', $refcourselabel, s($refcoursedisplay));
             $mform->addHelpButton('refcourseid_readonly', 'examcourse_created_field', 'mod_bookit');
@@ -958,6 +956,41 @@ class edit_event_form extends dynamic_form {
                 : get_string('deleteduser', 'moodle');
             $mform->getElement('usercreated')->setValue($displayname);
         }
+    }
+
+    /**
+     * Booking values that decide which exam course templates are offered and accepted.
+     *
+     * The form and the check on save use the same values. A new booking has no faculty or term yet,
+     * so the site defaults apply. For an existing booking the faculty and term sent with the form
+     * replace the stored ones, but only for users who may edit the booking.
+     *
+     * @param stdClass|null $existingevent Stored booking, null for a new one
+     * @param bool $usesubmitted Whether the submitted faculty and term may be used
+     * @return stdClass
+     */
+    private function get_event_for_template_options(?stdClass $existingevent, bool $usesubmitted): stdClass {
+        global $USER;
+
+        if ($existingevent === null) {
+            return (object)[
+                'institutionid' => 0,
+                'semester' => 0,
+                'usercreated' => (int)$USER->id,
+                'coursetemplate' => 0,
+            ];
+        }
+
+        $event = clone $existingevent;
+        if ($usesubmitted) {
+            foreach (['institutionid', 'semester'] as $field) {
+                $submitted = $this->_ajaxformdata[$field] ?? null;
+                if (is_scalar($submitted) && is_numeric($submitted)) {
+                    $event->$field = (int)$submitted;
+                }
+            }
+        }
+        return $event;
     }
 
     /**
@@ -1788,12 +1821,7 @@ class edit_event_form extends dynamic_form {
             && $submittedtemplate !== $storedtemplate
             && event_access_manager::can_select_examcourse_template($context, (int)$USER->id)
         ) {
-            $eventforoptions = $existingevent ?: (object)[
-                'institutionid' => 0,
-                'semester' => 0,
-                'usercreated' => (int)$USER->id,
-                'coursetemplate' => 0,
-            ];
+            $eventforoptions = $this->get_event_for_template_options($existingevent, $existingevent !== null && $caneditpublic);
             if (!array_key_exists($submittedtemplate, examcourse_manager::get_template_options($eventforoptions))) {
                 $errors['coursetemplate'] = get_string('examcourse_template_not_allowed', 'mod_bookit');
             }

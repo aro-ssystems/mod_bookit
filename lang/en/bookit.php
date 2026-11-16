@@ -281,6 +281,7 @@ $string['examcourse_autocreate_enabled_desc'] = 'When enabled, confirming a book
 $string['examcourse_copy_incomplete'] = 'The exam course was created, but the copy is incomplete: some activities of the template are missing.';
 $string['examcourse_created_field'] = 'Created exam course';
 $string['examcourse_created_field_help'] = 'Exam course created automatically when the booking was confirmed.';
+$string['examcourse_deleted'] = 'The exam course no longer exists.';
 $string['examcourse_failed_body'] = 'No exam course was created for the booking "{$a->eventname}": {$a->reason}';
 $string['examcourse_failed_subject'] = 'Exam course not created: {$a}';
 $string['examcourse_heading'] = 'Exam courses';

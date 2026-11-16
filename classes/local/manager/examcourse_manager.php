@@ -573,49 +573,96 @@ class examcourse_manager {
         }
 
         $newcourseid = restore_dbops::create_new_course($fullname, $shortname, $categoryid);
-        $rc = new restore_controller(
-            $backupid,
-            $newcourseid,
-            backup::INTERACTIVE_NO,
-            backup::MODE_SAMESITE,
-            $USER->id,
-            backup::TARGET_NEW_COURSE
-        );
-        foreach ($settings as $name => $value) {
-            $setting = $rc->get_plan()->get_setting($name);
-            if ($setting && $setting->get_status() == backup_setting::NOT_LOCKED) {
-                $setting->set_value($value);
+        $rc = null;
+        try {
+            $rc = new restore_controller(
+                $backupid,
+                $newcourseid,
+                backup::INTERACTIVE_NO,
+                backup::MODE_SAMESITE,
+                $USER->id,
+                backup::TARGET_NEW_COURSE
+            );
+            foreach ($settings as $name => $value) {
+                $setting = $rc->get_plan()->get_setting($name);
+                if ($setting && $setting->get_status() == backup_setting::NOT_LOCKED) {
+                    $setting->set_value($value);
+                }
             }
+            if (!$rc->execute_precheck()) {
+                $precheck = $rc->get_precheck_results();
+                if (is_array($precheck) && !empty($precheck['errors'])) {
+                    $rc->destroy();
+                    if (empty($CFG->keeptempdirectoriesonbackup)) {
+                        fulldelete($backupbasepath);
+                    }
+                    $file->delete();
+                    // Remove the empty shell course so a later attempt does not leave a second one behind.
+                    delete_course($newcourseid, false);
+                    return 0;
+                }
+            }
+            $rc->execute_plan();
+            $rc->destroy();
+
+            $course = $DB->get_record('course', ['id' => $newcourseid], '*', MUST_EXIST);
+            $course->fullname = $fullname;
+            $course->shortname = $shortname;
+            $course->visible = 0;
+            $course->startdate = self::start_of_today();
+            $DB->update_record('course', $course);
+
+            if (empty($CFG->keeptempdirectoriesonbackup)) {
+                fulldelete($backupbasepath);
+            }
+            $file->delete();
+        } catch (\Throwable $e) {
+            // A failed restore must not leave the new course or the backup behind, else every retry adds
+            // another empty course to the target category.
+            self::discard_failed_copy($newcourseid, $rc, $backupbasepath, $file);
+            throw $e;
         }
-        if (!$rc->execute_precheck()) {
-            $precheck = $rc->get_precheck_results();
-            if (is_array($precheck) && !empty($precheck['errors'])) {
-                $rc->destroy();
+
+        return (int)$newcourseid;
+    }
+
+    /**
+     * Remove what a failed template copy created: the new course, the restore controller and the backup.
+     *
+     * Every step runs on its own, so one failing clean-up step does not stop the others. Clean-up
+     * problems are only reported for debugging; the original failure stays the reported cause.
+     *
+     * @param int $newcourseid Course created for the copy
+     * @param restore_controller|null $rc Restore controller, if it was created
+     * @param string $backupbasepath Temporary backup directory
+     * @param \stored_file $file Backup file
+     * @return void
+     */
+    protected static function discard_failed_copy(
+        int $newcourseid,
+        ?restore_controller $rc,
+        string $backupbasepath,
+        \stored_file $file
+    ): void {
+        global $CFG;
+
+        $steps = [
+            'restore controller' => static fn() => $rc?->destroy(),
+            'temporary directory' => static function () use ($CFG, $backupbasepath): void {
                 if (empty($CFG->keeptempdirectoriesonbackup)) {
                     fulldelete($backupbasepath);
                 }
-                $file->delete();
-                // Remove the empty shell course so a later attempt does not leave a second one behind.
-                delete_course($newcourseid, false);
-                return 0;
+            },
+            'backup file' => static fn() => $file->delete(),
+            'course' => static fn() => delete_course($newcourseid, false),
+        ];
+        foreach ($steps as $name => $step) {
+            try {
+                $step();
+            } catch (\Throwable $cleanup) {
+                debugging("examcourse_manager: removing the {$name} failed: " . $cleanup->getMessage(), DEBUG_DEVELOPER);
             }
         }
-        $rc->execute_plan();
-        $rc->destroy();
-
-        $course = $DB->get_record('course', ['id' => $newcourseid], '*', MUST_EXIST);
-        $course->fullname = $fullname;
-        $course->shortname = $shortname;
-        $course->visible = 0;
-        $course->startdate = self::start_of_today();
-        $DB->update_record('course', $course);
-
-        if (empty($CFG->keeptempdirectoriesonbackup)) {
-            fulldelete($backupbasepath);
-        }
-        $file->delete();
-
-        return (int)$newcourseid;
     }
 
     /**

@@ -63,6 +63,23 @@ Feature: Create the exam course when a booking is confirmed
     And I open the Bookit event details for "Chemistry exam"
     Then I should see "Chemistry exam" in the "[data-name='refcourseid_readonly']" "css_element"
 
+  Scenario: A deleted exam course does not block the booking form
+    Given the following "mod_bookit > events" exist:
+      | name              | username    | personincharge_username | coursetemplate_shortname | startdate                            | enddate                              | bookingstatus | institution |
+      | History exam      | bertbooking | erikexam                | TPLVIS                   | ##tomorrow 13:00##%Y-%m-%dT%H:%M:%S## | ##tomorrow 15:00##%Y-%m-%dT%H:%M:%S## | 1             | 1           |
+    And I log in as "susiservice"
+    And I open the Bookit overview "openrequests" for "My BookIt Activity"
+    And I click the open request action "Accept" for event "History exam"
+    And I run all adhoc tasks
+    And the exam course of Bookit event "History exam" is deleted
+    When I open the filtered Bookit overview "allrequests" for "My BookIt Activity" with status "-1" faculty "0" and semesters "current,next"
+    And I open the Bookit event details for "History exam"
+    Then I should see "The exam course no longer exists." in the "[data-name='refcourseid_readonly']" "css_element"
+    And I press "Save changes"
+    And "Save changes" "button" should not exist in the ".modal-dialog" "css_element"
+    And I open the Bookit event details for "History exam"
+    And I should see "The exam course no longer exists." in the "[data-name='refcourseid_readonly']" "css_element"
+
   Scenario: Saving the confirmed status in the booking form creates the exam course
     Given the following "mod_bookit > events" exist:
       | name              | username    | personincharge_username | coursetemplate_shortname | startdate                            | enddate                              | bookingstatus | institution |

@@ -215,6 +215,25 @@ class behat_mod_bookit extends behat_base {
     }
 
     /**
+     * Delete the exam course that is linked to a booking, as when courses are cleaned up after a term.
+     *
+     * @Given the exam course of Bookit event :eventname is deleted
+     * @param string $eventname
+     */
+    public function the_exam_course_of_bookit_event_is_deleted(string $eventname): void {
+        global $DB;
+
+        $refcourseid = (int)$DB->get_field_select(
+            'bookit_event',
+            'refcourseid',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $eventname],
+            MUST_EXIST
+        );
+        delete_course($refcourseid, false);
+    }
+
+    /**
      * Assert that the main Bookit activity tab row contains the given text.
      *
      * @Then the Bookit main tabs should contain :text

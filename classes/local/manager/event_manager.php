@@ -1829,6 +1829,17 @@ class event_manager {
             return $persistedevent;
         }
 
+        // A confirmed booking without exam course gets another creation attempt on every save, for example
+        // after its template was chosen or a missing category was configured. The lock per booking and the
+        // check for a waiting task keep it to one course.
+        if (
+            $oldstatus === $newstatus
+            && $newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED
+            && (int)($persistedrecord->refcourseid ?? 0) === 0
+        ) {
+            examcourse_manager::ensure_created_for_event($persistedrecord, $userid);
+        }
+
         $changedfields = self::build_booking_history_changed_fields($previousevent, $persistedevent);
         if (empty($changedfields)) {
             return $persistedevent;

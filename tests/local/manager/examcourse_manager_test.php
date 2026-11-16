@@ -617,4 +617,91 @@ final class examcourse_manager_test extends advanced_testcase {
         $this->assertSame((int)$confirmer->id, (int)$message->useridto);
         $this->assertStringContainsString(get_string('examcourse_copy_incomplete', 'mod_bookit'), $message->fullmessage);
     }
+
+    /**
+     * Save a booking through the lifecycle path without changing any field.
+     *
+     * @param int $eventid
+     * @param context_module $context
+     * @return void
+     */
+    private function save_unchanged(int $eventid, context_module $context): void {
+        $previous = bookit_event::from_database($eventid);
+        $updated = bookit_event::from_database($eventid);
+        event_manager::save_event_with_lifecycle_tracking($updated, $previous, 2, $context);
+    }
+
+    /**
+     * A confirmed booking without exam course gets it once the target category is set and it is saved again.
+     */
+    public function test_saving_confirmed_booking_retries_after_target_fixed(): void {
+        global $DB;
+        $this->setAdminUser();
+        $setup = $this->configure_examcourse();
+        set_config(install_helper::CONFIG_EXAMCOURSE_TARGET_CATEGORYID, 0, 'mod_bookit');
+        $context = $this->create_bookit_context();
+        $eventid = $this->create_booking(event_access_manager::BOOKINGSTATUS_IN_PROGRESS, (int)$setup['template']->id);
+        $this->confirm_booking($eventid, $context);
+        $this->assertSame(0, $this->count_queued_tasks());
+        \core\notification::fetch();
+
+        // Still no target category: saving reports the same reason as confirming.
+        $this->save_unchanged($eventid, $context);
+        $this->assertSame(0, $this->count_queued_tasks());
+        $expected = get_string(
+            'examcourse_not_created',
+            'mod_bookit',
+            get_string('examcourse_reason_target_unresolved', 'mod_bookit')
+        );
+        $messages = array_map(static fn($notification) => $notification->get_message(), \core\notification::fetch());
+        $this->assertContains($expected, $messages);
+
+        set_config(install_helper::CONFIG_EXAMCOURSE_TARGET_CATEGORYID, $setup['targetcat']->id, 'mod_bookit');
+        $this->save_unchanged($eventid, $context);
+        $this->assertSame(1, $this->count_queued_tasks());
+        $this->runAdhocTasks(create_exam_course_task::class);
+        $this->assertGreaterThan(0, (int)$DB->get_field('bookit_event', 'refcourseid', ['id' => $eventid]));
+
+        $this->save_unchanged($eventid, $context);
+        $this->assertSame(0, $this->count_queued_tasks());
+        $this->assertSame(1, $DB->count_records('course', ['category' => $setup['targetcat']->id]));
+    }
+
+    /**
+     * A restore that fails after the course was created removes that course and the backup file.
+     */
+    public function test_failed_restore_leaves_no_course_behind(): void {
+        global $DB;
+        $this->setAdminUser();
+        $setup = $this->configure_examcourse();
+        $eventid = $this->create_booking(event_access_manager::BOOKINGSTATUS_CONFIRMED, (int)$setup['template']->id);
+
+        // The user may back up the template but may not restore into the target category.
+        $user = $this->getDataGenerator()->create_user();
+        $roleid = \create_role('Template backup only', 'templatebackuponly', '');
+        $templatecontext = \context_course::instance($setup['template']->id);
+        $backupcaps = ['backupcourse', 'backupsection', 'backupactivity', 'configure', 'userinfo', 'anonymise'];
+        foreach ($backupcaps as $cap) {
+            \assign_capability('moodle/backup:' . $cap, CAP_ALLOW, $roleid, $templatecontext->id, true);
+        }
+        \role_assign($roleid, $user->id, $templatecontext->id);
+        \accesslib_clear_all_caches_for_unit_testing();
+        $usercontext = \context_user::instance($user->id);
+        $backupfiles = static fn(): int => $DB->count_records_select(
+            'files',
+            "contextid = :contextid AND component = 'user' AND filearea = 'backup' AND filename <> '.'",
+            ['contextid' => $usercontext->id]
+        );
+
+        $this->setUser($user);
+        $result = examcourse_manager::run_creation($eventid, 0);
+        $this->assertNotEmpty($this->getDebuggingMessages());
+        $this->resetDebugging();
+
+        $this->assertSame('duplicate_failed', $result['skipped']);
+        $this->assertSame(0, $DB->count_records('course', ['category' => $setup['targetcat']->id]));
+        $this->assertFalse($DB->record_exists('course', ['shortname' => 'exam' . $eventid]));
+        $this->assertSame(0, $backupfiles());
+        $this->assertSame(0, (int)$DB->get_field('bookit_event', 'refcourseid', ['id' => $eventid]));
+    }
 }

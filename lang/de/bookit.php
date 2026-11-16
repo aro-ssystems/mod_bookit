@@ -281,6 +281,7 @@ $string['examcourse_autocreate_enabled_desc'] = 'Wenn aktiv, wird bei Bestätigu
 $string['examcourse_copy_incomplete'] = 'Der Prüfungskurs wurde angelegt, die Kopie ist aber unvollständig: Einige Aktivitäten der Vorlage fehlen.';
 $string['examcourse_created_field'] = 'Erzeugter Prüfungskurs';
 $string['examcourse_created_field_help'] = 'Prüfungskurs, der bei Bestätigung der Buchung automatisch angelegt wurde.';
+$string['examcourse_deleted'] = 'Der Prüfungskurs existiert nicht mehr.';
 $string['examcourse_failed_body'] = 'Für die Buchung „{$a->eventname}“ wurde kein Prüfungskurs angelegt: {$a->reason}';
 $string['examcourse_failed_subject'] = 'Prüfungskurs nicht angelegt: {$a}';
 $string['examcourse_heading'] = 'Prüfungskurse';
