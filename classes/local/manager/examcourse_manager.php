@@ -202,11 +202,54 @@ class examcourse_manager {
      * @return bool
      */
     public static function should_show_template_field(stdClass $event): bool {
-        if (!install_helper::is_resources_enabled() || !self::is_autocreate_enabled()) {
+        if (!self::is_template_field_enabled()) {
             return false;
         }
         $options = self::get_template_options($event);
         return count($options) > 0;
+    }
+
+    /**
+     * Whether the booking form offers an exam course template at all.
+     *
+     * @return bool
+     */
+    public static function is_template_field_enabled(): bool {
+        return install_helper::is_resources_enabled() && self::is_autocreate_enabled();
+    }
+
+    /**
+     * Booking values that decide which templates are offered: faculty, term and booking person.
+     *
+     * The booking form, the check on save and the template list web service all use this, so they
+     * always agree. A new booking starts without faculty and term, booked by the given user. Faculty
+     * and term passed in replace the stored ones; null keeps them.
+     *
+     * @param stdClass|null $event Stored booking, null for a new one
+     * @param int $userid Booking person of a new booking
+     * @param int|null $institutionid Chosen faculty, null to keep the stored one
+     * @param int|null $semester Chosen term, null to keep the stored one
+     * @return stdClass
+     */
+    public static function get_template_basis(?stdClass $event, int $userid, ?int $institutionid, ?int $semester): stdClass {
+        if ($event === null) {
+            $basis = (object)[
+                'institutionid' => 0,
+                'semester' => 0,
+                'usercreated' => $userid,
+                'coursetemplate' => 0,
+            ];
+        } else {
+            $basis = clone $event;
+        }
+
+        if ($institutionid !== null) {
+            $basis->institutionid = $institutionid;
+        }
+        if ($semester !== null) {
+            $basis->semester = $semester;
+        }
+        return $basis;
     }
 
     /**

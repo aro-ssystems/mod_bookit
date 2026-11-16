@@ -37,6 +37,12 @@ $functions = [
         'type'        => 'read',
         'ajax'        => true,
     ],
+    'mod_bookit_get_examcourse_template_options' => [
+        'classname'   => 'mod_bookit\external\get_examcourse_template_options',
+        'description' => 'Returns the exam course templates offered for a faculty and term in the booking form.',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
     'mod_bookit_get_calendar_events' => [
         'classname'   => 'mod_bookit\external\get_calendar_events',
         'description' => 'Returns governed calendar and export read-model events.',

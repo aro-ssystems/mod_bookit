@@ -234,6 +234,65 @@ class behat_mod_bookit extends behat_base {
     }
 
     /**
+     * Give a faculty its own exam course template category.
+     *
+     * @Given the Bookit exam course templates of institution :institution come from category :idnumber
+     * @param string $institution
+     * @param string $idnumber
+     */
+    public function the_bookit_exam_course_templates_of_institution_come_from(string $institution, string $idnumber): void {
+        global $DB;
+
+        $institutionid = $this->get_bookit_institution_id($institution);
+        $categoryid = (int)$DB->get_field('course_categories', 'id', ['idnumber' => $idnumber], MUST_EXIST);
+        \mod_bookit\local\manager\examcourse_manager::upsert_mapping(
+            \mod_bookit\local\manager\examcourse_manager::PURPOSE_TEMPLATE,
+            $institutionid,
+            \mod_bookit\local\manager\examcourse_manager::SEMESTER_INSTITUTION_WIDE,
+            $categoryid
+        );
+    }
+
+    /**
+     * Id of a faculty by its name.
+     *
+     * @param string $name
+     * @return int
+     */
+    private function get_bookit_institution_id(string $name): int {
+        global $DB;
+
+        return (int)$DB->get_field_select(
+            'bookit_institution',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $name],
+            MUST_EXIST
+        );
+    }
+
+    /**
+     * Move a booking to another faculty.
+     *
+     * @Given the Bookit event :eventname belongs to institution :institution
+     * @param string $eventname
+     * @param string $institution
+     */
+    public function the_bookit_event_belongs_to_institution(string $eventname, string $institution): void {
+        global $DB;
+
+        $institutionid = $this->get_bookit_institution_id($institution);
+        $eventid = (int)$DB->get_field_select(
+            'bookit_event',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $eventname],
+            MUST_EXIST
+        );
+        $DB->set_field('bookit_event', 'institutionid', $institutionid, ['id' => $eventid]);
+    }
+
+    /**
      * Assert that the main Bookit activity tab row contains the given text.
      *
      * @Then the Bookit main tabs should contain :text

@@ -132,3 +132,123 @@ Feature: Create the exam course when a booking is confirmed
       | permission | visibility       |
       | allow      | should exist     |
       | prohibit   | should not exist |
+
+  Scenario: A new booking lists the templates of the chosen institution
+    Given the following "mod_bookit > institutions" exist:
+      | name      |
+      | Faculty X |
+    And the following "categories" exist:
+      | name              | category | idnumber |
+      | Faculty templates | 0        | BOOKITFX |
+    And the following "courses" exist:
+      | fullname         | shortname | category |
+      | Faculty template | TPLFX     | BOOKITFX |
+    And the Bookit exam course templates of institution "Faculty X" come from category "BOOKITFX"
+    And the following config values are set as admin:
+      | calendar_optional_fields | institutionid | mod_bookit |
+    And the following "role capability" exists:
+      | role                | bookingrole |
+      | mod/bookit:addevent | allow       |
+    When I log in as "bertbooking"
+    And I am on "Course 1" course homepage
+    And I follow "My BookIt Activity"
+    And I change window size to "large"
+    And I click on ".ec-addButton" "css_element"
+    And I wait "2" seconds
+    Then the Bookit event details control "coursetemplate" should contain option "Visible template"
+    And the Bookit event details control "coursetemplate" should not contain option "Faculty template"
+    And I select "Faculty X" in the Bookit event details control "institutionid"
+    And the Bookit event details control "coursetemplate" should contain option "Faculty template"
+    And the Bookit event details control "coursetemplate" should not contain option "Visible template"
+    And I select "Standard-Institution" in the Bookit event details control "institutionid"
+    And the Bookit event details control "coursetemplate" should contain option "Visible template"
+    And the Bookit event details control "coursetemplate" should not contain option "Faculty template"
+
+  Scenario: The template field appears once an institution with templates is chosen
+    Given the following "mod_bookit > institutions" exist:
+      | name      |
+      | Faculty X |
+    And the following "categories" exist:
+      | name              | category | idnumber |
+      | Faculty templates | 0        | BOOKITFX |
+    And the following "courses" exist:
+      | fullname         | shortname | category |
+      | Faculty template | TPLFX     | BOOKITFX |
+    And the Bookit exam course templates of institution "Faculty X" come from category "BOOKITFX"
+    And the following config values are set as admin:
+      | calendar_optional_fields       | institutionid | mod_bookit |
+      | examcourse_template_categoryid | 0             | mod_bookit |
+    And the following "role capability" exists:
+      | role                | bookingrole |
+      | mod/bookit:addevent | allow       |
+    When I log in as "bertbooking"
+    And I am on "Course 1" course homepage
+    And I follow "My BookIt Activity"
+    And I change window size to "large"
+    And I click on ".ec-addButton" "css_element"
+    And I wait "2" seconds
+    Then the Bookit event details control "coursetemplate" should not be visible
+    And I select "Faculty X" in the Bookit event details control "institutionid"
+    And the Bookit event details control "coursetemplate" should be enabled
+    And the Bookit event details control "coursetemplate" should contain option "Faculty template"
+    And I select "Standard-Institution" in the Bookit event details control "institutionid"
+    And the Bookit event details control "coursetemplate" should not be visible
+
+  Scenario: Changing the institution of a booking resets a template that no longer fits
+    Given the following "mod_bookit > institutions" exist:
+      | name      |
+      | Faculty X |
+    And the following "categories" exist:
+      | name              | category | idnumber |
+      | Faculty templates | 0        | BOOKITFX |
+    And the following "courses" exist:
+      | fullname         | shortname | category |
+      | Faculty template | TPLFX     | BOOKITFX |
+    And the Bookit exam course templates of institution "Faculty X" come from category "BOOKITFX"
+    And the following config values are set as admin:
+      | calendar_optional_fields | institutionid | mod_bookit |
+    And the following "mod_bookit > events" exist:
+      | name          | username    | personincharge_username | coursetemplate_shortname | startdate                            | enddate                              | bookingstatus | institution |
+      | Faculty exam  | bertbooking | erikexam                | TPLFX                    | ##tomorrow 09:00##%Y-%m-%dT%H:%M:%S## | ##tomorrow 11:00##%Y-%m-%dT%H:%M:%S## | 0             | 1           |
+    And the Bookit event "Faculty exam" belongs to institution "Faculty X"
+    When I log in as "susiservice"
+    And I open the filtered Bookit overview "allrequests" for "My BookIt Activity" with status "-1" faculty "0" and semesters "current,next"
+    And I open the Bookit event details for "Faculty exam"
+    Then the Bookit event details control "coursetemplate" should contain option "Faculty template"
+    And I select "Standard-Institution" in the Bookit event details control "institutionid"
+    And I should see "The selected template is not available for this choice." in the ".modal.show" "css_element"
+    And the Bookit event details control "coursetemplate" should not contain option "Faculty template"
+    And I select "Faculty X" in the Bookit event details control "institutionid"
+    And the Bookit event details control "coursetemplate" should contain option "Faculty template"
+    And I should not see "The selected template is not available for this choice." in the ".modal.show" "css_element"
+
+  Scenario: On-site support sees the template read-only and cannot change the institution
+    Given the following "users" exist:
+      | username     | firstname | lastname |
+      | sonjasupport | Sonja     | Support  |
+    And the Bookit default roles are imported
+    And the following "course enrolments" exist:
+      | user         | course | role                 |
+      | sonjasupport | C1     | bookit_supportonsite |
+    And the following "mod_bookit > institutions" exist:
+      | name      |
+      | Faculty X |
+    And the following "categories" exist:
+      | name              | category | idnumber |
+      | Faculty templates | 0        | BOOKITFX |
+    And the following "courses" exist:
+      | fullname         | shortname | category |
+      | Faculty template | TPLFX     | BOOKITFX |
+    And the Bookit exam course templates of institution "Faculty X" come from category "BOOKITFX"
+    And the following config values are set as admin:
+      | calendar_optional_fields | institutionid | mod_bookit |
+    And the following "mod_bookit > events" exist:
+      | name             | username    | personincharge_username | supportperson_usernames | coursetemplate_shortname | startdate                            | enddate                              | bookingstatus | institution |
+      | Supported exam   | bertbooking | erikexam                | sonjasupport            | TPLFX                    | ##tomorrow 09:00##%Y-%m-%dT%H:%M:%S## | ##tomorrow 11:00##%Y-%m-%dT%H:%M:%S## | 2             | 1           |
+    And the Bookit event "Supported exam" belongs to institution "Faculty X"
+    When I log in as "sonjasupport"
+    And I open the filtered Bookit overview "myevents" for "My BookIt Activity" with status "-1" faculty "0" and semesters "current,next"
+    And I open the Bookit event details for "Supported exam"
+    Then the Bookit event details control "coursetemplate" should be disabled
+    And I should see "Faculty template" in the "[data-name='coursetemplate_readonly']" "css_element"
+    And the Bookit event details control "institutionid" should be disabled

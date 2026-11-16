@@ -310,6 +310,7 @@ $string['examcourse_template_categoryid_desc'] = 'Site-wide default Moodle cours
 $string['examcourse_template_field'] = 'Exam course';
 $string['examcourse_template_field_help'] = 'Optional template course used to create a hidden exam course when the booking is confirmed.';
 $string['examcourse_template_not_allowed'] = 'This course is not available as an exam course template.';
+$string['examcourse_template_reset'] = 'The selected template is not available for this choice. Please choose a template again.';
 $string['examcourse_viewexamcourse_admin_hint'] = 'Whether on-site support can see the created exam-course link is controlled by assigning the capability “View exam course on booking” (mod/bookit:viewexamcourse). The on-site support role has it by default; it can be removed in the role settings.';
 $string['examiner_display_unknown_user'] = 'Unknown user (ID {$a})';
 $string['examiner_pool_invalid_assignment'] = 'The selected examiner is not part of the configured examiner pool.';

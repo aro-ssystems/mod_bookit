@@ -461,4 +461,76 @@ final class edit_event_form_examcourse_test extends advanced_testcase {
         ]));
         $this->assertArrayHasKey('coursetemplate', $errors);
     }
+
+    /**
+     * A new booking accepts the template of the faculty chosen in the form.
+     */
+    public function test_new_booking_accepts_template_of_chosen_institution(): void {
+        $faculty = $this->create_institution_with_templates();
+        $this->assertSame([], $this->submit($this->booker, $this->payload([
+            'name' => 'New faculty booking',
+            'institutionid' => $faculty['institutionid'],
+            'coursetemplate' => (int)$faculty['template']->id,
+        ])));
+        $this->assertSame((int)$faculty['template']->id, (int)$this->booking('New faculty booking')->coursetemplate);
+    }
+
+    /**
+     * A new booking rejects a site default template once the chosen faculty has its own templates.
+     */
+    public function test_new_booking_rejects_default_template_for_mapped_institution(): void {
+        $faculty = $this->create_institution_with_templates();
+        $errors = $this->submit($this->booker, $this->payload([
+            'name' => 'New faculty booking default template',
+            'institutionid' => $faculty['institutionid'],
+            'coursetemplate' => (int)$this->template->id,
+        ]));
+        $this->assertArrayHasKey('coursetemplate', $errors);
+        $this->assertNull($this->booking('New faculty booking default template'));
+    }
+
+    /**
+     * Template names offered by the editable template field.
+     *
+     * @param \MoodleQuickForm $mform
+     * @return string[]
+     */
+    private function offered_templates(\MoodleQuickForm $mform): array {
+        $element = $mform->getElement('coursetemplate');
+        $this->assertSame('select', $element->getType());
+        $names = [];
+        foreach ($element->_options as $option) {
+            if ((int)$option['attr']['value'] > 0) {
+                $names[] = $option['text'];
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * A new booking first lists the templates of the faculty the form preselects.
+     */
+    public function test_new_booking_form_lists_templates_of_first_institution(): void {
+        global $DB;
+        $faculty = $this->create_institution_with_templates();
+        $DB->set_field_select('bookit_institution', 'active', 0, 'id <> ?', [$faculty['institutionid']]);
+        set_config('calendar_optional_fields', 'institutionid', 'mod_bookit');
+
+        $names = $this->offered_templates($this->build_form($this->booker, 0));
+        $this->assertSame(['Faculty template'], $names);
+    }
+
+    /**
+     * Without a default category the field is still there, hidden until a faculty brings templates.
+     */
+    public function test_template_field_present_without_default_category_when_faculty_field_enabled(): void {
+        set_config(install_helper::CONFIG_EXAMCOURSE_TEMPLATE_CATEGORYID, 0, 'mod_bookit');
+
+        // Faculty and term are no form fields: nothing can change the list, the field stays out.
+        set_config('calendar_optional_fields', '', 'mod_bookit');
+        $this->assertSame('hidden', $this->build_form($this->booker, 0)->getElement('coursetemplate')->getType());
+
+        set_config('calendar_optional_fields', 'institutionid', 'mod_bookit');
+        $this->assertSame([], $this->offered_templates($this->build_form($this->booker, 0)));
+    }
 }

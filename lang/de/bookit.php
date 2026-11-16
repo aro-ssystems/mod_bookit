@@ -310,6 +310,7 @@ $string['examcourse_template_categoryid_desc'] = 'Site-weiter Standard (Moodle-K
 $string['examcourse_template_field'] = 'Exam course';
 $string['examcourse_template_field_help'] = 'Optionale Kursvorlage für die automatische Prüfungskurs-Anlage bei Bestätigung.';
 $string['examcourse_template_not_allowed'] = 'Dieser Kurs steht als Prüfungskursvorlage nicht zur Verfügung.';
+$string['examcourse_template_reset'] = 'Die gewählte Vorlage passt nicht zu dieser Auswahl. Bitte wählen Sie erneut eine Vorlage.';
 $string['examcourse_viewexamcourse_admin_hint'] = 'Ob Support vor Ort den erzeugten Prüfungskurs sehen darf, steuern Sie über die Berechtigung „Prüfungskurs an Buchung anzeigen“ (mod/bookit:viewexamcourse). Die Rolle Support vor Ort hat sie standardmäßig, sie lässt sich in den Rolleneinstellungen entfernen.';
 $string['examiner_display_unknown_user'] = 'Unbekannter Nutzer (ID {$a})';
 $string['examiner_pool_invalid_assignment'] = 'Die ausgewählte Person gehört nicht zum konfigurierten Prüfenden-Pool.';

@@ -243,6 +243,31 @@ class event_access_manager {
     }
 
     /**
+     * Require that the user may edit the public fields of a booking, as in the booking form.
+     *
+     * A new booking needs the right to add bookings. An existing one needs the right to edit bookings,
+     * or a participant role on a still new booking that is not yet in the past.
+     *
+     * @param stdClass|null $event Stored booking, null for a new one
+     * @param context_module $context
+     * @param int $userid
+     * @return void
+     * @throws \required_capability_exception
+     */
+    public static function require_booking_fields_editable(?stdClass $event, context_module $context, int $userid): void {
+        if ($event === null) {
+            require_capability('mod/bookit:addevent', $context, $userid);
+            return;
+        }
+
+        $canedit = has_capability('mod/bookit:editevent', $context, $userid)
+            || self::can_participant_edit_event($event, $userid);
+        if (!$canedit || self::should_block_participant_past_edit($event, $context, $userid)) {
+            throw new \required_capability_exception($context, 'mod/bookit:editevent', 'nopermissions', '');
+        }
+    }
+
+    /**
      * Whether the user may see created exam-course linkage (R2.9).
      *
      * @param context_module $context
