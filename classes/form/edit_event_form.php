@@ -38,6 +38,7 @@ use mod_bookit\local\entity\resource\bookit_resource_status;
 use mod_bookit\local\examiner_pool_resolver;
 use mod_bookit\local\manager\event_access_manager;
 use mod_bookit\local\manager\event_manager;
+use mod_bookit\local\manager\examcourse_manager;
 use mod_bookit\local\manager\resource_manager;
 use mod_bookit\local\persistent\institution;
 use mod_bookit\local\persistent\room;
@@ -63,6 +64,9 @@ class edit_event_form extends dynamic_form {
 
     /** @var bool Whether the editable-resources section marker was added to the form. */
     private bool $resourcessectionmarkeradded = false;
+
+    /** @var array|null Arguments for reloading the exam course templates, null when the list cannot change. */
+    private ?array $templaterefreshargs = null;
 
     /**
      * Define the form
@@ -417,6 +421,62 @@ class edit_event_form extends dynamic_form {
             $mform->setType('otherexaminers', PARAM_TEXT);
         }
 
+        // Exam course template selection (WP-5): driven by resources + autocreate + options.
+        // A new booking starts with the faculty and term the form preselects, so the first list fits them.
+        $facultyfieldenabled = $this->is_optional_field_enabled($config, 'institutionid');
+        $termfieldenabled = $this->is_optional_field_enabled($config, 'semester');
+        $startsemester = event_manager::get_current_semester();
+        $templatedefaults = [
+            'institutionid' => $facultyfieldenabled ? (int)array_key_first($institutionoptions) : 0,
+            'semester' => $termfieldenabled && array_key_exists($startsemester, $semesters) ? $startsemester : 0,
+        ];
+        $eventforoptions = $this->get_event_for_template_options($existingevent, $caneditevent, $templatedefaults);
+        $canselectexamtemplate = event_access_manager::can_select_examcourse_template($context, (int)$USER->id);
+        $showexamtemplate = examcourse_manager::should_show_template_field($eventforoptions);
+        // The list can change while the form is open only when faculty or term are form fields.
+        $refreshtemplates = examcourse_manager::is_template_field_enabled()
+            && $canselectexamtemplate && $caneditevent
+            && ($facultyfieldenabled || $termfieldenabled);
+        if ($showexamtemplate || $refreshtemplates) {
+            $coursetemplates = [0 => get_string('choosedots')]
+                + examcourse_manager::get_template_options($eventforoptions);
+            if ($canselectexamtemplate && $caneditevent) {
+                $mform->addElement(
+                    'select',
+                    'coursetemplate',
+                    get_string('examcourse_template_field', 'mod_bookit'),
+                    $coursetemplates
+                );
+                $mform->disabledIf('coursetemplate', 'editevent', 'neq');
+                $mform->setType('coursetemplate', PARAM_INT);
+                $mform->addHelpButton('coursetemplate', 'examcourse_template_field', 'mod_bookit');
+                if ($refreshtemplates) {
+                    // Reload the list when faculty or term change; hidden while no template fits.
+                    $this->templaterefreshargs = [
+                        $mform->getAttribute('id'),
+                        (int)$cmid,
+                        (int)($eventid ?? 0),
+                        $showexamtemplate,
+                    ];
+                }
+            } else {
+                $selected = (int)($existingevent->coursetemplate ?? 0);
+                $display = $coursetemplates[$selected] ?? get_string('choosedots');
+                $mform->addElement(
+                    'static',
+                    'coursetemplate_readonly',
+                    get_string('examcourse_template_field', 'mod_bookit'),
+                    s($display)
+                );
+                $mform->addHelpButton('coursetemplate_readonly', 'examcourse_template_field', 'mod_bookit');
+                $mform->addElement('hidden', 'coursetemplate', $selected);
+                $mform->setType('coursetemplate', PARAM_INT);
+            }
+        } else {
+            $mform->addElement('hidden', 'coursetemplate');
+            $mform->setType('coursetemplate', PARAM_INT);
+        }
+
         if ($this->is_optional_field_enabled($config, 'compensationfordisadvantages')) {
             $mform->addElement(
                 'editor',
@@ -477,6 +537,28 @@ class edit_event_form extends dynamic_form {
             $mform->setType('totalparticipantsamount', PARAM_RAW_TRIMMED);
             $mform->addRule('totalparticipantsamount', null, 'numeric', null, 'client');
             $mform->addHelpButton('totalparticipantsamount', 'event_totalparticipants', 'mod_bookit');
+        }
+        $canviewexamcourse = event_access_manager::can_view_examcourse($context, (int)$USER->id);
+        // The exam course link is only written by the exam course creation, so it is shown read-only.
+        if ($caneditinternal || $canviewexamcourse) {
+            $refcourselabel = get_string('examcourse_created_field', 'mod_bookit');
+            $refcoursedisplay = '';
+            $refcoursevalue = 0;
+            if ($existingevent && !empty($existingevent->refcourseid)) {
+                $refcoursevalue = (int)$existingevent->refcourseid;
+                // The exam course may have been deleted in the meantime; the booking stays usable.
+                $refcourse = $DB->get_record('course', ['id' => $refcoursevalue], 'id, fullname', IGNORE_MISSING);
+                $refcoursedisplay = $refcourse
+                    ? format_string($refcourse->fullname)
+                    : get_string('examcourse_deleted', 'mod_bookit');
+            }
+            $mform->addElement('static', 'refcourseid_readonly', $refcourselabel, s($refcoursedisplay));
+            $mform->addHelpButton('refcourseid_readonly', 'examcourse_created_field', 'mod_bookit');
+            $mform->addElement('hidden', 'refcourseid', $refcoursevalue);
+            $mform->setType('refcourseid', PARAM_INT);
+        } else {
+            $mform->addElement('hidden', 'refcourseid');
+            $mform->setType('refcourseid', PARAM_INT);
         }
 
         // Add the "bookingstatus" field.
@@ -890,6 +972,11 @@ class edit_event_form extends dynamic_form {
 
         $this->inject_examiner_selector_labels($mform, $data);
 
+        // Dynamic forms collect JavaScript while rendering, so the template refresh is started here.
+        if ($this->templaterefreshargs !== null) {
+            $PAGE->requires->js_call_amd('mod_bookit/examcourse_template_refresh', 'init', $this->templaterefreshargs);
+        }
+
         // Re-apply after starttime setDefault(), which resets usercreated to the numeric id.
         if ($existingevent && !empty($existingevent->usercreated) && $mform->elementExists('usercreated')) {
             $user = $DB->get_record('user', ['id' => (int)$existingevent->usercreated]);
@@ -898,6 +985,44 @@ class edit_event_form extends dynamic_form {
                 : get_string('deleteduser', 'moodle');
             $mform->getElement('usercreated')->setValue($displayname);
         }
+    }
+
+    /**
+     * Booking values that decide which exam course templates are offered and accepted.
+     *
+     * The form, the check on save and the template list web service use the same values. The faculty
+     * and term sent with the form count for a new booking and, for users who may edit it, for an
+     * existing one. Before anything is sent, a new booking uses the form's start values.
+     *
+     * @param stdClass|null $existingevent Stored booking, null for a new one
+     * @param bool $usesubmitted Whether the submitted faculty and term may be used
+     * @param array $defaults Start values of a new booking, keyed by field name
+     * @return stdClass
+     */
+    private function get_event_for_template_options(
+        ?stdClass $existingevent,
+        bool $usesubmitted,
+        array $defaults = []
+    ): stdClass {
+        global $USER;
+
+        $values = [];
+        foreach (['institutionid', 'semester'] as $field) {
+            $values[$field] = null;
+            $submitted = $usesubmitted ? ($this->_ajaxformdata[$field] ?? null) : null;
+            if (is_scalar($submitted) && is_numeric($submitted)) {
+                $values[$field] = (int)$submitted;
+            } else if ($existingevent === null && isset($defaults[$field])) {
+                $values[$field] = (int)$defaults[$field];
+            }
+        }
+
+        return examcourse_manager::get_template_basis(
+            $existingevent,
+            (int)$USER->id,
+            $values['institutionid'],
+            $values['semester']
+        );
     }
 
     /**
@@ -1140,6 +1265,18 @@ class edit_event_form extends dynamic_form {
             $formdata->notes = $currentevent->notes;
             $formdata->refcourseid = $currentevent->refcourseid;
             $formdata->name = $currentevent->name;
+        }
+
+        // The exam course link is written only by the exam course creation, never from submitted form data.
+        $formdata->refcourseid = $currentevent ? $currentevent->refcourseid : 0;
+
+        // Without the selection right the stored exam course template stays unchanged.
+        if (!event_access_manager::can_select_examcourse_template($context, (int)$USER->id)) {
+            if ($currentevent) {
+                $formdata->coursetemplate = $currentevent->coursetemplate;
+            } else {
+                $formdata->coursetemplate = 0;
+            }
         }
 
         if (is_array($formdata->supportpersons)) {
@@ -1705,6 +1842,21 @@ class edit_event_form extends dynamic_form {
         );
         foreach ($poolerrors as $fieldname => $message) {
             $errors[$fieldname] = $message;
+        }
+
+        // A newly chosen exam course template must be one of the templates offered to this user. The raw
+        // submitted value is checked, because a hidden template field would accept any course id.
+        $submittedtemplate = (int)($this->_ajaxformdata['coursetemplate'] ?? $data['coursetemplate'] ?? 0);
+        $storedtemplate = (int)($existingevent->coursetemplate ?? 0);
+        if (
+            $submittedtemplate > 0
+            && $submittedtemplate !== $storedtemplate
+            && event_access_manager::can_select_examcourse_template($context, (int)$USER->id)
+        ) {
+            $eventforoptions = $this->get_event_for_template_options($existingevent, $existingevent === null || $caneditpublic);
+            if (!array_key_exists($submittedtemplate, examcourse_manager::get_template_options($eventforoptions))) {
+                $errors['coursetemplate'] = get_string('examcourse_template_not_allowed', 'mod_bookit');
+            }
         }
 
         if ($existingevent === null || $caneditpublic) {

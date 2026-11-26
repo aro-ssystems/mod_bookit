@@ -49,10 +49,6 @@ final class edit_event_form_support_internal_fields_test extends advanced_testca
      */
     protected function setUp(): void {
         parent::setUp();
-
-        // ...TODO: refcourseid will be reimplemented in the ressources module.
-        $this->markTestSkipped('edit_event_form_support_internal_fields_test temporär deaktiviert.');
-
         $this->resetAfterTest(true);
         message_update_providers('mod_bookit');
         install_helper::ensure_booking_status_notification_defaults();
@@ -100,6 +96,8 @@ final class edit_event_form_support_internal_fields_test extends advanced_testca
         \assign_capability('mod/bookit:view', CAP_ALLOW, $roleid, $context->id, true);
         \assign_capability('mod/bookit:viewownoverview', CAP_ALLOW, $roleid, $context->id, true);
         \assign_capability('mod/bookit:viewalldetailsofownevent', CAP_ALLOW, $roleid, $context->id, true);
+        // The shipped on-site support role sees the exam course of a booking by default.
+        \assign_capability('mod/bookit:viewexamcourse', CAP_ALLOW, $roleid, $context->id, true);
         \accesslib_clear_all_caches_for_unit_testing();
     }
 
@@ -663,8 +661,9 @@ final class edit_event_form_support_internal_fields_test extends advanced_testca
             ]
         );
 
+        // The exam course link is written only by the exam course creation, so the stored link stays.
         $persisted = $DB->get_record('bookit_event', ['id' => $event->id], '*', MUST_EXIST);
-        $this->assertSame((int)$newcourse->id, (int)$persisted->refcourseid);
+        $this->assertSame((int)$refcourse->id, (int)$persisted->refcourseid);
         $this->assertSame((string)$supportuser->id, $persisted->supportpersons);
     }
 

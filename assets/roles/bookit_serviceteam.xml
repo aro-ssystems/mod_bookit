@@ -48,6 +48,7 @@
 		<allow>mod/bookit:filterstatus</allow>
 		<allow>mod/bookit:managebasics</allow>
 		<allow>mod/bookit:managemasterchecklist</allow>
+		<allow>mod/bookit:selectexamcoursetemplate</allow>
 		<allow>mod/bookit:view</allow>
 		<allow>mod/bookit:viewalldetailsofevent</allow>
 		<allow>mod/bookit:viewalldetailsofownevent</allow>

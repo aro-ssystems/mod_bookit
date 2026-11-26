@@ -1823,7 +1823,21 @@ class event_manager {
                 $newstatus,
                 'created'
             );
+            if ($newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
+                examcourse_manager::ensure_created_for_event($persistedrecord, $userid);
+            }
             return $persistedevent;
+        }
+
+        // A confirmed booking without exam course gets another creation attempt on every save, for example
+        // after its template was chosen or a missing category was configured. The lock per booking and the
+        // check for a waiting task keep it to one course.
+        if (
+            $oldstatus === $newstatus
+            && $newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED
+            && (int)($persistedrecord->refcourseid ?? 0) === 0
+        ) {
+            examcourse_manager::ensure_created_for_event($persistedrecord, $userid);
         }
 
         $changedfields = self::build_booking_history_changed_fields($previousevent, $persistedevent);
@@ -1861,6 +1875,10 @@ class event_manager {
             $newstatus,
             $action
         );
+
+        if ($oldstatus !== $newstatus && $newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
+            examcourse_manager::ensure_created_for_event($persistedrecord, $userid);
+        }
 
         return $persistedevent;
     }
@@ -1920,6 +1938,10 @@ class event_manager {
         }
 
         self::trigger_booking_lifecycle_audit($event, $context, $userid, $oldstatus, $newstatus, $action);
+
+        if ($newstatus === event_access_manager::BOOKINGSTATUS_CONFIRMED) {
+            examcourse_manager::ensure_created_for_event($event, $userid);
+        }
 
         return $event;
     }

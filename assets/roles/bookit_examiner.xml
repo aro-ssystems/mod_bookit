@@ -25,6 +25,7 @@
 	</allowview>
 	<permissions>
 		<allow>mod/bookit:addevent</allow>
+		<allow>mod/bookit:selectexamcoursetemplate</allow>
 		<allow>mod/bookit:view</allow>
 		<allow>mod/bookit:viewalldetailsofownevent</allow>
         <allow>mod/bookit:viewownoverview</allow>

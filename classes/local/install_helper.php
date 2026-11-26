@@ -60,6 +60,18 @@ class install_helper {
     /** Default standalone weekplan schedule. */
     public const DEFAULT_WEEKPLAN_SCHEDULE = "Mo 09:00-17:00\nDi 09:00-17:00\nMi 09:00-17:00\nDo 09:00-17:00\nFr 09:00-17:00";
 
+    /** Auto-create exam course when booking status becomes confirmed. */
+    public const CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED = 'examcourse_autocreate_enabled';
+
+    /** Include booking person's teacher courses in exam template options. */
+    public const CONFIG_EXAMCOURSE_INCLUDE_TEACHER_COURSES = 'examcourse_include_teacher_courses';
+
+    /** Site default Moodle category for exam course templates. */
+    public const CONFIG_EXAMCOURSE_TEMPLATE_CATEGORYID = 'examcourse_template_categoryid';
+
+    /** Site default Moodle category for newly created exam courses. */
+    public const CONFIG_EXAMCOURSE_TARGET_CATEGORYID = 'examcourse_target_categoryid';
+
     /** Config key for the optional resources module state. */
     public const CONFIG_RESOURCES_ENABLED = 'resourcesenabled';
 
@@ -259,6 +271,25 @@ class install_helper {
      */
     public static function get_booking_status_notification_closing(?string $lang = null): string {
         return self::get_notification_shared_string('bookingstatus_notification_closing', $lang);
+    }
+
+    /**
+     * Ensure exam-course workflow defaults exist for fresh installs.
+     *
+     * @return void
+     */
+    public static function ensure_examcourse_defaults(): void {
+        $defaults = [
+            self::CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED => 0,
+            self::CONFIG_EXAMCOURSE_INCLUDE_TEACHER_COURSES => 0,
+            self::CONFIG_EXAMCOURSE_TEMPLATE_CATEGORYID => 0,
+            self::CONFIG_EXAMCOURSE_TARGET_CATEGORYID => 0,
+        ];
+        foreach ($defaults as $configkey => $defaultvalue) {
+            if (get_config('mod_bookit', $configkey) === false) {
+                set_config($configkey, $defaultvalue, 'mod_bookit');
+            }
+        }
     }
 
     /**

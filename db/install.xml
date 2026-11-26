@@ -209,6 +209,24 @@
         <INDEX NAME="event_resource_unique_idx" UNIQUE="true" FIELDS="eventid,resourceid" COMMENT="Unique constraint for event-resource pair" />
       </INDEXES>
     </TABLE>
+    <TABLE NAME="bookit_examcourse_map" COMMENT="Institution/semester overrides for exam-course template and target categories">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />
+        <FIELD NAME="purpose" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="template or target" />
+        <FIELD NAME="institutionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Bookit institution id" />
+        <FIELD NAME="semester" TYPE="int" LENGTH="8" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="0 = institution-wide; else bookit_event.semester encoding" />
+        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Moodle course category id" />
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" />
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="purpose_inst_sem_uk" UNIQUE="true" FIELDS="purpose,institutionid,semester" COMMENT="One override per purpose/institution/semester" />
+        <INDEX NAME="institutionid_idx" UNIQUE="false" FIELDS="institutionid" />
+      </INDEXES>
+    </TABLE>
     <TABLE NAME="bookit_institution" COMMENT="Institutions choosable in bookit">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" />

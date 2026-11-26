@@ -140,6 +140,26 @@ final class install_helper_test extends advanced_testcase {
     }
 
     /**
+     * The shipped on-site support role may see the exam course of a booking by default.
+     *
+     * @return void
+     */
+    public function test_support_preset_can_view_exam_course(): void {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        install_helper::import_default_roles_with_report();
+
+        $roleid = (int)$DB->get_field('role', 'id', ['shortname' => 'bookit_supportonsite'], MUST_EXIST);
+        $permission = $DB->get_field('role_capabilities', 'permission', [
+            'roleid' => $roleid,
+            'contextid' => \context_system::instance()->id,
+            'capability' => 'mod/bookit:viewexamcourse',
+        ]);
+        $this->assertSame(CAP_ALLOW, (int)$permission);
+    }
+
+    /**
      * The demo course setup must enrol every shipped QA demo user into the seeded course context.
      *
      * @return void

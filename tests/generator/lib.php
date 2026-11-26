@@ -57,7 +57,13 @@ class mod_bookit_generator extends testing_module_generator {
 
         $roomid = 1;
         if (!empty($event['room'])) {
-            $room = $DB->get_record('bookit_room', ['name' => $event['room']], 'id', IGNORE_MISSING);
+            $room = $DB->get_record_select(
+                'bookit_room',
+                $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+                ['name' => $event['room']],
+                'id',
+                IGNORE_MULTIPLE
+            );
             if ($room) {
                 $roomid = (int)$room->id;
             }
@@ -89,6 +95,11 @@ class mod_bookit_generator extends testing_module_generator {
             $supportpersons = implode(',', $ids);
         }
 
+        $coursetemplate = (int)($event['coursetemplate'] ?? 0);
+        if (!empty($event['coursetemplate_shortname'])) {
+            $coursetemplate = (int)$DB->get_field('course', 'id', ['shortname' => $event['coursetemplate_shortname']], MUST_EXIST);
+        }
+
         $starttime = strtotime($event['startdate']);
         $semester = isset($event['semester'])
             ? (int)$event['semester']
@@ -108,7 +119,7 @@ class mod_bookit_generator extends testing_module_generator {
             $event['bookingstatus'],
             $personinchargeid,
             $otherexaminers,
-            (int)($event['coursetemplate'] ?? 0),
+            $coursetemplate,
             $event['notes'] ?? 'External lorem ipsum',
             $event['internalnotes'] ?? 'Internal Lorem Ipsum dolor...',
             $supportpersons,

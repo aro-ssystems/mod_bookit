@@ -193,6 +193,106 @@ class behat_mod_bookit extends behat_base {
     }
 
     /**
+     * Configure exam course creation: template and target course categories by idnumber.
+     *
+     * Enables the resources module and automatic exam course creation, so a confirmed booking
+     * with a template creates its exam course in the target category.
+     *
+     * @Given the Bookit exam course templates come from category :tplidnumber and exam courses go to category :targetidnumber
+     * @param string $tplidnumber
+     * @param string $targetidnumber
+     */
+    public function the_bookit_exam_course_categories_are(string $tplidnumber, string $targetidnumber): void {
+        global $DB;
+
+        $templatecategory = (int)$DB->get_field('course_categories', 'id', ['idnumber' => $tplidnumber], MUST_EXIST);
+        $targetcategory = (int)$DB->get_field('course_categories', 'id', ['idnumber' => $targetidnumber], MUST_EXIST);
+
+        set_config(\mod_bookit\local\install_helper::CONFIG_RESOURCES_ENABLED, 1, 'mod_bookit');
+        set_config(\mod_bookit\local\install_helper::CONFIG_EXAMCOURSE_AUTOCREATE_ENABLED, 1, 'mod_bookit');
+        set_config(\mod_bookit\local\install_helper::CONFIG_EXAMCOURSE_TEMPLATE_CATEGORYID, $templatecategory, 'mod_bookit');
+        set_config(\mod_bookit\local\install_helper::CONFIG_EXAMCOURSE_TARGET_CATEGORYID, $targetcategory, 'mod_bookit');
+    }
+
+    /**
+     * Delete the exam course that is linked to a booking, as when courses are cleaned up after a term.
+     *
+     * @Given the exam course of Bookit event :eventname is deleted
+     * @param string $eventname
+     */
+    public function the_exam_course_of_bookit_event_is_deleted(string $eventname): void {
+        global $DB;
+
+        $refcourseid = (int)$DB->get_field_select(
+            'bookit_event',
+            'refcourseid',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $eventname],
+            MUST_EXIST
+        );
+        delete_course($refcourseid, false);
+    }
+
+    /**
+     * Give a faculty its own exam course template category.
+     *
+     * @Given the Bookit exam course templates of institution :institution come from category :idnumber
+     * @param string $institution
+     * @param string $idnumber
+     */
+    public function the_bookit_exam_course_templates_of_institution_come_from(string $institution, string $idnumber): void {
+        global $DB;
+
+        $institutionid = $this->get_bookit_institution_id($institution);
+        $categoryid = (int)$DB->get_field('course_categories', 'id', ['idnumber' => $idnumber], MUST_EXIST);
+        \mod_bookit\local\manager\examcourse_manager::upsert_mapping(
+            \mod_bookit\local\manager\examcourse_manager::PURPOSE_TEMPLATE,
+            $institutionid,
+            \mod_bookit\local\manager\examcourse_manager::SEMESTER_INSTITUTION_WIDE,
+            $categoryid
+        );
+    }
+
+    /**
+     * Id of a faculty by its name.
+     *
+     * @param string $name
+     * @return int
+     */
+    private function get_bookit_institution_id(string $name): int {
+        global $DB;
+
+        return (int)$DB->get_field_select(
+            'bookit_institution',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $name],
+            MUST_EXIST
+        );
+    }
+
+    /**
+     * Move a booking to another faculty.
+     *
+     * @Given the Bookit event :eventname belongs to institution :institution
+     * @param string $eventname
+     * @param string $institution
+     */
+    public function the_bookit_event_belongs_to_institution(string $eventname, string $institution): void {
+        global $DB;
+
+        $institutionid = $this->get_bookit_institution_id($institution);
+        $eventid = (int)$DB->get_field_select(
+            'bookit_event',
+            'id',
+            $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+            ['name' => $eventname],
+            MUST_EXIST
+        );
+        $DB->set_field('bookit_event', 'institutionid', $institutionid, ['id' => $eventid]);
+    }
+
+    /**
      * Assert that the main Bookit activity tab row contains the given text.
      *
      * @Then the Bookit main tabs should contain :text
@@ -1914,6 +2014,16 @@ class behat_mod_bookit extends behat_base {
      */
     public function the_bookit_default_resource_data_exists(): void {
         \mod_bookit\local\install_helper::create_default_resources(false, false);
+    }
+
+    /**
+     * Import the shipped Bookit role presets when a scenario relies on them.
+     *
+     * @Given the Bookit default roles are imported
+     * @return void
+     */
+    public function the_bookit_default_roles_are_imported(): void {
+        \mod_bookit\local\install_helper::import_default_roles_with_report();
     }
 
     /**

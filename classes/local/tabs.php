@@ -166,6 +166,14 @@ class tabs {
                 get_string('institutions', 'mod_bookit')
             );
 
+            // Tab to exam-course category mapping.
+            $targeturl = new moodle_url('/mod/bookit/admin/examcourse_mapping.php', ['id' => 'examcourse_mapping']);
+            $tabrow[] = new tabobject(
+                'examcourse_mapping',
+                $targeturl,
+                get_string('examcourse_mapping', 'mod_bookit')
+            );
+
             // Tab to the resources page.
             if (install_helper::is_resources_enabled()) {
                 $targeturl = new moodle_url('/mod/bookit/admin/resources.php', ['id' => 'resources']);
