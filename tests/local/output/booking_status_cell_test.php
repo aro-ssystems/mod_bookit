@@ -159,4 +159,52 @@ final class booking_status_cell_test extends advanced_testcase {
             $this->assertSame($expectedgroup, $data->statusgroupkey, "Status {$status} group key");
         }
     }
+
+    /**
+     * Resource status colours match verified #30 / booking-status palette and stay distinct.
+     */
+    public function test_resource_row_status_colors_match_booking_palette(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+        global $PAGE;
+        $output = $PAGE->get_renderer('mod_bookit');
+
+        $booking = \mod_bookit\local\manager\event_manager::get_booking_status_colors();
+        $expected = [
+            'requested' => $booking[event_access_manager::BOOKINGSTATUS_NEW],
+            'inprogress' => $booking[event_access_manager::BOOKINGSTATUS_IN_PROGRESS],
+            'confirmed' => $booking[event_access_manager::BOOKINGSTATUS_CONFIRMED],
+            'rejected' => $booking[event_access_manager::BOOKINGSTATUS_REJECTED],
+        ];
+
+        $seen = [];
+        foreach ($expected as $status => $colors) {
+            $itemdata = (object)['id' => 1, 'status' => $status];
+            $cell = booking_status_cell::for_resource_row($itemdata, false);
+            $data = $cell->export_for_template($output);
+            $this->assertStringContainsString('background-color:' . $colors['bg'], $data->statusstyle);
+            $this->assertStringContainsString('color:' . $colors['fg'], $data->statusstyle);
+            $seen[] = $colors['bg'];
+        }
+        $this->assertCount(4, array_unique($seen), 'Four resource statuses must use distinct background colours');
+    }
+
+    /**
+     * Unknown resource status renders a neutral readable fallback (not blank).
+     */
+    public function test_resource_row_unknown_status_uses_neutral_fallback(): void {
+        $this->resetAfterTest(true);
+        $this->setAdminUser();
+        global $PAGE;
+        $output = $PAGE->get_renderer('mod_bookit');
+
+        $itemdata = (object)['id' => 1, 'status' => 'not-a-real-status'];
+        $cell = booking_status_cell::for_resource_row($itemdata, false);
+        $data = $cell->export_for_template($output);
+
+        $this->assertNotSame('', $data->statusstyle);
+        $this->assertStringContainsString('background-color:#e2e3e5', $data->statusstyle);
+        $this->assertStringContainsString('color:#212529', $data->statusstyle);
+        $this->assertSame('bookit-resource-status-requested', $data->statusclass);
+    }
 }

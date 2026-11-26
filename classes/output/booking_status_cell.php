@@ -332,30 +332,32 @@ class booking_status_cell implements renderable, templatable {
     }
 
     /**
-     * Resource status colour palette.
+     * Resource status colour palette (Issue #30: same colours as booking status).
      *
-     * @return array
+     * @return array<string, array{bg: string, fg: string, class: string}>
      */
     private static function resource_status_palette(): array {
+        $booking = event_manager::get_booking_status_colors();
+
         return [
             bookit_resource_status::REQUESTED->value => [
-                'bg' => '#e2e3e5',
-                'fg' => '#212529',
+                'bg' => $booking[event_access_manager::BOOKINGSTATUS_NEW]['bg'],
+                'fg' => $booking[event_access_manager::BOOKINGSTATUS_NEW]['fg'],
                 'class' => 'bookit-resource-status-requested',
             ],
-            bookit_resource_status::CONFIRMED->value => [
-                'bg' => '#d1e7dd',
-                'fg' => '#0f5132',
-                'class' => 'bookit-resource-status-confirmed',
-            ],
             bookit_resource_status::INPROGRESS->value => [
-                'bg' => '#fff3cd',
-                'fg' => '#664d03',
+                'bg' => $booking[event_access_manager::BOOKINGSTATUS_IN_PROGRESS]['bg'],
+                'fg' => $booking[event_access_manager::BOOKINGSTATUS_IN_PROGRESS]['fg'],
                 'class' => 'bookit-resource-status-inprogress',
             ],
+            bookit_resource_status::CONFIRMED->value => [
+                'bg' => $booking[event_access_manager::BOOKINGSTATUS_CONFIRMED]['bg'],
+                'fg' => $booking[event_access_manager::BOOKINGSTATUS_CONFIRMED]['fg'],
+                'class' => 'bookit-resource-status-confirmed',
+            ],
             bookit_resource_status::REJECTED->value => [
-                'bg' => '#f8d7da',
-                'fg' => '#842029',
+                'bg' => $booking[event_access_manager::BOOKINGSTATUS_REJECTED]['bg'],
+                'fg' => $booking[event_access_manager::BOOKINGSTATUS_REJECTED]['fg'],
                 'class' => 'bookit-resource-status-rejected',
             ],
         ];

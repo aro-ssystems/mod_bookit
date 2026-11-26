@@ -366,17 +366,40 @@ class resource_manager {
     }
 
     /**
+     * Whether the catalog resource is (or was) linked on any event.
+     *
+     * Any `{bookit_event_resource}` row counts, regardless of the parent event booking status
+     * (including canceled/rejected).
+     *
+     * @param int $resourceid Catalog resource id
+     * @return bool
+     * @throws dml_exception
+     */
+    public static function resource_has_event_bookings(int $resourceid): bool {
+        global $DB;
+
+        return $DB->record_exists('bookit_event_resource', ['resourceid' => $resourceid]);
+    }
+
+    /**
      * Delete a resource.
+     *
+     * Hard delete is allowed only when the item was never booked on any event. Booked items must
+     * be deactivated instead; event_resource rows are never cascade-deleted.
      *
      * @param int $id Resource ID
      * @return void
+     * @throws \moodle_exception If the resource has any event bookings
      * @throws dml_exception
      */
     public static function delete_resource(int $id): void {
         global $DB;
 
+        if (self::resource_has_event_bookings($id)) {
+            throw new \moodle_exception('resources:resource_has_bookings', 'mod_bookit');
+        }
+
         resource_settings_manager::delete_checklist_item_by_resource($id);
-        $DB->delete_records('bookit_event_resource', ['resourceid' => $id]);
         $DB->delete_records('bookit_resource', ['id' => $id]);
     }
 

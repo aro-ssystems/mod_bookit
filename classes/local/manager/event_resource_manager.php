@@ -179,10 +179,10 @@ class event_resource_manager {
      * @param int $eventid Event ID
      * @param int $resourceid Resource ID
      * @param bookit_resource_status $status New status
-     * @return bool Success
+     * @return array{success: bool, changed: bool} success=false if row missing; changed=true only when value differs
      * @throws dml_exception
      */
-    public static function update_status(int $eventid, int $resourceid, bookit_resource_status $status): bool {
+    public static function update_status(int $eventid, int $resourceid, bookit_resource_status $status): array {
         global $DB, $USER;
 
         $record = $DB->get_record('bookit_event_resource', [
@@ -191,14 +191,21 @@ class event_resource_manager {
         ]);
 
         if (!$record) {
-            return false;
+            return ['success' => false, 'changed' => false];
+        }
+
+        $oldstatus = (string)$record->status;
+        if ($oldstatus === $status->value) {
+            return ['success' => true, 'changed' => false];
         }
 
         $record->status       = $status->value;
         $record->timemodified = time();
         $record->usermodified = (int)$USER->id;
 
-        return $DB->update_record('bookit_event_resource', $record);
+        $updated = $DB->update_record('bookit_event_resource', $record);
+
+        return ['success' => (bool)$updated, 'changed' => (bool)$updated];
     }
 
     /**

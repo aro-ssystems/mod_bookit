@@ -78,6 +78,40 @@ if ($hassiteconfig) {
         0
     ));
 
+    $settings->add(new admin_setting_heading(
+        'mod_bookit_resourcestatus_notifications_heading',
+        get_string('resourcestatus_notifications_heading', 'mod_bookit'),
+        get_string('resourcestatus_notifications_desc', 'mod_bookit')
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_bookit/' . install_helper::CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED,
+        get_string('resourcestatus_notifications_enabled', 'mod_bookit'),
+        get_string('resourcestatus_notifications_enabled_desc', 'mod_bookit'),
+        1
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_bookit/' . install_helper::CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON,
+        get_string('resourcestatus_notify_bookingperson', 'mod_bookit'),
+        get_string('resourcestatus_notify_bookingperson_desc', 'mod_bookit'),
+        1
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_bookit/' . install_helper::CONFIG_RESOURCESTATUS_NOTIFY_PERSONINCHARGE,
+        get_string('resourcestatus_notify_personincharge', 'mod_bookit'),
+        get_string('resourcestatus_notify_personincharge_desc', 'mod_bookit'),
+        1
+    ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'mod_bookit/' . install_helper::CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS,
+        get_string('resourcestatus_notify_otherexaminers', 'mod_bookit'),
+        get_string('resourcestatus_notify_otherexaminers_desc', 'mod_bookit'),
+        0
+    ));
+
     $installhelperfinished = (int)get_config('mod_bookit', 'installhelperfinished');
     $installhelperstatus = optional_param('installhelperstatus', '', PARAM_ALPHAEXT);
     $rolesimported = optional_param('rolesimported', 0, PARAM_INT);

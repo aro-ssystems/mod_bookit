@@ -231,7 +231,8 @@ final class event_resource_manager_test extends advanced_testcase {
             bookit_resource_status::CONFIRMED
         );
 
-        $this->assertTrue($result);
+        $this->assertTrue($result['success']);
+        $this->assertTrue($result['changed']);
 
         $record = $DB->get_record('bookit_event_resource', [
             'eventid'    => $this->eventid,
@@ -244,11 +245,35 @@ final class event_resource_manager_test extends advanced_testcase {
     }
 
     /**
-     * Test updating status for non-existent record returns false.
+     * Test updating status for non-existent record returns success false.
      */
     public function test_update_status_not_found(): void {
         $result = event_resource_manager::update_status(999, 999, bookit_resource_status::CONFIRMED);
-        $this->assertFalse($result);
+        $this->assertFalse($result['success']);
+        $this->assertFalse($result['changed']);
+    }
+
+    /**
+     * Test updating to the same status reports unchanged.
+     */
+    public function test_update_status_same_value_unchanged(): void {
+        event_resource_manager::add_resource_to_event($this->eventid, $this->resourceid, 1, 2);
+
+        $first = event_resource_manager::update_status(
+            $this->eventid,
+            $this->resourceid,
+            bookit_resource_status::CONFIRMED
+        );
+        $this->assertTrue($first['success']);
+        $this->assertTrue($first['changed']);
+
+        $second = event_resource_manager::update_status(
+            $this->eventid,
+            $this->resourceid,
+            bookit_resource_status::CONFIRMED
+        );
+        $this->assertTrue($second['success']);
+        $this->assertFalse($second['changed']);
     }
 
     /**
@@ -270,7 +295,7 @@ final class event_resource_manager_test extends advanced_testcase {
                 $this->resourceid,
                 $status
             );
-            $this->assertTrue($result);
+            $this->assertTrue($result['success']);
 
             $entity = event_resource_manager::get_event_resource($this->eventid, $this->resourceid);
             $this->assertEquals($status, $entity->get_status());

@@ -60,6 +60,10 @@ class behat_mod_bookit_generator extends behat_generator_base {
                     'datagenerator' => 'resource',
                     'required' => ['name', 'category_name'],
                 ],
+                'event_resources' => [
+                    'datagenerator' => 'event_resource',
+                    'required' => ['event_name', 'resource_name'],
+                ],
         ];
     }
 }

@@ -523,6 +523,11 @@ export default class ResourceCategory extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, async(e) => {
+            // A rejected delete comes back with a redirect; the catalog page shows the notice.
+            if (e.detail && e.detail.redirecturl) {
+                window.location.assign(e.detail.redirecturl);
+                return;
+            }
             this.reactive.stateManager.processUpdates(e.detail);
 
             const action = e.detail && e.detail[0] ? e.detail[0].action : null;

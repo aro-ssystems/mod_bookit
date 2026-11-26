@@ -66,6 +66,18 @@ class install_helper {
     /** Config key for the optional checklist module state. */
     public const CONFIG_CHECKLIST_ENABLED = 'checklistenabled';
 
+    /** Master enable for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED = 'resourcestatus_notifications_enabled';
+
+    /** Include booking person (usercreated) for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON = 'resourcestatus_notify_bookingperson';
+
+    /** Include person in charge for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFY_PERSONINCHARGE = 'resourcestatus_notify_personincharge';
+
+    /** Include other examiners for resource status-change notifications. */
+    public const CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS = 'resourcestatus_notify_otherexaminers';
+
     /**
      * Check whether the optional resources module is enabled.
      *
@@ -287,6 +299,25 @@ class install_helper {
 
             self::normalize_booking_status_notification_shared_template($statuskey, 'subject');
             self::normalize_booking_status_notification_shared_template($statuskey, 'body');
+        }
+    }
+
+    /**
+     * Ensure resource status-change notification defaults exist for fresh installs.
+     *
+     * @return void
+     */
+    public static function ensure_resource_status_notification_defaults(): void {
+        $defaults = [
+            self::CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED => 1,
+            self::CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON => 1,
+            self::CONFIG_RESOURCESTATUS_NOTIFY_PERSONINCHARGE => 1,
+            self::CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS => 0,
+        ];
+        foreach ($defaults as $configkey => $defaultvalue) {
+            if (get_config('mod_bookit', $configkey) === false) {
+                set_config($configkey, $defaultvalue, 'mod_bookit');
+            }
         }
     }
 

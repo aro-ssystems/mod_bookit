@@ -238,12 +238,23 @@ class edit_resource_category_form extends dynamic_form {
     /**
      * Process DELETE requests for removing resource categories.
      *
+     * A rejected delete (category still has resources) is shown as a notice on the reloaded catalog page.
+     *
      * @param int $id The ID of the resource category to delete
      * @return array Result of the delete operation
      */
     private function process_delete_request(int $id): array {
         $category = resource_manager::get_category($id);
-        resource_manager::delete_category($id);
+        try {
+            resource_manager::delete_category($id);
+        } catch (\moodle_exception $e) {
+            \core\notification::error($e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'redirecturl' => (new moodle_url('/mod/bookit/admin/resources.php', ['id' => 'resources']))->out(false),
+            ];
+        }
 
         return [
             [

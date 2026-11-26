@@ -747,6 +747,9 @@ class edit_event_form extends dynamic_form {
         // Get active resources grouped by category for booking form.
         if ($resourcesenabled) {
             $resourcesdata = resource_manager::get_active_resources_grouped();
+            if (!empty($eventid) && !$bookingcompleted) {
+                $resourcesdata = $this->merge_inactive_booked_resources_into_grouped((int)$eventid, $resourcesdata);
+            }
             $this->add_resources_fields($mform, $resourcesdata, $bookingcompleted, $bookedresources);
         }
     }
@@ -1333,7 +1336,7 @@ class edit_event_form extends dynamic_form {
             return $currentevent->resources;
         }
 
-        return $this->build_resource_mappings_from_checkbox_submission($formdata);
+        return $this->build_resource_mappings_from_checkbox_submission($formdata, $currentevent);
     }
 
     /**
@@ -1358,18 +1361,22 @@ class edit_event_form extends dynamic_form {
      * Build resource mappings from submitted checkbox and amount fields.
      *
      * @param stdClass $formdata Submitted form data
+     * @param bookit_event|null $currentevent Existing event when editing
      * @return array List of mapping objects with resourceid and amount
      * @throws dml_exception
      */
-    private function build_resource_mappings_from_checkbox_submission(stdClass $formdata): array {
-        $mappings = [];
+    private function build_resource_mappings_from_checkbox_submission(
+        stdClass $formdata,
+        ?bookit_event $currentevent = null
+    ): array {
+        $mappingsbyid = [];
         foreach (resource_manager::get_active_resources_grouped() as $categorygroup) {
             foreach ($categorygroup['resources'] as $resource) {
-                $id = $resource['id'];
+                $id = (int)$resource['id'];
                 $checkboxname = 'checkbox_' . $id;
                 if ($formdata->$checkboxname ?? false) {
                     $amount = $resource['amountirrelevant'] ? 1 : (int)($formdata->{'resource_' . $id} ?? 1);
-                    $mappings[] = (object) [
+                    $mappingsbyid[$id] = (object) [
                         'resourceid' => $id,
                         'amount' => $amount,
                     ];
@@ -1377,7 +1384,129 @@ class edit_event_form extends dynamic_form {
             }
         }
 
-        return $mappings;
+        if ($currentevent !== null) {
+            foreach ($currentevent->resources as $existingmapping) {
+                $resourceid = (int)$existingmapping->resourceid;
+                $resource = resource_manager::get_resource_by_id($resourceid);
+                if ($resource === null || $resource->is_active()) {
+                    continue;
+                }
+
+                $checkboxname = 'checkbox_' . $resourceid;
+                if (property_exists($formdata, $checkboxname) && empty($formdata->$checkboxname)) {
+                    continue;
+                }
+
+                if (isset($mappingsbyid[$resourceid])) {
+                    continue;
+                }
+
+                if (!$resource->is_amountirrelevant() && isset($formdata->{'resource_' . $resourceid})) {
+                    $amount = (int)$formdata->{'resource_' . $resourceid};
+                } else {
+                    $amount = (int)$existingmapping->amount;
+                }
+
+                $mappingsbyid[$resourceid] = (object) [
+                    'resourceid' => $resourceid,
+                    'amount' => $amount,
+                ];
+            }
+        }
+
+        return array_values($mappingsbyid);
+    }
+
+    /**
+     * Append inactive catalog resources that are already booked on an event to grouped form data.
+     *
+     * @param int $eventid Event id
+     * @param array $grouped Output of resource_manager::get_active_resources_grouped()
+     * @return array Grouped resources including inactive booked items
+     * @throws dml_exception
+     */
+    private function merge_inactive_booked_resources_into_grouped(int $eventid, array $grouped): array {
+        global $DB;
+
+        $presentids = [];
+        foreach ($grouped as $categorygroup) {
+            foreach ($categorygroup['resources'] as $resource) {
+                $presentids[(int)$resource['id']] = true;
+            }
+        }
+
+        $sql = "
+            SELECT
+                r.id AS resource_id,
+                r.name AS resource_name,
+                r.description AS resource_description,
+                r.amount AS resource_amount,
+                r.amountirrelevant AS resource_amountirrelevant,
+                r.sortorder AS resource_sortorder,
+                r.roomids AS resource_roomids,
+                c.id AS category_id,
+                c.name AS category_name,
+                c.sortorder AS category_sortorder
+            FROM {bookit_event_resource} er
+            JOIN {bookit_resource} r ON r.id = er.resourceid
+            JOIN {bookit_resource_category} c ON c.id = r.categoryid
+            WHERE er.eventid = :eventid
+              AND r.active = 0
+        ";
+
+        $records = $DB->get_records_sql($sql, ['eventid' => $eventid]);
+        if ($records === []) {
+            return $grouped;
+        }
+
+        $groupedbycat = [];
+        foreach ($grouped as $categorygroup) {
+            $groupedbycat[(int)$categorygroup['category']['id']] = $categorygroup;
+        }
+
+        foreach ($records as $record) {
+            $resourceid = (int)$record->resource_id;
+            if (isset($presentids[$resourceid])) {
+                continue;
+            }
+
+            $catid = (int)$record->category_id;
+            if (!isset($groupedbycat[$catid])) {
+                $groupedbycat[$catid] = [
+                    'category' => [
+                        'id' => $catid,
+                        'name' => $record->category_name,
+                        'sortorder' => $record->category_sortorder,
+                    ],
+                    'resources' => [],
+                ];
+            }
+
+            $groupedbycat[$catid]['resources'][] = [
+                'id' => $resourceid,
+                'name' => $record->resource_name,
+                'description' => $record->resource_description,
+                'amount' => $record->resource_amount,
+                'amountirrelevant' => (bool)$record->resource_amountirrelevant,
+                'sortorder' => $record->resource_sortorder,
+                'roomids' => $record->resource_roomids,
+            ];
+            $presentids[$resourceid] = true;
+        }
+
+        uasort(
+            $groupedbycat,
+            static fn(array $a, array $b): int => ((int)$a['category']['sortorder']) <=> ((int)$b['category']['sortorder'])
+        );
+        foreach ($groupedbycat as &$categorygroup) {
+            usort(
+                $categorygroup['resources'],
+                static fn(array $a, array $b): int => ((int)$a['sortorder']) <=> ((int)$b['sortorder'])
+            );
+        }
+        unset($categorygroup);
+
+        return array_values($groupedbycat);
     }
 
     /**

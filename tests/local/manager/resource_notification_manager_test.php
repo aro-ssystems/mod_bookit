@@ -28,6 +28,7 @@ namespace mod_bookit\local\manager;
 
 use advanced_testcase;
 use mod_bookit\local\entity\resource\bookit_resource_status;
+use mod_bookit\local\install_helper;
 
 /**
  * Unit tests for resource_notification_manager.
@@ -118,6 +119,8 @@ final class resource_notification_manager_test extends advanced_testcase {
         $eventid = $this->create_test_event($booker->id, null, $otherexaminers);
         $resourceid = $this->create_test_resource();
 
+        set_config(install_helper::CONFIG_RESOURCESTATUS_NOTIFY_OTHEREXAMINERS, 1, 'mod_bookit');
+
         $sink = $this->redirectMessages();
 
         resource_notification_manager::notify_status_changed(
@@ -202,6 +205,109 @@ final class resource_notification_manager_test extends advanced_testcase {
 
         $this->assertCount(1, $messages);
         $this->assertStringContainsString('My Special Exam', $messages[0]->subject);
+        $this->assertStringContainsString('Projector', $messages[0]->fullmessage);
+    }
+
+    /**
+     * Test master enable off sends zero messages.
+     */
+    public function test_notify_respects_master_disable(): void {
+        $booker = $this->getDataGenerator()->create_user();
+        $eventid = $this->create_test_event($booker->id);
+        $resourceid = $this->create_test_resource();
+
+        set_config(install_helper::CONFIG_RESOURCESTATUS_NOTIFICATIONS_ENABLED, 0, 'mod_bookit');
+
+        $sink = $this->redirectMessages();
+        $sent = resource_notification_manager::notify_status_changed(
+            $this->cmid,
+            $eventid,
+            $resourceid,
+            bookit_resource_status::CONFIRMED
+        );
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertSame(0, $sent);
+        $this->assertCount(0, $messages);
+    }
+
+    /**
+     * Test booking-person checkbox disables usercreated recipient.
+     */
+    public function test_notify_respects_bookingperson_checkbox(): void {
+        $booker = $this->getDataGenerator()->create_user();
+        $examiner = $this->getDataGenerator()->create_user();
+        $eventid = $this->create_test_event($booker->id, $examiner->id);
+        $resourceid = $this->create_test_resource();
+
+        set_config(install_helper::CONFIG_RESOURCESTATUS_NOTIFY_BOOKINGPERSON, 0, 'mod_bookit');
+
+        $sink = $this->redirectMessages();
+        resource_notification_manager::notify_status_changed(
+            $this->cmid,
+            $eventid,
+            $resourceid,
+            bookit_resource_status::CONFIRMED
+        );
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $recipientids = array_map('intval', array_column($messages, 'useridto'));
+        $this->assertCount(1, $messages);
+        $this->assertContainsEquals((int)$examiner->id, $recipientids);
+        $this->assertNotContainsEquals((int)$booker->id, $recipientids);
+    }
+
+    /**
+     * Test suspended recipients are skipped while others still receive.
+     */
+    public function test_notify_skips_suspended_recipient(): void {
+        $booker = $this->getDataGenerator()->create_user();
+        $examiner = $this->getDataGenerator()->create_user(['suspended' => 1]);
+        $eventid = $this->create_test_event($booker->id, $examiner->id);
+        $resourceid = $this->create_test_resource();
+
+        $sink = $this->redirectMessages();
+        resource_notification_manager::notify_status_changed(
+            $this->cmid,
+            $eventid,
+            $resourceid,
+            bookit_resource_status::CONFIRMED
+        );
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $this->assertCount(1, $messages);
+        $this->assertEquals($booker->id, $messages[0]->useridto);
+    }
+
+    /**
+     * Other examiners receive nothing when their toggle is unset (default off).
+     */
+    public function test_notify_skips_other_examiners_when_toggle_missing(): void {
+        global $CFG;
+        $booker = $this->getDataGenerator()->create_user();
+        $examiner = $this->getDataGenerator()->create_user();
+        $eventid = $this->create_test_event($booker->id, $examiner->id, (string)$examiner->id);
+        $resourceid = $this->create_test_resource();
+
+        unset($CFG->mod_bookit_resourcestatus_notify_otherexaminers);
+
+        $sink = $this->redirectMessages();
+        resource_notification_manager::notify_status_changed(
+            $this->cmid,
+            $eventid,
+            $resourceid,
+            bookit_resource_status::CONFIRMED
+        );
+        $messages = $sink->get_messages();
+        $sink->close();
+
+        $recipientids = array_map('intval', array_column($messages, 'useridto'));
+        $this->assertCount(2, $messages);
+        $this->assertContainsEquals((int)$booker->id, $recipientids);
+        $this->assertContainsEquals((int)$examiner->id, $recipientids);
     }
 
     /**

@@ -100,11 +100,14 @@ class update_event_resource_status_form extends dynamic_form {
 
         $status = bookit_resource_status::from($data->status);
 
-        event_resource_manager::update_status(
+        $result = event_resource_manager::update_status(
             (int)$data->eventid,
             (int)$data->resourceid,
             $status
         );
+        if (empty($result['success'])) {
+            throw new \moodle_exception('invalidrecord', 'error');
+        }
 
         return ['status' => $status->value];
     }

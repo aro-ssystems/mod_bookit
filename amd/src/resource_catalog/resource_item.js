@@ -141,6 +141,11 @@ export default class ResourceItem extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, async(response) => {
+            // A rejected delete comes back with a redirect; the catalog page shows the notice.
+            if (response.detail && response.detail.redirecturl) {
+                window.location.assign(response.detail.redirecturl);
+                return;
+            }
             this.reactive.stateManager.processUpdates(response.detail);
 
             if (response.detail[0].action === 'delete') {
