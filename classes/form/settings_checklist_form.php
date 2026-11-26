@@ -44,6 +44,10 @@ class settings_checklist_form extends moodleform {
     public function definition(): void {
         global $CFG;
         $mform =& $this->_form;
+        $fileoptions = $this->_customdata['fileoptions'] ?? [
+            'maxfiles' => 1,
+            'accepted_types' => ['.png', '.jpg', '.jpeg'],
+        ];
 
         $mform->addElement('selectyesno', 'pdf_logo_enable', get_string('settings_pdf_logo_enable', 'bookit') . '<br>' .
                 '<code class="text-muted small">mod_bookit/pdf_logo_enable</code>' . '<br><br>' .
@@ -65,10 +69,7 @@ class settings_checklist_form extends moodleform {
 
         $mform->addElement('filepicker', 'pdf_logo_custom', get_string('settings_pdf_logo_custom', 'bookit') . '<br>' .
                 '<code class="text-muted small">mod_bookit/pdf_logo_custom</code>' . '<br><br>' .
-                get_string('settings_pdf_logo_custom_desc', 'mod_bookit'), null, [
-                'maxfiles' => 1,
-                'accepted_types' => ['.png', '.jpg', '.jpeg'],
-        ]);
+                get_string('settings_pdf_logo_custom_desc', 'mod_bookit'), null, $fileoptions);
         $mform->hideIf('pdf_logo_custom', 'pdf_logo_source', 'neq', 'custom');
 
         $this->add_action_buttons();

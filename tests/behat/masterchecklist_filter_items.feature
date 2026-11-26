@@ -10,10 +10,9 @@ Feature: Filter master checklist items
       | username     | firstname | lastname | email                    |
       | serviceteam1 | Service   | Team     | serviceteam@example.com |
     And I log in as "admin"
-    And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I check "Enable checklist module"
-    And I press "Save changes"
-    And I click on "Run install helper" "link"
+    And the following config values are set as admin:
+      | checklistenabled | 1 | mod_bookit |
+    And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the Bookit legacy test rooms exist
     And the following "role assigns" exist:
@@ -29,7 +28,7 @@ Feature: Filter master checklist items
     And I should see "Reserve room"
     And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"
     And I set the field "roomids[]" to "Lecture Hall A"
-    And I set the field "roleids[]" to "BookIt_Observer"
+    And I set the field "roleids[]" to "BookIt_Service-Team"
     And I click on "button[data-action='save']" "css_element"
     And I wait "1" seconds
     And I set the field "roomid" to "Computer Lab"
@@ -41,7 +40,7 @@ Feature: Filter master checklist items
     And I set the field "roleid" to "BookIt_Examiner"
     And I should not see "Reserve room"
     And I wait "1" seconds
-    And I set the field "roleid" to "BookIt_Observer"
+    And I set the field "roleid" to "BookIt_Service-Team"
     And I should see "Reserve room"
     And I wait "1" seconds
     And I set the field "roomid" to "Computer Lab"
@@ -62,7 +61,7 @@ Feature: Filter master checklist items
       | Checklist item name      | My Second Test Item   |
       | Checklist category       | Exam Preparation      |
     And I set the field "roomids[]" to "Lecture Hall A"
-    And I set the field "roleids[]" to "BookIt_Observer"
+    And I set the field "roleids[]" to "BookIt_Service-Team"
     And I press "Save changes"
     And I should not see "My Second Test Item"
     And I set the field "roomid" to "No selection"
@@ -79,7 +78,7 @@ Feature: Filter master checklist items
     And I should see "Reserve room"
     And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"
     And I set the field "roomids[]" to "Lecture Hall A"
-    And I set the field "roleids[]" to "BookIt_Observer"
+    And I set the field "roleids[]" to "BookIt_Service-Team"
     And I click on "button[data-action='save']" "css_element"
     And I wait "1" seconds
     And I set the field "roomid" to "Computer Lab"
@@ -91,7 +90,7 @@ Feature: Filter master checklist items
     And I set the field "roleid" to "BookIt_Examiner"
     And I should not see "Reserve room"
     And I wait "1" seconds
-    And I set the field "roleid" to "BookIt_Observer"
+    And I set the field "roleid" to "BookIt_Service-Team"
     And I should see "Reserve room"
     And I wait "1" seconds
     And I set the field "roomid" to "Computer Lab"
@@ -112,7 +111,7 @@ Feature: Filter master checklist items
       | Checklist item name      | My Second Test Item ServiceTeam |
       | Checklist category       | Exam Preparation                |
     And I set the field "roomids[]" to "Lecture Hall A"
-    And I set the field "roleids[]" to "BookIt_Observer"
+    And I set the field "roleids[]" to "BookIt_Service-Team"
     And I press "Save changes"
     And I should not see "My Second Test Item ServiceTeam"
     And I set the field "roomid" to "No selection"

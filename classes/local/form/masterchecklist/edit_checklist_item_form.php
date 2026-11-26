@@ -90,7 +90,7 @@ class edit_checklist_item_form extends dynamic_form {
         $mform->addHelpButton('categoryid', 'checklistcategory', 'mod_bookit');
 
         $allrooms = array_column(checklist_manager::get_bookit_rooms(), 'name', 'id');
-        $allroles = array_column(checklist_manager::get_bookit_roles(), 'name', 'id');
+        $allroles = array_column(checklist_manager::get_assignable_checklist_roles(), 'name', 'id');
 
         $select = $mform->addElement('select', 'roomids', get_string('rooms', 'mod_bookit'), $allrooms, [
             'style' => 'width:50%; max-height:150px;',
@@ -113,6 +113,11 @@ class edit_checklist_item_form extends dynamic_form {
         $mform->addRule('roleids', $rolerequired, 'required', null, 'server');
         $select->setMultiple(true);
         $mform->addHelpButton('roleids', 'role', 'mod_bookit');
+
+        $mform->addElement('advcheckbox', 'active', get_string('checklistitem_active', 'mod_bookit'));
+        $mform->setDefault('active', 1);
+        $mform->setType('active', PARAM_INT);
+        $mform->addHelpButton('active', 'checklistitem_active', 'mod_bookit');
 
         $duedateradio = [
             $mform->createElement('radio', 'duedate', '', get_string('checklist_due_noduedate', 'mod_bookit'), 'none'),
@@ -142,6 +147,7 @@ class edit_checklist_item_form extends dynamic_form {
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
+        require_capability('mod/bookit:managemasterchecklist', \context_system::instance());
     }
 
     /**
@@ -233,6 +239,11 @@ class edit_checklist_item_form extends dynamic_form {
     public function process_put_request($data) {
         global $USER;
 
+        if (isset($data['roleids'])) {
+            $roleids = is_array($data['roleids']) ? $data['roleids'] : [$data['roleids']];
+            $data['roleids'] = checklist_manager::strip_observer_roleids($roleids);
+        }
+
         if (!empty($data['itemid'])) {
             $item = bookit_checklist_item::from_database($data['itemid']);
 
@@ -245,6 +256,7 @@ class edit_checklist_item_form extends dynamic_form {
                 }
             }
 
+            $active = array_key_exists('active', $data) ? (!empty($data['active']) ? 1 : 0) : 1;
             $fields = [
                     'title' => $data['title'],
                     'order' => 0,
@@ -253,6 +265,7 @@ class edit_checklist_item_form extends dynamic_form {
                     'roleids' => $data['roleids'],
                     'duedaysrelation' => $data['duedate'],
                     'duedaysoffset' => $duedaysoffset,
+                    'active' => $active,
             ];
 
             foreach ($fields as $key => $value) {
@@ -267,6 +280,7 @@ class edit_checklist_item_form extends dynamic_form {
             $item->timemodified = time();
             $item->itemid = $item->id;
         } else {
+            $active = array_key_exists('active', $data) ? (!empty($data['active']) ? 1 : 0) : 1;
             $item = new bookit_checklist_item(
                 0,
                 1,
@@ -285,7 +299,8 @@ class edit_checklist_item_form extends dynamic_form {
                 null,
                 $USER->id,
                 time(),
-                time()
+                time(),
+                $active
             );
         }
 
@@ -376,6 +391,16 @@ class edit_checklist_item_form extends dynamic_form {
      * @return array Result of the delete operation
      */
     public function process_delete_request($id) {
+        try {
+            checklist_manager::assert_can_delete_item((int)$id);
+        } catch (\moodle_exception $e) {
+            \core\notification::error($e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'redirecturl' => (new \moodle_url('/mod/bookit/admin/master_checklist.php'))->out(false),
+            ];
+        }
 
         $item = bookit_checklist_item::from_database($id);
         $categoryid = $item->categoryid;
@@ -417,6 +442,10 @@ class edit_checklist_item_form extends dynamic_form {
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
+
+        if (($data['action'] ?? '') === 'delete') {
+            return $errors;
+        }
 
         if (!isset($data['title']) || trim((string) $data['title']) === '') {
             $errors['title'] = get_string('checklistitemname_required', 'mod_bookit');

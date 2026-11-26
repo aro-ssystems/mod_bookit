@@ -195,10 +195,13 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, async(response) => {
+            if (response.detail.redirecturl) {
+                window.location.assign(response.detail.redirecturl);
+                return;
+            }
             if (response.detail.success) {
                 Toast.add(response.detail.message || await getString('importsuccessful', 'mod_bookit'), {type: 'success'});
                 if (response.detail.reload) {
-                    // Reload the page to show imported data
                     window.location.reload();
                 }
             } else {

@@ -1,0 +1,3 @@
+type,name,description,role_shortnames
+category,Observer category,From file,
+item,Observer item,From file,"[""bookit_observer""]"

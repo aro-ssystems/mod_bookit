@@ -162,6 +162,7 @@ class bookit_checklist_item implements named_templatable, \renderable {
      * @param int|null $usermodified
      * @param int|null $timecreated
      * @param int|null $timemodified
+     * @param int $active 1=active, 0=deactivated
      */
     public function __construct(
         /** @var int id */
@@ -200,6 +201,8 @@ class bookit_checklist_item implements named_templatable, \renderable {
         public ?int $timecreated,
         /** @var ?int timemodified */
         public ?int $timemodified,
+        /** @var int active */
+        public int $active = 1,
     ) {
     }
 
@@ -243,7 +246,8 @@ class bookit_checklist_item implements named_templatable, \renderable {
             $record->duedaysrelation,
             $record->usermodified,
             $record->timecreated,
-            $record->timemodified
+            $record->timemodified,
+            (int)($record->active ?? 1)
         );
     }
 
@@ -271,6 +275,7 @@ class bookit_checklist_item implements named_templatable, \renderable {
         $record->defaultvalue = $this->defaultvalue;
         $record->duedaysoffset = $this->duedaysoffset;
         $record->duedaysrelation = $this->duedaysrelation;
+        $record->active = $this->active ? 1 : 0;
         $record->usermodified = $USER->id;
         $record->timemodified = time();
 

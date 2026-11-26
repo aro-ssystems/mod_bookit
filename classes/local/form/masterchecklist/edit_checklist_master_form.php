@@ -27,6 +27,7 @@ namespace mod_bookit\local\form\masterchecklist;
 
 use core_form\dynamic_form;
 use mod_bookit\local\entity\masterchecklist\bookit_checklist_master;
+use mod_bookit\local\manager\checklist_manager;
 
 /**
  * Form class for editing master checklists.
@@ -68,6 +69,7 @@ class edit_checklist_master_form extends dynamic_form {
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
+        require_capability('mod/bookit:managemasterchecklist', \context_system::instance());
     }
 
     /**
@@ -168,5 +170,7 @@ class edit_checklist_master_form extends dynamic_form {
      * @return bool True if deletion was successful, false otherwise
      */
     public function process_delete_request($data) {
+        checklist_manager::assert_can_delete_master((int) $data);
+        return [];
     }
 }

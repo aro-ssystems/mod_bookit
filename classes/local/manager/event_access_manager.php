@@ -848,7 +848,10 @@ class event_access_manager {
             return false;
         }
 
-        if (has_capability('mod/bookit:managebasics', $context) || has_capability('mod/bookit:viewalldetailsofevent', $context)) {
+        if (
+            has_capability('mod/bookit:managebasics', $context, $userid)
+            || has_capability('mod/bookit:viewalldetailsofevent', $context, $userid)
+        ) {
             return true;
         }
 
@@ -907,7 +910,10 @@ class event_access_manager {
             return false;
         }
 
-        if (has_capability('mod/bookit:managebasics', $context) || has_capability('mod/bookit:viewalldetailsofevent', $context)) {
+        if (
+            has_capability('mod/bookit:managebasics', $context, $userid)
+            || has_capability('mod/bookit:viewalldetailsofevent', $context, $userid)
+        ) {
             return true;
         }
 

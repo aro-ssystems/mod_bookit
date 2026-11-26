@@ -77,13 +77,19 @@ class export_checklist_form extends dynamic_form {
 
         // Hide title field initially (show only when PDF is selected).
         $mform->hideIf('pdf_title', 'format', 'neq', 'pdf');
+
+        // Optional download filename (independent of title).
+        $mform->addElement('text', 'pdf_filename', get_string('pdf_filename', 'mod_bookit'), ['size' => 50]);
+        $mform->setType('pdf_filename', PARAM_TEXT);
+        $mform->addHelpButton('pdf_filename', 'pdf_filename', 'mod_bookit');
+        $mform->hideIf('pdf_filename', 'format', 'neq', 'pdf');
     }
 
     /**
      * Check if the current user has access to this form.
      */
     protected function check_access_for_dynamic_submission(): void {
-        // Add capability check if needed.
+        require_capability('mod/bookit:managemasterchecklist', \context_system::instance());
     }
 
     /**
@@ -128,6 +134,9 @@ class export_checklist_form extends dynamic_form {
             // Add PDF title if format is PDF and title is provided.
             if ($data->format === 'pdf' && !empty($data->pdf_title)) {
                 $exportparams['title'] = $data->pdf_title;
+            }
+            if ($data->format === 'pdf' && !empty($data->pdf_filename)) {
+                $exportparams['filename'] = $data->pdf_filename;
             }
 
             $exporturl = new \moodle_url('/mod/bookit/export.php', $exportparams);

@@ -10,10 +10,9 @@ Feature: Preserve notification slot messages
       | username     | firstname | lastname | email                    |
       | serviceteam1 | Service   | Team     | serviceteam@example.com |
     And I log in as "admin"
-    And I navigate to "Plugins > Activity modules > BookIt" in site administration
-    And I check "Enable checklist module"
-    And I press "Save changes"
-    And I click on "Run install helper" "link"
+    And the following config values are set as admin:
+      | checklistenabled | 1 | mod_bookit |
+    And the Bookit default roles are imported
     And the Bookit default checklist data exists
     And the following "role assigns" exist:
       | user         | role               | contextlevel | reference |
@@ -32,7 +31,7 @@ Feature: Preserve notification slot messages
     And I wait "1" seconds
     And I set the field "before_due_time[number]" to "7"
     And I set the field "before_due_messagetext[text]" to "This is my behat notification edit test message. Cool."
-    And I set the field "Recipient" to "BookIt_Observer, BookIt_Service-Team"
+    And I set the field "Recipient" to "BookIt_Examiner, BookIt_Service-Team"
     And I click on "button[data-action='save']" "css_element"
     And I wait "1" seconds
     And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"
@@ -59,7 +58,7 @@ Feature: Preserve notification slot messages
     And I wait "1" seconds
     And I set the field "before_due_time[number]" to "7"
     And I set the field "before_due_messagetext[text]" to "This is my behat notification edit test message. Cool."
-    And I set the field "Recipient" to "BookIt_Observer, BookIt_Service-Team"
+    And I set the field "Recipient" to "BookIt_Examiner, BookIt_Service-Team"
     And I click on "button[data-action='save']" "css_element"
     And I wait "1" seconds
     And I click on "button[id^='edit-checklistitem-']" "css_element" in the "Reserve room" "table_row"

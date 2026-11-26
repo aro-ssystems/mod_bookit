@@ -87,6 +87,10 @@ export default class extends BaseComponent {
         });
 
         modalForm.addEventListener(modalForm.events.FORM_SUBMITTED, (response) => {
+            if (response.detail && response.detail.redirecturl) {
+                window.location.assign(response.detail.redirecturl);
+                return;
+            }
             this.reactive.stateManager.processUpdates(response.detail);
         });
 

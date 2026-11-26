@@ -119,13 +119,15 @@ class event_checklist_catalog implements renderable, templatable {
 
         $masterid = $master->id;
 
-        // Load global state for this event (an item counts as done if any user marked it done).
+        // Load global done state and countable item ids (active OR any state for this event).
         $statebyitem = event_checklist_state_manager::get_global_state_for_event($this->eventid);
+        $countableids = array_fill_keys(
+            event_checklist_state_manager::get_countable_item_ids($this->eventid, $masterid),
+            true
+        );
 
         $categories = checklist_manager::get_categories_by_master_id($masterid);
 
-        $totalcount = 0;
-        $donecount  = 0;
         $categoriesdata = [];
 
         foreach ($categories as $category) {
@@ -137,21 +139,28 @@ class event_checklist_catalog implements renderable, templatable {
                 continue;
             }
 
+            $eventstart = ($event && !empty($event->starttime)) ? (int)$event->starttime : 0;
             $itemsdata = [];
             foreach ($items as $item) {
-                $itemid = $item->id;
+                $itemid = (int)$item->id;
+                if (!isset($countableids[$itemid])) {
+                    continue;
+                }
                 $done   = $statebyitem[$itemid] ?? false;
+                $isoverdue = checklist_manager::is_checklist_item_overdue(
+                    $eventstart,
+                    $item->duedaysrelation ?? null,
+                    isset($item->duedaysoffset) ? (int)$item->duedaysoffset : null,
+                    $done
+                );
 
                 $itemdata = new stdClass();
                 $itemdata->id    = $itemid;
                 $itemdata->title = format_string($item->title);
                 $itemdata->done  = $done;
                 $itemdata->canedit = $this->can_edit_item($item->roleids ?? []);
-
-                $totalcount++;
-                if ($done) {
-                    $donecount++;
-                }
+                $itemdata->isoverdue = $isoverdue;
+                $itemdata->overdueemoji = $isoverdue ? '⚠️' : '';
 
                 $itemsdata[] = $itemdata;
             }
@@ -168,11 +177,12 @@ class event_checklist_catalog implements renderable, templatable {
         $data->categories  = $categoriesdata;
         $data->hasitems    = !empty($categoriesdata);
 
-        // Progress bar data.
-        $data->progresstotal    = $totalcount;
-        $data->progressdone     = $donecount;
-        $data->progresspercent  = $totalcount > 0 ? (int)round(($donecount / $totalcount) * 100) : 0;
-        $data->progresscomplete = ($totalcount > 0 && $donecount === $totalcount);
+        // Progress bar data — same helper as overview.
+        $progress = event_checklist_state_manager::get_progress_for_event($this->eventid, $masterid);
+        $data->progresstotal    = $progress['total'];
+        $data->progressdone     = $progress['done'];
+        $data->progresspercent  = $progress['percent'];
+        $data->progresscomplete = ($progress['total'] > 0 && $progress['done'] === $progress['total']);
 
         return $data;
     }

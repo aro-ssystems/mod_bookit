@@ -72,6 +72,7 @@
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Position in the checklist" />
         <FIELD NAME="isrequired" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the item is required" />
         <FIELD NAME="state" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="State of the item (open, processing, done, unknown)" />
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1=active for new event checklists, 0=deactivated" />
         <FIELD NAME="defaultvalue" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Default value for the item" />
         <FIELD NAME="duedaysoffset" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Due days relative to the event date" />
         <FIELD NAME="duedaysrelation" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Relation of the due date (before, after)" />

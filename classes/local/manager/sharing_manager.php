@@ -310,37 +310,40 @@ class sharing_manager {
             $roomcache = [];
             $roomidtonamemap = [];
             $categoriesdata = [];
+            $pendingrooms = [];
 
             $currentcategoryname = null;
 
             for ($i = 1; $i < count($lines); $i++) {
-                $data = str_getcsv($lines[$i], ',', '"', '\\');
-                if (count($data) < count($headers)) {
+                if (trim($lines[$i]) === '') {
                     continue;
+                }
+                $data = str_getcsv($lines[$i], ',', '"', '\\');
+                $linenumber = $i + 1;
+                if (count($data) !== count($headers)) {
+                    return [
+                        'success' => false,
+                        'message' => get_string('checklistimport_badline', 'mod_bookit', $linenumber),
+                    ];
                 }
 
                 $row = array_combine($headers, $data);
 
                 if ($importrooms && $row['type'] === 'room' && !empty($row['name']) && !empty($row['room_data'])) {
                     $roomdata = json_decode($row['room_data'], true);
-                    if ($roomdata) {
-                        $roomname = $row['name'];
-                        $roomidfromcsv = $roomdata['id'] ?? null;
-
-                        if ($roomidfromcsv) {
-                            $roomidtonamemap[$roomidfromcsv] = $roomname;
-                        }
-
-                        $existingroom = self::find_room_by_name($roomname);
-                        if ($existingroom) {
-                            $roomcache[$roomname] = $existingroom->id;
-                        } else {
-                            $newroomid = self::create_room_from_data($roomdata);
-                            if ($newroomid) {
-                                $roomcache[$roomname] = $newroomid;
-                            }
-                        }
+                    if (!is_array($roomdata)) {
+                        return [
+                            'success' => false,
+                            'message' => get_string('checklistimport_badline', 'mod_bookit', $linenumber),
+                        ];
                     }
+                    $roomname = $row['name'];
+                    $roomidfromcsv = $roomdata['id'] ?? null;
+
+                    if ($roomidfromcsv) {
+                        $roomidtonamemap[$roomidfromcsv] = $roomname;
+                    }
+                    $pendingrooms[$roomname] = $roomdata;
                 }
 
                 if ($row['type'] === 'category' && !empty($row['name'])) {
@@ -353,8 +356,33 @@ class sharing_manager {
                             'items' => [],
                         ];
                     }
-                } else if ($row['type'] === 'item' && !empty($row['name']) && $currentcategoryname) {
+                } else if ($row['type'] === 'item' && !empty($row['name'])) {
+                    if ($currentcategoryname === null) {
+                        return [
+                            'success' => false,
+                            'message' => get_string('checklistimport_badline', 'mod_bookit', $linenumber),
+                        ];
+                    }
+                    $resolved = self::resolve_import_roleids($row, $linenumber);
+                    if (isset($resolved['error'])) {
+                        return ['success' => false, 'message' => $resolved['error']];
+                    }
+                    $row['resolved_roleids'] = $resolved['roleids'];
                     $categoriesdata[$currentcategoryname]['items'][] = $row;
+                }
+            }
+
+            $transaction = $DB->start_delegated_transaction();
+
+            foreach ($pendingrooms as $roomname => $roomdata) {
+                $existingroom = self::find_room_by_name($roomname);
+                if ($existingroom) {
+                    $roomcache[$roomname] = $existingroom->id;
+                } else {
+                    $newroomid = self::create_room_from_data($roomdata);
+                    if ($newroomid) {
+                        $roomcache[$roomname] = $newroomid;
+                    }
                 }
             }
 
@@ -409,27 +437,7 @@ class sharing_manager {
                         }
                     }
 
-                    // Debug logging.
-                    debugging("Item '{$itemrow['name']}' - Room IDs: " . json_encode($roomids));
-
-                    // Parse role IDs from CSV - check if roles exist.
-                    $roleids = [];
-                    if (!empty($itemrow['role_shortnames'])) {
-                        $roleshortnames = json_decode($itemrow['role_shortnames'], true);
-                        if (is_array($roleshortnames)) {
-                            foreach ($roleshortnames as $shortname) {
-                                $role = self::find_role_by_shortname($shortname);
-                                if ($role) {
-                                    $roleids[] = $role->id;
-                                }
-                            }
-                        }
-                    }
-
-                    // If no valid roles found, use role ID 0 as fallback.
-                    if (empty($roleids)) {
-                        $roleids = [0];
-                    }
+                    $roleids = $itemrow['resolved_roleids'];
 
                     // Get max sort order for items in this category.
                     $maxitemsortorder = $DB->get_field_sql(
@@ -482,17 +490,73 @@ class sharing_manager {
             // Update master category order.
             self::update_master_category_order($masterid);
 
+            $transaction->allow_commit();
+
             return [
                 'success' => true,
                 'imported' => $importedcount,
                 'message' => get_string('importsuccessful', 'mod_bookit', $importedcount),
             ];
         } catch (\Exception $e) {
+            if (isset($transaction)) {
+                try {
+                    $transaction->rollback($e);
+                } catch (\Throwable $rethrown) {
+                    // Rollback rethrows after undoing the writes; report that exception.
+                    $e = $rethrown;
+                }
+            }
             return [
                 'success' => false,
                 'message' => get_string('importfailed', 'mod_bookit', $e->getMessage()),
             ];
         }
+    }
+
+    /**
+     * Resolve CSV role shortnames for one item row.
+     *
+     * An empty list keeps the existing meaning of every role. Named roles drop Observer.
+     * If names were given and nothing assignable remains, the row fails.
+     *
+     * @param array $itemrow Parsed CSV row
+     * @param int $linenumber File line number, header is line 1
+     * @return array roleids or error
+     */
+    private static function resolve_import_roleids(array $itemrow, int $linenumber): array {
+        if (empty($itemrow['role_shortnames'])) {
+            return ['roleids' => [0]];
+        }
+
+        $roleshortnames = json_decode($itemrow['role_shortnames'], true);
+        if (!is_array($roleshortnames)) {
+            return ['error' => get_string('checklistimport_badline', 'mod_bookit', $linenumber)];
+        }
+
+        $named = [];
+        foreach ($roleshortnames as $shortname) {
+            $shortname = trim((string) $shortname);
+            if ($shortname !== '') {
+                $named[] = $shortname;
+            }
+        }
+        if ($named === []) {
+            return ['roleids' => [0]];
+        }
+
+        $roleids = [];
+        foreach ($named as $shortname) {
+            $role = self::find_role_by_shortname($shortname);
+            if ($role) {
+                $roleids[] = (int) $role->id;
+            }
+        }
+        $roleids = checklist_manager::strip_observer_roleids($roleids);
+        if ($roleids === []) {
+            return ['error' => get_string('checklistimport_norole', 'mod_bookit', $linenumber)];
+        }
+
+        return ['roleids' => $roleids];
     }
 
     /**
