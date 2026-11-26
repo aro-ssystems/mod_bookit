@@ -9,7 +9,7 @@ Feature: Delete resource category
     And I navigate to "Plugins > Activity modules > BookIt" in site administration
     And I check "Enable resources module"
     And I press "Save changes"
-    And I click on "Run install helper" "link"
+    And I click on "Install BookIt roles" "link"
     And the Bookit default resource data exists
     And I log out
 
