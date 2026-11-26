@@ -1556,7 +1556,7 @@ class install_helper {
     private static function default_room_record(): \stdClass {
         return (object)[
             'name' => self::DEFAULT_ROOM_NAME,
-            'shortname' => '',
+            'shortname' => room::DEFAULT_SHORTNAME,
             'description' => self::DEFAULT_ROOM_DESCRIPTION,
             'location' => '',
             'eventcolor' => '',

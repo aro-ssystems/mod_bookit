@@ -56,6 +56,8 @@ echo $OUTPUT->render(new \core\output\single_button(
     single_button::BUTTON_PRIMARY
 )) . '<br><br>';
 
+$PAGE->requires->js_call_amd('mod_bookit/rooms_table_toggle', 'init');
+
 $table = new rooms_table();
 
 $table->out(48, false);

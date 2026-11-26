@@ -123,7 +123,15 @@ class edit_resource_form extends dynamic_form {
         $mform->addHelpButton('active', 'resources:active', 'mod_bookit');
 
         // Field: roomids (multi-select).
-        $rooms = $this->get_rooms_for_select();
+        $resourceid = $this->optional_param('id', 0, PARAM_INT);
+        $assignedids = [];
+        if ($resourceid) {
+            $existing = resource_manager::get_resource_by_id($resourceid);
+            if ($existing) {
+                $assignedids = $existing->get_roomids() ?? [];
+            }
+        }
+        $rooms = $this->get_rooms_for_select($assignedids);
         $select = $mform->addElement('select', 'roomids', get_string('resources:rooms', 'mod_bookit'), $rooms);
         $select->setMultiple(true);
         $select->setSize(8);
@@ -167,14 +175,25 @@ class edit_resource_form extends dynamic_form {
     /**
      * Get rooms for select dropdown.
      *
+     * @param int[] $assignedids Room ids already stored on this resource
      * @return array Array of room id => name
      */
-    private function get_rooms_for_select(): array {
+    private function get_rooms_for_select(array $assignedids = []): array {
         global $DB;
         $rooms = $DB->get_records('bookit_room', ['active' => 1], 'name ASC', 'id, name');
         $roomoptions = [];
         foreach ($rooms as $room) {
-            $roomoptions[$room->id] = format_string($room->name);
+            $roomoptions[(int) $room->id] = format_string($room->name);
+        }
+        foreach ($assignedids as $roomid) {
+            $roomid = (int) $roomid;
+            if ($roomid === 0 || isset($roomoptions[$roomid])) {
+                continue;
+            }
+            $name = $DB->get_field('bookit_room', 'name', ['id' => $roomid]);
+            if ($name !== false && $name !== null) {
+                $roomoptions[$roomid] = format_string($name);
+            }
         }
         return $roomoptions;
     }

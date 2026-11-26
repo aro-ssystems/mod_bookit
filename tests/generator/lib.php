@@ -57,7 +57,13 @@ class mod_bookit_generator extends testing_module_generator {
 
         $roomid = 1;
         if (!empty($event['room'])) {
-            $room = $DB->get_record('bookit_room', ['name' => $event['room']], 'id', IGNORE_MISSING);
+            $room = $DB->get_record_select(
+                'bookit_room',
+                $DB->sql_compare_text('name') . ' = ' . $DB->sql_compare_text(':name'),
+                ['name' => $event['room']],
+                'id',
+                IGNORE_MULTIPLE
+            );
             if ($room) {
                 $roomid = (int)$room->id;
             }
@@ -141,7 +147,11 @@ class mod_bookit_generator extends testing_module_generator {
         $record->description = $room['description'] ?? '';
         $record->location = $room['location'] ?? '';
         $record->eventcolor = $room['eventcolor'] ?? '#3a87ad';
-        $record->active = isset($room['active']) ? (int)(bool)$room['active'] : 1;
+        if (!isset($room['active']) || !in_array($room['active'], [0, '0', false, 'false'], true)) {
+            $record->active = 1;
+        } else {
+            $record->active = 0;
+        }
         $record->roommode = $room['roommode'] ?? 0;
         $record->seats = $room['seats'] ?? 10;
         $record->extratimebefore = 0;

@@ -23,6 +23,7 @@
  */
 
 use mod_bookit\event\course_module_viewed;
+use mod_bookit\local\manager\color_manager;
 use mod_bookit\local\manager\resource_manager;
 use mod_bookit\local\manager\event_manager;
 use mod_bookit\local\manager\event_access_manager;
@@ -226,8 +227,43 @@ foreach ($statusmap as $scode => $label) {
     ];
 }
 
+// Booking-facing room legend (active rooms only; separate from filter dropdown).
+$legendrooms = resource_manager::get_active_rooms_for_legend();
+$overviewurl = (new moodle_url('/mod/bookit/room_overview.php', ['id' => $cm->id]))->out(false);
+$legendbuttons = [];
+$previewparts = [];
+foreach ($legendrooms as $legendroom) {
+    $description = trim((string) $legendroom['description']);
+    $seatsline = get_string('room_legend_seats', 'mod_bookit', $legendroom['seats']);
+    $tooltipparts = [];
+    if ($description !== '') {
+        // Keep "<" as text. format_string() drops unknown tags such as "<Studio>".
+        $tooltipparts[] = s($description);
+    }
+    $tooltipparts[] = s($seatsline);
+    $eventcolor = $legendroom['eventcolor'];
+    $hascolor = $eventcolor !== '';
+    $legendbuttons[] = [
+        'shortname' => $legendroom['shortname'],
+        'name' => $legendroom['name'],
+        'tooltiphtml' => implode('<br>', $tooltipparts),
+        'hascolor' => $hascolor,
+        'eventcolor' => $eventcolor,
+        'textcolor' => $hascolor ? color_manager::get_textcolor_for_background($eventcolor) : '',
+    ];
+    $previewparts[] = s($legendroom['shortname']);
+}
+$templatecontext['roomlegend'] = [
+    'overviewurl' => $overviewurl,
+    'previewhtml' => implode(', ', $previewparts),
+    'hasrooms' => $legendbuttons !== [],
+    'rooms' => $legendbuttons,
+];
+
 // Render HTML via mustache templates.
 echo $OUTPUT->render_from_template('mod_bookit/view/calendar_view', $templatecontext);
+
+$PAGE->requires->js_call_amd('mod_bookit/room_legend', 'init');
 
 // Initialise AMD calendar (from original file).
 $PAGE->requires->js_call_amd(

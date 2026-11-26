@@ -71,6 +71,7 @@
     * statuses Array of status options:
       - value String Status code
       - label String Status label
+    * roomlegend Object context for room_legend partial (optional)
 
     Example context (json):
     {
@@ -82,6 +83,10 @@
 
 
 <div class="mod_bookit-view-calendar_view">
+
+    {{#roomlegend}}
+        {{> mod_bookit/view/room_legend }}
+    {{/roomlegend}}
 
     {{! Filter UI + hidden selects (existing logic listens to selects) }}
     <div class="bookit-filters">
