@@ -21,6 +21,7 @@
  * @copyright  2025 Justus Dieckmann RUB
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_bookit\local\persistent;
 
 use core\persistent;

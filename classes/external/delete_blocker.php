@@ -21,6 +21,7 @@
  * @copyright   2025 Justus Dieckmann
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_bookit\external;
 
 use core_external\external_api;
