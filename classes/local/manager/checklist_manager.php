@@ -22,6 +22,7 @@
  * @author      Andreas Rosenthal
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_bookit\local\manager;
 
 use dml_exception;

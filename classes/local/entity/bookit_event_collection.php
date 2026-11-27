@@ -21,6 +21,7 @@
  * @copyright   2025 Vadym Kuzyak, Humboldt Universität Berlin
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace mod_bookit\local\entity;
 
 /**

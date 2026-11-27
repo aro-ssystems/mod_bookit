@@ -23,6 +23,7 @@
  */
 
 namespace mod_bookit\event;
+
 use coding_exception;
 use context_module;
 use core\event\base;

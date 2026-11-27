@@ -43,6 +43,7 @@ use mod_bookit\local\persistent\institution;
 use mod_bookit\local\persistent\room;
 use moodle_url;
 use stdClass;
+
 use function bookit_allowed_weekdays;
 
 /**

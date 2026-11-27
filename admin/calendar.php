@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 use mod_bookit\form\settings_calendar_form;
 use mod_bookit\local\tabs;
 

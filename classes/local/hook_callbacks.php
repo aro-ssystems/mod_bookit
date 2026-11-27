@@ -33,6 +33,7 @@ use dml_exception;
 use moodle_url;
 use navigation_node;
 use pix_icon;
+
 use function has_capability;
 
 /**
